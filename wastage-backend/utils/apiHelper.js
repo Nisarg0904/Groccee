@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const USER_BACKEND_URL = process.env.USER_BACKEND_URL || "http://localhost:5000";
-const GROCERYITEM_BACKEND_URL = process.env.GROCERYITEM_BACKEND_URL || "http://localhost:5002";
+const GROCERYITEM_BACKEND_URL = process.env.GROCERYITEM_BACKEND_URL || "http://localhost:5004";
 
 // Validate user_id via user-backend
 async function validateUser(userId) {
