@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { INTEGER } = require('sequelize');
 
 const recipeSchema = new mongoose.Schema({
   name: {
@@ -27,6 +28,10 @@ const recipeSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  user_id:{
+    type: Number,
+    required:true,
+  }
 });
 
 module.exports = mongoose.model('Recipe', recipeSchema);
