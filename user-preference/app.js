@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 const bodyParser = require("body-parser");
 const express = require('express');
 const connectDB = require('./config/db');
+const userPrefRoutes = require('./routes/userPrefRoutes')
 
 dotenv.config();
 connectDB();
@@ -12,7 +13,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 
-// app.use('/api/userPreference');
+app.use('/api/userPreference', userPrefRoutes);
 
 app.get('/', (req, res) => {
     res.send('User Preference service is running!');
