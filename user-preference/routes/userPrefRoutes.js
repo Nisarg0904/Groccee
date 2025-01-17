@@ -5,7 +5,7 @@ const {
   getUserPreferenceById,
   updateUserPreference,
   deleteUserPreference,
-} = require('../controllers/userPreferenceControllerr');
+} = require('../controllers/userPreferenceController');
 
 const router = express.Router();
 
