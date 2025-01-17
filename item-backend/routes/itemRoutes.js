@@ -1,10 +1,7 @@
 const express = require("express");
 const Item = require("../models/Item");
 const router = express.Router();
-<<<<<<< HEAD
-=======
 const mongoose = require("mongoose");
->>>>>>> 30046fa7ade6c0e546e0d0a0305948eff3fee2e4
 
 // Create a new item
 router.post("/", async (req, res) => {
@@ -50,8 +47,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
 // Get item by ID
 router.get("/:id", async (req, res) => {
   try {
@@ -78,5 +73,4 @@ router.get("/:id", async (req, res) => {
 });
 
 
->>>>>>> 30046fa7ade6c0e546e0d0a0305948eff3fee2e4
 module.exports = router;

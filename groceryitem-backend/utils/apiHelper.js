@@ -3,7 +3,7 @@ const axios = require('axios');
 
 
 const USER_BACKEND_URL = process.env.USER_BACKEND_URL || 'http://localhost:5000';
-const ITEM_BACKEND_URL = process.env.ITEM_BACKEND_URL || 'http://localhost:5001';
+const ITEM_BACKEND_URL = process.env.ITEM_BACKEND_URL || 'http://localhost:5006';
 
 // Validate user_id via user-backend
 async function validateUser(userId) {

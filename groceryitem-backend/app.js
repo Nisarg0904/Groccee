@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5004;
 app.listen(PORT, () => {
   console.log(`GroceryItem service running on port ${PORT}`);
 });
