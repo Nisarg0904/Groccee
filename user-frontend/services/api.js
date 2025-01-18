@@ -5,11 +5,19 @@ import axios from "axios";
 
 // Create an Axios instance with a base URL and default headers
 const api = axios.create({
-  baseURL: "http://10.0.97.136:5000/api",
+  baseURL: "http://10.0.2.2:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
+export const resendVerificationEmail = async (data) => {
+  try {
+    const response = await api.post("/users/resend-verification-email", data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
 
 // API to register a new user
 export const signUpUser = async (userData) => {
@@ -21,6 +29,14 @@ export const signUpUser = async (userData) => {
   }
 };
 
+export const sendPasswordResetEmail = async (data) => {
+  try {
+    const response = await api.post("/users/send-password-reset", data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
 // API to login a user
 export const signInUser = async (credentials) => {
   try {

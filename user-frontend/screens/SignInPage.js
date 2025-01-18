@@ -1,33 +1,59 @@
 import React, { useState, useContext } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import { UserContext } from "../contexts/UserContext"; // Import UserContext
-import { signInUser } from "../services/api"; // Import API function for sign in
-import styles from "../styles/SignInPageStyles"; // Import separate styles
+import { UserContext } from "../contexts/UserContext";
+import { signInUser, resendVerificationEmail } from "../services/api";
+import styles from "../styles/SignInPageStyles";
 
 const SignInPage = ({ navigation }) => {
   const [input, setInput] = useState(""); // Can be either email or username
   const [password, setPassword] = useState("");
-  const { setToken, setCurrentUser } = useContext(UserContext); // Use setToken to store the JWT
+  const [emailToResend, setEmailToResend] = useState(""); // For resend verification
+  const { setToken, setCurrentUser } = useContext(UserContext);
 
   const handleSignIn = async () => {
     try {
-      // Sending the user credentials to the backend for verification
-      const credentials = { input, password }; // Change 'email' to 'input'
+      const credentials = { input, password };
       const response = await signInUser(credentials);
 
-      // Extract the token from the response
       const { token, user } = response;
 
       if (token && user) {
-        setToken(token); // Save the token in UserContext
-        setCurrentUser(user); // Set the current user in context
+        setToken(token);
+        setCurrentUser(user);
         Alert.alert("Success", "You are signed in!");
         navigation.navigate("MainMenu");
-      } else {
-        throw new Error("Invalid response from server");
       }
     } catch (error) {
-      Alert.alert("Sign In Failed", error.message);
+      if (error.message.includes("Please verify your email")) {
+        Alert.alert(
+          "Email Not Verified",
+          "Would you like to resend the verification email?",
+          [
+            {
+              text: "Resend Email",
+              onPress: () => handleResendVerification(input),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Sign In Failed", error.message);
+      }
+    }
+  };
+
+  const handleResendVerification = async (email) => {
+    try {
+      await resendVerificationEmail({ email });
+      Alert.alert(
+        "Success",
+        "Verification email has been resent. Please check your inbox."
+      );
+    } catch (error) {
+      Alert.alert("Error", error.message);
     }
   };
 
