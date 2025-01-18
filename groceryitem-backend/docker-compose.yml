@@ -14,16 +14,16 @@ services:
       - ./postgres_data/grocery_db:/var/lib/postgresql/data
   
   
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin_groceryitem
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: password
-    ports:
-      - "8081:80"
-    depends_on:
-      - postgres
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin_groceryitem
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: password
+  #   ports:
+  #     - "8081:80"
+  #   depends_on:
+  #     - postgres
 
 volumes:
   postgres_data:

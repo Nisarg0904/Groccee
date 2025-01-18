@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const groceryItemDB = require("../config/groceryitem_db"); // Adjust the path as needed
+const groceryItemDB = require("../config/groceryitem_db");
 
 const GroceryItem = groceryItemDB.define(
   "GroceryItem",
@@ -33,28 +33,32 @@ const GroceryItem = groceryItemDB.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-   user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false, // Just store user_id as a plain integer
-      },
+    default_packaging: {
+      type: DataTypes.JSONB, // JSON field to store packaging details
+      allowNull: true,
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
-    tableName: "grocery_item", // Explicitly specify the table name
-    timestamps: false, // Disable `createdAt` and `updatedAt` fields
+    tableName: "grocery_item",
+    timestamps: false,
   }
 );
 
-
-// Define associations
-GroceryItem.associate = (models) => {
-  const { User } = models; // Destructure User model from models
-  GroceryItem.belongsTo(User, {
-    foreignKey: "user_id",
-    targetKey: "id", // Assuming "id" is the primary key in the User table
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-  });
-};
-
-
 module.exports = GroceryItem;
+
+// // Define associations
+// GroceryItem.associate = (models) => {
+//   const { User } = models; // Destructure User model from models
+//   GroceryItem.belongsTo(User, {
+//     foreignKey: "user_id",
+//     targetKey: "id", // Assuming "id" is the primary key in the User table
+//     onDelete: "CASCADE",
+//     onUpdate: "CASCADE",
+//   });
+// };
+
+// module.exports = GroceryItem;
