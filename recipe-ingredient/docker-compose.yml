@@ -1,0 +1,29 @@
+
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_recipe_ingredient
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: recipe_ingredient_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./postgres_data/recipe_ingredient_db:/var/lib/postgresql/data
+  
+  
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin_groceryitem
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: password
+  #   ports:
+  #     - "8081:80"
+  #   depends_on:
+  #     - postgres
+
+volumes:
+  postgres_data:

@@ -5,11 +5,12 @@ import axios from "axios";
 
 // Create an Axios instance with a base URL and default headers
 const api = axios.create({
-  baseURL: "http://10.0.97.136:5000/api",
+  baseURL: "http://10.0.2.2:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // API to register a new user
 export const signUpUser = async (userData) => {
