@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
 import { UserContext } from "../contexts/UserContext";
-import { signInUser, resendVerificationEmail } from "../services/api";
+import { signInUser, resendVerificationEmail } from "../services/userApi";
 import styles from "../styles/SignInPageStyles";
 
 const SignInPage = ({ navigation }) => {

@@ -1,4 +1,3 @@
-// frontend/navigation/AppNavigator.js
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -9,8 +8,9 @@ import SignInPage from "../screens/SignInPage";
 import SignUpPage from "../screens/SignUpPage";
 import ProfileSetupPage from "../screens/ProfileSetupPage";
 import MainMenuPage from "../screens/MainMenuPage";
-
-
+import AddGroceryPage from "../screens/AddGroceryPage"; // Import new screen
+import ViewGroceriesPage from "../screens/ViewGroceriesPage"; // Import new screen
+import EditGroceryPage from "../screens/EditGroceryPage"; // Import new screen
 
 const Stack = createStackNavigator();
 
@@ -33,7 +33,10 @@ const AppNavigator = () => {
         {/* Main Menu Screen */}
         <Stack.Screen name="MainMenu" component={MainMenuPage} />
 
-        {/* Other Screens */}
+        {/* Grocery Management Screens */}
+        <Stack.Screen name="AddGrocery" component={AddGroceryPage} />
+        <Stack.Screen name="ViewGroceries" component={ViewGroceriesPage} />
+        <Stack.Screen name="EditGrocery" component={EditGroceryPage} />
       </Stack.Navigator>
     </NavigationContainer>
   );

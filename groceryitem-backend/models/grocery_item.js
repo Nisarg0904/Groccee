@@ -25,17 +25,13 @@ const GroceryItem = groceryItemDB.define(
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
+    purchased_quantity: {
+      type: DataTypes.INTEGER, // Total quantity when purchased
+      allowNull: false,
+    },
     available_quantity: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    quantity: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    default_packaging: {
-      type: DataTypes.JSONB, // JSON field to store packaging details
-      allowNull: true,
+      type: DataTypes.INTEGER, // Quantity remaining
+      allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER,
@@ -49,16 +45,3 @@ const GroceryItem = groceryItemDB.define(
 );
 
 module.exports = GroceryItem;
-
-// // Define associations
-// GroceryItem.associate = (models) => {
-//   const { User } = models; // Destructure User model from models
-//   GroceryItem.belongsTo(User, {
-//     foreignKey: "user_id",
-//     targetKey: "id", // Assuming "id" is the primary key in the User table
-//     onDelete: "CASCADE",
-//     onUpdate: "CASCADE",
-//   });
-// };
-
-// module.exports = GroceryItem;

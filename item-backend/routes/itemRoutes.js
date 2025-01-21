@@ -4,7 +4,6 @@ const Item = require("../models/Item");
 const authenticateToken = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// Create a new item
 router.post("/", authenticateToken, async (req, res) => {
   const { name, unit, price_per_unit, default_packaging } = req.body;
 
@@ -13,7 +12,25 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 
   try {
-    const newItem = new Item({ name, unit, price_per_unit, default_packaging });
+    const lowerCaseName = name.toLowerCase();
+
+    // Check if an item with the same name exists
+    const existingItem = await Item.findOne({ name: lowerCaseName });
+
+    if (existingItem) {
+      return res
+        .status(400)
+        .json({ message: `An item with the name "${name}" already exists.` });
+    }
+
+    // Create a new item
+    const newItem = new Item({
+      name: lowerCaseName,
+      unit: unit.toLowerCase(),
+      price_per_unit,
+      default_packaging,
+    });
+
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
@@ -21,6 +38,7 @@ router.post("/", authenticateToken, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
 
 // Get all items
 router.get("/", async (req, res) => {
@@ -60,7 +78,7 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 // Get item by name
 router.get("/by-name/:name", async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = req.params.name.toLowerCase();
     const item = await Item.findOne({ name });
 
     if (!item) {
@@ -73,6 +91,8 @@ router.get("/by-name/:name", async (req, res) => {
     res.status(500).json({ message: "Server error while fetching item" });
   }
 });
+
+
 
 // Get item by ID
 router.get("/:id", async (req, res) => {

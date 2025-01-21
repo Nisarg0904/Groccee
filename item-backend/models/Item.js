@@ -1,18 +1,39 @@
 const mongoose = require("mongoose");
 
-const itemSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  unit: { type: String, required: true },
-  price_per_unit: { type: Number, required: true },
+const ItemSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true, // Converts the name to lowercase before saving
+    trim: true, // Removes whitespace around the name
+  },
+  unit: {
+    type: String,
+    required: true,
+    lowercase: true, // Converts the unit to lowercase
+  },
+  price_per_unit: {
+    type: Number,
+    required: true,
+  },
   default_packaging: [
     {
-      quantity: { type: Number },
-      unit: { type: String },
-      price: { type: Number },
+      quantity: { type: Number, required: true },
+      unit: { type: String, required: true, lowercase: true },
+      price: { type: Number, required: true },
     },
   ],
-  times_bought: { type: Number, default: 0 },
-  times_wasted: { type: Number, default: 0 },
+  times_bought: {
+    type: Number,
+    default: 0,
+  },
+  times_wasted: {
+    type: Number,
+    default: 0,
+  },
 });
 
-module.exports = mongoose.model("Item", itemSchema);
+const Item = mongoose.model("Item", ItemSchema);
+
+module.exports = Item;

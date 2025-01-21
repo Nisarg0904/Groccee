@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import { signUpUser } from "../services/api";
+import { signUpUser } from "../services/userApi";
 import styles from "../styles/SignUpPageStyles";
 
 const SignUpPage = ({ navigation }) => {

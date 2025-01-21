@@ -1,47 +1,51 @@
 const GroceryItem = require("../models/grocery_item");
 const { validateUser, validateItem } = require("../utils/apiHelper");
 
-// Create a grocery item
+
 async function createGroceryItem(req, res) {
   const {
-    item_identifier, // This could be the item_id or name
+    item_identifier,
     purchased_price,
     purchased_on,
     expiry_date,
-    quantity,
+    purchased_quantity,
+    available_quantity,
+    packaging,
   } = req.body;
 
   try {
-    // Validate or fetch the item using the identifier (id or name)
-    const item = await validateItem(item_identifier);
+    const token = req.header("Authorization").split(" ")[1]; // Extract token from header
+
+    // Validate or create the item
+    const item = await validateItem(item_identifier, packaging, token);
 
     if (!item || !item._id) {
       throw new Error("Invalid item returned from validation");
     }
 
-    // Create a grocery item with the referenced item_id
+    // Create a grocery item
     const groceryItem = await GroceryItem.create({
       item_id: item._id,
       purchased_price,
       purchased_on,
       expiry_date,
-      quantity,
-      user_id: req.user.id, // Use the user's ID from the token
+      purchased_quantity,
+      available_quantity: available_quantity || purchased_quantity, // Default to purchased_quantity
+      packaging,
+      user_id: req.user.id,
     });
 
     res.status(201).json(groceryItem);
   } catch (error) {
     console.error("Error adding grocery item:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 }
 
 
-module.exports = { createGroceryItem };
 // Get all grocery items
 async function getAllGroceryItems(req, res) {
   try {
-    // Fetch all grocery items for the authenticated user
     const groceryItems = await GroceryItem.findAll({
       where: { user_id: req.user.id },
     });
@@ -52,6 +56,23 @@ async function getAllGroceryItems(req, res) {
     res.status(500).json({ message: "Failed to fetch grocery items" });
   }
 }
+
+// Get all grocery items for the authenticated user
+async function getAllUserGroceries(req, res) {
+  try {
+    const groceryItems = await GroceryItem.findAll({
+      where: { user_id: req.user.id }, // Fetch items specific to the user
+    });
+
+    res.status(200).json(groceryItems);
+  } catch (error) {
+    console.error("Error fetching grocery items:", error.message);
+    res.status(500).json({ message: "Failed to fetch grocery items" });
+  }
+}
+
+
+
 
 // Get a grocery item by ID
 async function getGroceryItemById(req, res) {
@@ -70,38 +91,33 @@ async function getGroceryItemById(req, res) {
     res.status(500).json({ message: "Failed to fetch grocery item" });
   }
 }
-
-// Update a grocery item
 async function updateGroceryItem(req, res) {
-  const { id } = req.params;
-  const {
-    user_id,
-    item_id,
-    purchased_price,
-    purchased_on,
-    expiry_date,
-    available_quantity,
-    quantity,
-  } = req.body;
+  const { id } = req.params; // Grocery item ID
+  const { available_quantity, expiry_date, purchased_price } = req.body; // Fields to update
 
   try {
-    // Validate the item and user if provided
-    if (user_id) await validateUser(user_id);
-    if (item_id) await validateItem(item_id);
+    const user_id = req.user.id; // Get user ID from token
 
-    // Update the grocery item
-    const updated = await GroceryItem.update(
-      {
-        user_id,
-        item_id,
-        purchased_price,
-        purchased_on,
-        expiry_date,
-        available_quantity,
-        quantity,
+    if (!available_quantity && !expiry_date && !purchased_price) {
+      return res
+        .status(400)
+        .json({ message: "Please provide fields to update." });
+    }
+
+    const updatePayload = {};
+    if (available_quantity !== undefined)
+      updatePayload.available_quantity = available_quantity;
+    if (expiry_date !== undefined) updatePayload.expiry_date = expiry_date;
+    if (purchased_price !== undefined)
+      updatePayload.purchased_price = purchased_price;
+
+    // Update the grocery item for the authenticated user
+    const updated = await GroceryItem.update(updatePayload, {
+      where: {
+        grocery_item_id: id,
+        user_id: user_id, // Ensure the user owns the item
       },
-      { where: { grocery_item_id: id } }
-    );
+    });
 
     if (!updated[0]) {
       return res.status(404).json({ message: "Grocery item not found" });
@@ -110,9 +126,10 @@ async function updateGroceryItem(req, res) {
     res.status(200).json({ message: "Grocery item updated successfully" });
   } catch (error) {
     console.error("Error updating grocery item:", error.message);
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: "Failed to update grocery item" });
   }
 }
+
 
 // Delete a grocery item
 async function deleteGroceryItem(req, res) {
@@ -140,4 +157,5 @@ module.exports = {
   getGroceryItemById,
   updateGroceryItem,
   deleteGroceryItem,
+  getAllUserGroceries,
 };

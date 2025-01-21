@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const authenticateToken = require("../middleware/authMiddleware");
 const sendEmail = require("../services/emailService"); // Import the email service
 
-
 // 1. Send Verification Email
 router.post("/send-verification-email", async (req, res) => {
   const { email } = req.body;
@@ -27,9 +26,10 @@ router.post("/send-verification-email", async (req, res) => {
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     const subject = "Email Verification";
+    const text = `Click on the link to verify your email: ${verificationUrl}`;
     const htmlMessage = `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`;
 
-    await sendEmail(email, subject, htmlMessage);
+    await sendEmail(email, subject, text, htmlMessage);
     res.status(200).json({ message: "Verification email sent successfully." });
   } catch (err) {
     res
@@ -79,9 +79,10 @@ router.post("/send-password-reset", async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
     const subject = "Password Reset";
+    const text = `Click on the link to reset your password: ${resetUrl}`;
     const htmlMessage = `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`;
 
-    await sendEmail(email, subject, htmlMessage);
+    await sendEmail(email, subject, text, htmlMessage);
     res
       .status(200)
       .json({ message: "Password reset email sent successfully." });
@@ -141,9 +142,10 @@ router.post("/resend-verification-email", async (req, res) => {
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     const subject = "Email Verification";
+    const text = `Click on the link to verify your email: ${verificationUrl}`;
     const htmlMessage = `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`;
 
-    await sendEmail(email, subject, htmlMessage);
+    await sendEmail(email, subject, text, htmlMessage);
     res.status(200).json({ message: "Verification email sent successfully." });
   } catch (err) {
     res.status(500).json({
