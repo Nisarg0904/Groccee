@@ -1,77 +1,52 @@
 import { StyleSheet } from "react-native";
-import { COLORS } from "./WelcomePageStyles"; 
-
+import { COLORS } from "./WelcomePageStyles";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1d2f23", // Forest Green
-  },
-  // gradient: {
-  //   flex: 1,
-  // },
-  scrollContent: {
-    flexGrow: 1,
+    backgroundColor: COLORS.accent,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: COLORS.white,
-    marginBottom: 20,
+    marginBottom: 30,
+    textAlign: "center",
   },
   input: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: COLORS.lightText,
-    padding: 15,
-    marginBottom: 16,
+    borderWidth: 0,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 15,
     borderRadius: 12,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     color: COLORS.white,
     fontSize: 16,
   },
-  passwordContainer: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.lightText,
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  passwordInput: {
-    flex: 1,
-    color: COLORS.white,
-    fontSize: 16,
-  },
-  passwordHint: {
-    color: COLORS.white,
-    fontSize: 12,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  signUpButton: {
+  signInButton: {
     backgroundColor: COLORS.tertiary,
-    paddingVertical: 12, // Reduced size
-    width: "80%", // Smaller button width
-    borderRadius: 12,
+    paddingVertical: 14,
+    width: "80%",
+    borderRadius: 25,
     alignItems: "center",
     marginTop: 20,
+    elevation: 4,
   },
-  signUpButtonText: {
+  signInButtonText: {
     color: COLORS.accent,
-    fontSize: 16, // Smaller text size
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
   },
-  signInRedirectText: {
-    color: "red", // Changed to red
-    margin: 10,
-    fontSize: 14,
+  signUpText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: COLORS.lightText,
+    textDecorationLine: "underline",
+    textAlign: "center",
   },
 });
 
