@@ -1,33 +1,52 @@
-// frontend/styles/SignUpPageStyles.js
 import { StyleSheet } from "react-native";
+import { COLORS } from "./WelcomePageStyles";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.accent,
     justifyContent: "center",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
+    color: COLORS.white,
+    marginBottom: 30,
+    textAlign: "center",
   },
   input: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    marginBottom: 12,
-    borderRadius: 8,
+    borderWidth: 0,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 15,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: COLORS.white,
+    fontSize: 16,
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
+  signInButton: {
+    backgroundColor: COLORS.tertiary,
+    paddingVertical: 14,
+    width: "80%",
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 20,
+    elevation: 4,
   },
-  button: {
-    marginHorizontal: 8,
+  signInButtonText: {
+    color: COLORS.accent,
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  signUpText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: COLORS.lightText,
+    textDecorationLine: "underline",
+    textAlign: "center",
   },
 });
 

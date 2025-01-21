@@ -1,14 +1,24 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "../contexts/UserContext";
 import { signInUser, resendVerificationEmail } from "../services/userApi";
 import styles from "../styles/SignInPageStyles";
 
 const SignInPage = ({ navigation }) => {
-  const [input, setInput] = useState(""); // Can be either email or username
+  const [input, setInput] = useState("");
   const [password, setPassword] = useState("");
-  const [emailToResend, setEmailToResend] = useState(""); // For resend verification
   const { setToken, setCurrentUser } = useContext(UserContext);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -45,46 +55,52 @@ const SignInPage = ({ navigation }) => {
     }
   };
 
-  const handleResendVerification = async (email) => {
-    try {
-      await resendVerificationEmail({ email });
-      Alert.alert(
-        "Success",
-        "Verification email has been resent. Please check your inbox."
-      );
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={["#1d2f23", "#3f6a54", "#4f6e71"]} style={styles.gradient}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Sign In</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email or Username"
-        value={input}
-        onChangeText={setInput}
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Email or Username"
+            placeholderTextColor="#D3D3D3"
+            value={input}
+            onChangeText={setInput}
+          />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              placeholderTextColor="#D3D3D3"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <MaterialIcons
+                name={showPassword ? "visibility" : "visibility-off"}
+                size={24}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
 
-      <Button title="Sign In" onPress={handleSignIn} />
+          <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+            <Text style={styles.signInButtonText}>Sign In</Text>
+          </TouchableOpacity>
 
-      <Text
-        style={styles.signUpText}
-        onPress={() => navigation.navigate("SignUp")}
-      >
-        Don't have an account? Sign Up
-      </Text>
-    </View>
+          <Text
+            style={styles.signUpText}
+            onPress={() => navigation.navigate("SignUp")}
+          >
+            Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
+          </Text>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
