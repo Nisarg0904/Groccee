@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, StatusBar, ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { signUpUser } from "../services/api";
 import styles from "../styles/SignUpPageStyles";
 
@@ -20,103 +21,56 @@ const SignUpPage = ({ navigation }) => {
   };
 
   const handleSignUp = async () => {
-    if (!username) {
-      Alert.alert("Invalid Username", "Please enter a valid username.");
-      return;
-    }
-
-    if (!firstName) {
-      Alert.alert("Invalid First Name", "Please enter your first name.");
-      return;
-    }
-
-    if (!lastName) {
-      Alert.alert("Invalid Last Name", "Please enter your last name.");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
-      return;
-    }
-
+    if (!username.trim()) return Alert.alert("Error", "Username is required.");
+    if (!firstName.trim()) return Alert.alert("Error", "First name is required.");
+    if (!lastName.trim()) return Alert.alert("Error", "Last name is required.");
+    if (!validateEmail(email)) return Alert.alert("Error", "Invalid email address.");
     if (!validatePassword(password)) {
-      Alert.alert(
-        "Weak Password",
-        "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character."
+      return Alert.alert(
+        "Error",
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
       );
-      return;
     }
-
     if (password !== confirmPassword) {
-      Alert.alert("Password Mismatch", "Passwords do not match.");
-      return;
+      return Alert.alert("Error", "Passwords do not match.");
     }
 
     try {
       const userData = { username, firstName, lastName, email, password };
       await signUpUser(userData);
-
-      Alert.alert(
-        "Success",
-        "You have successfully registered! Please verify your email and then sign in.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.navigate("SignIn"),
-          },
-        ]
-      );
+      Alert.alert("Success", "Registration successful! Please sign in.", [
+        { text: "OK", onPress: () => navigation.navigate("SignIn") },
+      ]);
     } catch (error) {
-      Alert.alert("Sign Up Failed", error.message);
+      Alert.alert("Sign Up Failed", error.message || "Something went wrong.");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={["#1d2f23", "#1d2f23"]} style={styles.gradient}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Create an Account</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-      <Button title="Sign Up" onPress={handleSignUp} />
-    </View>
+          <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} placeholderTextColor="#A9A9A9" />
+          <TextInput style={styles.input} placeholder="First Name" value={firstName} onChangeText={setFirstName} placeholderTextColor="#A9A9A9" />
+          <TextInput style={styles.input} placeholder="Last Name" value={lastName} onChangeText={setLastName} placeholderTextColor="#A9A9A9" />
+          <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} placeholderTextColor="#A9A9A9" />
+          <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} placeholderTextColor="#A9A9A9" />
+          <TextInput style={styles.input} placeholder="Confirm Password" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} placeholderTextColor="#A9A9A9" />
+          <Text style={styles.passwordHint}>Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.</Text>
+
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
+            <Text style={styles.signUpButtonText}>Sign Up</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.signInRedirect} onPress={() => navigation.navigate("SignIn")}>
+            <Text style={styles.signInRedirectText}>Already have an account? <Text style={styles.signInLink}>Sign In</Text></Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
