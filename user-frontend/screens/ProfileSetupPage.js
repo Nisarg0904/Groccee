@@ -13,7 +13,7 @@ import {
   updateUserDetails,
   deleteUserAccount,
   getUserProfile,
-} from "../services/api";
+} from "../services/userApi";
 import { UserContext } from "../contexts/UserContext";
 import styles from "../styles/ProfileSetupPageStyles";
 

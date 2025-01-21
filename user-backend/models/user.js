@@ -45,10 +45,6 @@ const User = userDB.define(
     },
     cookingForPeople: {
       type: DataTypes.INTEGER,
-      validate: {
-        min: 1,
-        max: 10,
-      },
       defaultValue: 1,
     },
     cuisinePreference: {
@@ -62,17 +58,30 @@ const User = userDB.define(
       ),
       defaultValue: "none",
     },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    resetToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    resetTokenExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
+module.exports = User;
 const bcrypt = require("bcrypt");
 
 // Hash password before creating a new user
 User.beforeCreate(async (user) => {
-    console.log("Hashing password before create");
+  console.log("Hashing password before create");
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
 });

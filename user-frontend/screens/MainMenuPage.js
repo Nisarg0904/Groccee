@@ -23,6 +23,19 @@ const MainMenuPage = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Manage Profile</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("AddGrocery")}
+      >
+        <Text style={styles.buttonText}>Add Grocery</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ViewGroceries")}
+      >
+        <Text style={styles.buttonText}>View Groceries</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>

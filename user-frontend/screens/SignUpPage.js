@@ -1,17 +1,23 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import { signUpUser } from "../services/api"; // Import API function to handle sign up
-import styles from "../styles/SignUpPageStyles"; // Import separate styles
+import { signUpUser } from "../services/userApi";
+import styles from "../styles/SignUpPageStyles";
 
 const SignUpPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState(""); // Added first name
-  const [lastName, setLastName] = useState(""); // Added last name
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validatePassword = (password) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
 
   const handleSignUp = async () => {
     if (!username) {
@@ -34,13 +40,20 @@ const SignUpPage = ({ navigation }) => {
       return;
     }
 
+    if (!validatePassword(password)) {
+      Alert.alert(
+        "Weak Password",
+        "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character."
+      );
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert("Password Mismatch", "Passwords do not match.");
       return;
     }
 
     try {
-      // Making a request to the backend to create a user
       const userData = { username, firstName, lastName, email, password };
       await signUpUser(userData);
 
@@ -50,7 +63,7 @@ const SignUpPage = ({ navigation }) => {
         [
           {
             text: "OK",
-            onPress: () => navigation.navigate("SignIn"), // Navigate to Sign In page
+            onPress: () => navigation.navigate("SignIn"),
           },
         ]
       );
