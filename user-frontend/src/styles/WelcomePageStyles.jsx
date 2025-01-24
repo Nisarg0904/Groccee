@@ -8,7 +8,7 @@ export const COLORS = {
   xanthous: "#F0B51D",
   sinopia: "#C83701",
   turkeyRed: "#B00005",
-  white: "#FFFFFF",
+  white: "#DADBDD", //Silver White
   black: "#000000",
   lightText: "rgba(255, 255, 255, 0.9)",
   mediumText: "rgba(255, 255, 255, 0.7)",
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: COLORS.white,
     textAlign: "center",
+    fontFamily: "Poppins-Regular",
     marginTop: 20,
     paddingHorizontal: 20,
   },
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     alignItems: "center",
+    color: COLORS.turkeyRed,
     marginBottom: 20,
   },
   signInText: {

@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "../../contexts/UserContext";
 import { signInUser, resendVerificationEmail } from "../../services/userApi";
@@ -41,7 +40,7 @@ const SignInPage = ({ navigation }) => {
           [
             {
               text: "Resend Email",
-              onPress: () => handleResendVerification(input),
+              onPress: () => resendVerificationEmail(input),
             },
             {
               text: "Cancel",
@@ -58,48 +57,46 @@ const SignInPage = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={["#1d2f23", "#3f6a54", "#4f6e71"]} style={styles.gradient}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Sign In</Text>
+      <View style={styles.content}>
+        <Text style={styles.title}>Sign In</Text>
 
+        <TextInput
+          style={styles.input}
+          placeholder="Email or Username"
+          placeholderTextColor="#D3D3D3"
+          value={input}
+          onChangeText={setInput}
+        />
+
+        <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.input}
-            placeholder="Email or Username"
+            style={styles.passwordInput}
+            placeholder="Password"
             placeholderTextColor="#D3D3D3"
-            value={input}
-            onChangeText={setInput}
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
           />
-
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Password"
-              placeholderTextColor="#D3D3D3"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <MaterialIcons
+              name={showPassword ? "visibility" : "visibility-off"}
+              size={24}
+              color="white"
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <MaterialIcons
-                name={showPassword ? "visibility" : "visibility-off"}
-                size={24}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-            <Text style={styles.signInButtonText}>Sign In</Text>
           </TouchableOpacity>
-
-          <Text
-            style={styles.signUpText}
-            onPress={() => navigation.navigate("SignUp")}
-          >
-            Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
-          </Text>
         </View>
-      </LinearGradient>
+
+        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+          <Text style={styles.signInButtonText}>Sign In</Text>
+        </TouchableOpacity>
+
+        <Text
+          style={styles.signUpText}
+          onPress={() => navigation.navigate("SignUp")}
+        >
+          Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
+        </Text>
+      </View>
     </SafeAreaView>
   );
 };

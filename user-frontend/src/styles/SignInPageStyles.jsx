@@ -1,10 +1,9 @@
 import { StyleSheet } from "react-native";
 
 export const COLORS = {
-  primary: "#4f6e71",
-  secondary: "#3f6a54",
-  accent: "#1d2f23",
-  white: "#FFFFFF",
+  black: "#000000",
+  turkeyRed: "#B00005",
+  white: "#DADBDD",
   lightText: "rgba(255, 255, 255, 0.9)",
   mediumText: "rgba(255, 255, 255, 0.7)",
 };
@@ -12,12 +11,10 @@ export const COLORS = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  gradient: {
-    flex: 1,
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.black,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
   },
   content: {
     width: "100%",
@@ -25,26 +22,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
-    color: COLORS.white,
-    marginBottom: 20,
+    color: COLORS.mediumText,
+    fontFamily: "Poppins-Regular",
+    marginBottom: 30,
+    textAlign: "center",
   },
   input: {
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderWidth: 1,
+    borderColor: COLORS.white,
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
     color: COLORS.white,
     fontSize: 16,
+    fontFamily: "JetBrainsMono-Regular",
+    backgroundColor: "transparent",
     marginBottom: 16,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderWidth: 1,
+    borderColor: COLORS.white,
     borderRadius: 12,
     paddingHorizontal: 20,
     marginBottom: 20,
@@ -53,21 +56,25 @@ const styles = StyleSheet.create({
     flex: 1,
     color: COLORS.white,
     fontSize: 16,
+    fontFamily: "JetBrainsMono-Regular",
     paddingVertical: 14,
   },
+  icon: {
+    marginLeft: 10,
+  },
   signInButton: {
-    backgroundColor: "#ffb703",
-    paddingVertical: 14,
+    backgroundColor: COLORS.turkeyRed,
+    paddingVertical: 16,
     borderRadius: 25,
     alignItems: "center",
-    width: "80%",
-    marginTop: 20,
-    elevation: 4, 
+    width: "100%",
+    marginTop: 30,
   },
   signInButtonText: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: "bold",
+    fontFamily: "Poppins-Regular",
   },
   signUpText: {
     color: COLORS.lightText,
@@ -76,7 +83,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   signUpLink: {
-    color: "#DB4437",
+    color: COLORS.turkeyRed,
     fontWeight: "bold",
     textDecorationLine: "underline",
   },

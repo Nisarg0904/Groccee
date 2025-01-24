@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Animated, Image, ScrollView } from "react-native"
-import { LinearGradient } from "expo-linear-gradient"
+// import { LinearGradient } from "expo-linear-gradient"
 import { MaterialIcons, AntDesign, Feather } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import styles, { COLORS } from "../../styles/WelcomePageStyles"
@@ -18,7 +18,7 @@ const WelcomePage = () => {
   }, [])
 
   const renderFeature = (icon, title, description) => (
-    <View style={styles.featureItem}>
+    <View style={styles.featureItem}> 
       <Feather name={icon} size={24} color={COLORS.sinopia} />
       <Text style={styles.featureTitle}>{title}</Text>
       <Text style={styles.featureDescription}>{description}</Text>
@@ -66,7 +66,7 @@ const WelcomePage = () => {
                 onPress={() => navigation.navigate("SignUp")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.ctaText}>Get Started</Text>
+                <Text style={styles.ctaText}>Get Started</Text> 
               </TouchableOpacity>
             </View>
 
