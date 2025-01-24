@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { signUpUser } from "../services/userApi";
 import {
   View,
   Text,
@@ -30,7 +31,7 @@ const SignUpPage = ({ navigation }) => {
     return passwordRegex.test(password);
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!username.trim()) return Alert.alert("Error", "Username is required.");
     if (!firstName.trim()) return Alert.alert("Error", "First name is required.");
     if (!lastName.trim()) return Alert.alert("Error", "Last name is required.");
@@ -47,9 +48,27 @@ const SignUpPage = ({ navigation }) => {
     if (!accepted) {
       return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
-    Alert.alert("Success", "Registration successful! Please sign in.", [
-      { text: "OK", onPress: () => navigation.navigate("SignIn") },
-    ]);
+
+    try {
+      const userData = { username, firstName, lastName, email, password };
+      await signUpUser(userData);
+
+      Alert.alert(
+        "Success",
+        "You have successfully registered! Please verify your email and then sign in.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("SignIn"),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert("Sign Up Failed", error.message);
+    }
+    // Alert.alert("Success", "Registration successful! Please sign in.", [
+    //   { text: "OK", onPress: () => navigation.navigate("SignIn") },
+    // ]);
   };
 
   return (
