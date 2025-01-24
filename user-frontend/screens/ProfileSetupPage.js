@@ -33,12 +33,14 @@ const ProfileSetupPage = ({ navigation }) => {
     const fetchUserData = async () => {
       try {
         const userData = await getUserProfile(token);
-        setFirstName(userData.firstName);
-        setLastName(userData.lastName);
-        setShoppingActivity(userData.shoppingActivity);
-        setDietPreference(userData.dietPreference);
-        setCuisinePreference(userData.cuisinePreference);
-        setCookingForPeople(userData.cookingForPeople);
+
+        // Safely set the values to prevent null/undefined issues
+        setFirstName(userData.firstName || "");
+        setLastName(userData.lastName || "");
+        setShoppingActivity(userData.shoppingActivity || "daily");
+        setDietPreference(userData.dietPreference || "none");
+        setCuisinePreference(userData.cuisinePreference || "none");
+        setCookingForPeople(userData.cookingForPeople || 1);
         setCurrentUser(userData); // Store the user data in context
       } catch (error) {
         Alert.alert("Error", "Failed to fetch user information");
@@ -49,26 +51,32 @@ const ProfileSetupPage = ({ navigation }) => {
   }, [token]);
 
   // Handles updating the profile information
-  const handleProfileSetup = async () => {
-    try {
-      const updatedData = {
-        firstName,
-        lastName,
-        shoppingActivity,
-        dietPreference,
-        cuisinePreference,
-        cookingForPeople,
-      };
-      const updatedUser = await updateUserDetails(token, updatedData);
+const handleProfileSetup = async () => {
+  try {
+    const updatedData = {
+      firstName,
+      lastName,
+      shoppingActivity,
+      dietPreference,
+      cuisinePreference,
+      cookingForPeople,
+    };
 
-      setCurrentUser(updatedUser);
+    console.log("Updated Data:", updatedData); // Log data being sent
+    const updatedUser = await updateUserDetails(token, updatedData);
 
-      Alert.alert("Success", "Profile setup completed!");
-      navigation.navigate("MainMenu");
-    } catch (error) {
-      Alert.alert("Profile Setup Failed", error.message);
-    }
-  };
+    console.log("Updated User:", updatedUser); // Log the response
+
+    setCurrentUser(updatedUser);
+
+    Alert.alert("Success", "Profile setup completed!");
+    navigation.navigate("MainMenu");
+  } catch (error) {
+    console.error("Error updating profile:", error); // Log the error
+    Alert.alert("Profile Setup Failed", error.message || "An error occurred.");
+  }
+};
+
 
   // Handles account deletion
   const handleDeleteAccount = async () => {
@@ -191,46 +199,6 @@ const ProfileSetupPage = ({ navigation }) => {
           <Text style={styles.buttonText}>Delete Account</Text>
         </TouchableOpacity>
       </View>
-
-      <Modal
-        visible={isPasswordModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsPasswordModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Old Password"
-              secureTextEntry
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="New Password"
-              secureTextEntry
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm New Password"
-              secureTextEntry
-            />
-            <TouchableOpacity
-              style={[styles.button, styles.completeButton]}
-              onPress={() => {}}
-            >
-              <Text style={styles.buttonText}>Update Password</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.deleteButton]}
-              onPress={() => setIsPasswordModalVisible(false)}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
