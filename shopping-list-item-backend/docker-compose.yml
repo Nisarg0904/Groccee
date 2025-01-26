@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  # shopping_list_db:
+  #   image: postgres:latest
+  #   container_name: shopping_list_db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: your_password
+  #     POSTGRES_DB: shopping_list_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - shopping-list-db-data:/var/lib/postgresql/data
+
+  shopping_list_item_db:
+    image: postgres:latest
+    container_name: shopping_list_item_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: shopping_list_item_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - shopping-list-item-db-data:/var/lib/postgresql/data
+
+#  shopping_list_service:
+#    build:
+#      context: ./shopping-list-service
+#    ports:
+#      - "5001:5001"
+#    depends_on:
+#      - shopping_list_db
+
+#  shopping_list_item_service:
+#    build:
+#      context: ./shopping-list-item-service
+#    ports:
+#      - "5002:5002"
+#    depends_on:
+#      - shopping_list_item_db
+
+volumes:
+  shopping-list-db-data:
+  shopping-list-item-db-data:

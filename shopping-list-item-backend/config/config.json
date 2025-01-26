@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "your_password",
+    "database": "shopping_list_item_db",
+    "host": "127.0.0.1",
+    "port": 5435,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "your_password",
+    "database": "test_db",
+    "host": "127.0.0.1",
+    "port": 5435,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "your_password",
+    "database": "production_db",
+    "host": "127.0.0.1",
+    "port": 5435,
+    "dialect": "postgres"
+  }
+}

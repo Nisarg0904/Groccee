@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_wastage
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wastage_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./postgres_data/wastage_db:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

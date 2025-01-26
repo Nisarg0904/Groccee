@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "password",
+    "database": "wastage_db",
+    "host": "localhost",
+    "port":5434,
+    "dialect": "postgres"
+  },
+  "test": {
+   "username": "admin",
+    "password": "password",
+    "database": "wastage_db",
+    "host": "localhost",
+    "port":5434,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "admin",
+    "password": "password",
+    "database": "wastage_db",
+    "host": "localhost",
+    "port": 5434,
+    "dialect": "postgres"
+  }
+}

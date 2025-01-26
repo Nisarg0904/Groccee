@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "password",
+    "database": "groceryitem_db",
+    "host": "localhost",
+    "port": 5433,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "admin",
+    "password": "password",
+    "database": "groceryitem_db",
+    "host": "localhost",
+    "port": 5433,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "admin",
+    "password": "password",
+    "database": "groceryitem_db",
+    "host": "localhost",
+    "port": 5433,
+    "dialect": "postgres"
+  }
+}
