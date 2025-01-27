@@ -1,27 +1,33 @@
 const express = require("express");
+const authenticateToken = require("../middleware/authMiddleware"); // Import middleware
+
 const {
   createShoppingList,
   getAllShoppingLists,
   getShoppingListById,
   updateShoppingList,
   deleteShoppingList,
+  getShoppingListByNameAndUser,
 } = require("../controllers/shoppingListController");
 
 const router = express.Router();
 
-// 1. Create a new shopping list
-router.post("/", createShoppingList);
+// 6. Get shopping list by name and user (requires authentication)
+router.get("/search", authenticateToken, getShoppingListByNameAndUser);
 
-// 2. Get all shopping lists (optionally filter by user or status)
-router.get("/", getAllShoppingLists);
+// 1. Create a new shopping list (requires authentication)
+router.post("/", authenticateToken, createShoppingList);
 
-// 3. Get a specific shopping list by ID
-router.get("/:list_id", getShoppingListById);
+// 2. Get all shopping lists (requires authentication)
+router.get("/", authenticateToken, getAllShoppingLists);
 
-// 4. Update a shopping list (e.g., change name or status)
-router.put("/:list_id", updateShoppingList);
+// 3. Get a specific shopping list by ID (requires authentication)
+router.get("/:list_id", authenticateToken, getShoppingListById);
 
-// 5. Delete a shopping list
-router.delete("/:list_id", deleteShoppingList);
+// 4. Update a shopping list (e.g., change name or status) (requires authentication)
+router.put("/:list_id", authenticateToken, updateShoppingList);
+
+// 5. Delete a shopping list (requires authentication)
+router.delete("/:list_id", authenticateToken, deleteShoppingList);
 
 module.exports = router;

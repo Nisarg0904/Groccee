@@ -1,4 +1,5 @@
 import { userAPI } from "./api";
+import axios from "axios";
 
 // Resend verification email
 export const resendVerificationEmail = async (data) => {
@@ -58,18 +59,19 @@ export const getUserProfile = async (token) => {
 };
 
 // Update user details
-export const updateUserDetails = async (token, updatedData) => {
+// Update user details
+export const updateUserDetails = async (token, userData) => {
   try {
-    const response = await userAPI.put("/users/edit", updatedData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await userAPI.put("/users/edit", userData, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error) {
+    console.error("Error in updateUserDetails:", error.response || error);
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
 
 // Delete user account
 export const deleteUserAccount = async (token) => {

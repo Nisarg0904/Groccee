@@ -1,5 +1,10 @@
 const GroceryItem = require("../models/grocery_item");
-const { validateUser, validateItem } = require("../utils/apiHelper");
+const {
+  validateUser,
+  validateItem,
+  addItemToDefaultShoppingList,
+} = require("../utils/apiHelper");
+
 
 
 async function createGroceryItem(req, res) {
@@ -35,7 +40,18 @@ async function createGroceryItem(req, res) {
       user_id: req.user.id,
     });
 
-    res.status(201).json(groceryItem);
+    // Add the item to the default shopping list
+    await addItemToDefaultShoppingList(
+      item._id,
+      purchased_quantity,
+      purchased_price,
+      token
+    );
+
+    res.status(201).json({
+      groceryItem,
+      message: "Grocery item created and added to the default shopping list.",
+    });
   } catch (error) {
     console.error("Error adding grocery item:", error.message);
     res.status(400).json({ message: error.message });

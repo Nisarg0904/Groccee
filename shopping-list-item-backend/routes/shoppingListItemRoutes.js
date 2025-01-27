@@ -1,6 +1,9 @@
 const express = require("express");
+const authenticateToken = require("../middleware/authMiddleware");
+
 const {
   createShoppingListItem,
+  addItemToDefaultShoppingList,
   getItemsInShoppingList,
   updateShoppingListItem,
   deleteShoppingListItem,
@@ -8,16 +11,10 @@ const {
 
 const router = express.Router();
 
-// Create a shopping list item
-router.post("/", createShoppingListItem);
-
-// Get all items in a specific shopping list
-router.get("/:shopping_list_id", getItemsInShoppingList);
-
-// Update a shopping list item
-router.put("/:list_item_id", updateShoppingListItem);
-
-// Delete a shopping list item
-router.delete("/:list_item_id", deleteShoppingListItem);
+router.post("/", authenticateToken, createShoppingListItem);
+router.post("/default", authenticateToken, addItemToDefaultShoppingList);
+router.get("/:shopping_list_id", authenticateToken, getItemsInShoppingList);
+router.put("/:list_item_id", authenticateToken, updateShoppingListItem);
+router.delete("/:list_item_id", authenticateToken, deleteShoppingListItem);
 
 module.exports = router;
