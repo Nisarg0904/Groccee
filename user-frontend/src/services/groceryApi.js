@@ -1,4 +1,4 @@
-import { groceryAPI } from "./api";
+import { groceryAPI } from "../api/api";
 
 // Add a new grocery item
 export const addGroceryItem = async (token, groceryData) => {
