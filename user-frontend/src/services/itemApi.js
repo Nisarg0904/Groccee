@@ -1,4 +1,4 @@
-import { itemAPI } from "./api";
+import { itemAPI } from "../api/api";
 
 
 // Fetch all items

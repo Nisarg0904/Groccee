@@ -11,6 +11,9 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import styles from "../../styles/SignUpPageStyles";
+import { signUpUser } from "../../services/userApi";
+
+
 
 const SignUpPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
@@ -29,25 +32,67 @@ const SignUpPage = ({ navigation }) => {
     return passwordRegex.test(password);
   };
 
-  const handleSignUp = () => {
-    if (!username || !firstName || !lastName || !validateEmail(email)) {
-      return Alert.alert("Error", "All fields are required with valid input.");
+  const handleSignUp = async () => {
+    // Trim inputs to remove accidental spaces
+    const trimmedUsername = username.trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+  
+    // Validation Checks
+    if (!trimmedUsername) {
+      return Alert.alert("Error", "Username is required.");
     }
-    if (!validatePassword(password)) {
+    if (!trimmedFirstName) {
+      return Alert.alert("Error", "First name is required.");
+    }
+    if (!trimmedLastName) {
+      return Alert.alert("Error", "Last name is required.");
+    }
+    if (!validateEmail(trimmedEmail)) {
+      return Alert.alert("Error", "Please enter a valid email address.");
+    }
+    if (!validatePassword(trimmedPassword)) {
       return Alert.alert(
         "Error",
-        "Password must contain uppercase, lowercase, number, and special character."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
       );
     }
-    if (password !== confirmPassword) {
+    if (trimmedPassword !== trimmedConfirmPassword) {
       return Alert.alert("Error", "Passwords do not match.");
     }
     if (!accepted) {
-      return Alert.alert("Error", "Please accept the Terms and Conditions.");
+      return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
-    Alert.alert("Success", "Registration successful!", [
-      { text: "OK", onPress: () => navigation.navigate("SignIn") },
-    ]);
+  
+    // Preparing user data
+    const userData = {
+      username: trimmedUsername,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
+      email: trimmedEmail,
+      password: trimmedPassword,
+    };
+  
+    try {
+      // Show loading alert while processing
+      Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
+  
+      // Call the API to register the user
+      await signUpUser(userData);
+  
+      // Success feedback
+      Alert.alert(
+        "Success",
+        "You have successfully registered! Please verify your email and then sign in.",
+        [{ text: "OK", onPress: () => navigation.navigate("SignIn") }]
+      );
+    } catch (error) {
+      console.error("Sign-up error:", error);
+      Alert.alert("Sign-Up Failed", error.message || "Something went wrong. Please try again.");
+    }
   };
 
   return (
