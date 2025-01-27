@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { signUpUser } from "../../services/userApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import styles from "../../styles/SignUpPageStyles";
 
@@ -29,25 +30,45 @@ const SignUpPage = ({ navigation }) => {
     return passwordRegex.test(password);
   };
 
-  const handleSignUp = () => {
-    if (!username || !firstName || !lastName || !validateEmail(email)) {
-      return Alert.alert("Error", "All fields are required with valid input.");
-    }
+  const handleSignUp = async () => {
+    if (!username.trim()) return Alert.alert("Error", "Username is required.");
+    if (!firstName.trim()) return Alert.alert("Error", "First name is required.");
+    if (!lastName.trim()) return Alert.alert("Error", "Last name is required.");
+    if (!validateEmail(email)) return Alert.alert("Error", "Invalid email address.");
     if (!validatePassword(password)) {
       return Alert.alert(
         "Error",
-        "Password must contain uppercase, lowercase, number, and special character."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
       );
     }
     if (password !== confirmPassword) {
       return Alert.alert("Error", "Passwords do not match.");
     }
     if (!accepted) {
-      return Alert.alert("Error", "Please accept the Terms and Conditions.");
+      return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
-    Alert.alert("Success", "Registration successful!", [
-      { text: "OK", onPress: () => navigation.navigate("SignIn") },
-    ]);
+
+    try {
+      const userData = { username, firstName, lastName, email, password };
+      await signUpUser(userData);
+
+      Alert.alert(
+        "Success",
+        "You have successfully registered! Please verify your email and then sign in.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("SignIn"),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert("Sign Up Failed", error.message);
+      Alert.alert("Sign Up Failed", error.response?.data?.message || error.message || "An unknown error occurred.");
+    }
+    // Alert.alert("Success", "Registration successful! Please sign in.", [
+    //   { text: "OK", onPress: () => navigation.navigate("SignIn") },
+    // ]);
   };
 
   return (
