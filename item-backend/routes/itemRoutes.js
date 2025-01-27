@@ -4,46 +4,52 @@ const Item = require("../models/Item");
 const authenticateToken = require("../middleware/authMiddleware");
 const router = express.Router();
 
+// Create an item
 router.post("/", authenticateToken, async (req, res) => {
   const { name, unit, price_per_unit, default_packaging } = req.body;
 
-  if (!name || !unit || !price_per_unit) {
-    return res.status(400).json({ message: "Missing required fields" });
+  if (!name || !unit || price_per_unit === undefined) {
+    return res
+      .status(400)
+      .json({
+        message: "Missing required fields: name, unit, or price_per_unit",
+      });
   }
 
   try {
     const lowerCaseName = name.toLowerCase();
-
-    // Check if an item with the same name exists
-    const existingItem = await Item.findOne({ name: lowerCaseName });
+    const existingItem = await Item.findOne({
+      name: lowerCaseName,
+      user_id: req.user.id,
+    });
 
     if (existingItem) {
-      return res
-        .status(400)
-        .json({ message: `An item with the name "${name}" already exists.` });
+      return res.status(400).json({
+        message: `An item with the name "${name}" already exists for this user.`,
+      });
     }
 
-    // Create a new item
     const newItem = new Item({
       name: lowerCaseName,
       unit: unit.toLowerCase(),
       price_per_unit,
-      default_packaging,
+      default_packaging: default_packaging || [], // Default to empty array
+      user_id: req.user.id,
     });
 
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
     console.error("Error creating item:", err);
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
 
-// Get all items
-router.get("/", async (req, res) => {
+// Get all items for the authenticated user
+router.get("/", authenticateToken, async (req, res) => {
   try {
-    const items = await Item.find();
+    const items = await Item.find({ user_id: req.user.id });
     res.json(items);
   } catch (err) {
     console.error("Error fetching items:", err);
@@ -54,9 +60,18 @@ router.get("/", async (req, res) => {
 // Update an item
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
-    const item = await Item.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const item = await Item.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.id },
+      req.body,
+      { new: true }
+    );
+
+    if (!item) {
+      return res
+        .status(404)
+        .json({ message: "Item not found or access denied" });
+    }
+
     res.json(item);
   } catch (err) {
     console.error("Error updating item:", err);
@@ -67,7 +82,17 @@ router.put("/:id", authenticateToken, async (req, res) => {
 // Delete an item
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {
-    await Item.findByIdAndDelete(req.params.id);
+    const item = await Item.findOneAndDelete({
+      _id: req.params.id,
+      user_id: req.user.id,
+    });
+
+    if (!item) {
+      return res
+        .status(404)
+        .json({ message: "Item not found or access denied" });
+    }
+
     res.json({ message: "Item deleted successfully" });
   } catch (err) {
     console.error("Error deleting item:", err);
@@ -75,11 +100,11 @@ router.delete("/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// Get item by name
-router.get("/by-name/:name", async (req, res) => {
+// Get item by name for the authenticated user
+router.get("/by-name/:name", authenticateToken, async (req, res) => {
   try {
     const name = req.params.name.toLowerCase();
-    const item = await Item.findOne({ name });
+    const item = await Item.findOne({ name, user_id: req.user.id });
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -92,10 +117,8 @@ router.get("/by-name/:name", async (req, res) => {
   }
 });
 
-
-
-// Get item by ID
-router.get("/:id", async (req, res) => {
+// Get item by ID for the authenticated user
+router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -103,38 +126,18 @@ router.get("/:id", async (req, res) => {
       return res.status(400).json({ message: "Invalid ID format" });
     }
 
-    const item = await Item.findById(id);
+    const item = await Item.findOne({ _id: id, user_id: req.user.id });
 
     if (!item) {
-      return res.status(404).json({ message: "Item not found" });
+      return res
+        .status(404)
+        .json({ message: "Item not found or access denied" });
     }
 
     res.status(200).json(item);
   } catch (err) {
     console.error("Error fetching item:", err);
     res.status(500).json({ message: "Server error while fetching the item" });
-  }
-});
-
-// Check and create item
-router.post("/check-item", authenticateToken, async (req, res) => {
-  const { name, default_packaging } = req.body;
-
-  try {
-    let item = await Item.findOne({ name });
-
-    if (!item) {
-      item = new Item({ name, default_packaging });
-      await item.save();
-    } else if (!item.default_packaging || item.default_packaging.length === 0) {
-      item.default_packaging = default_packaging;
-      await item.save();
-    }
-
-    res.status(200).json(item);
-  } catch (error) {
-    console.error("Error checking item:", error);
-    res.status(500).json({ message: "Error checking item" });
   }
 });
 

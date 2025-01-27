@@ -3,25 +3,25 @@ const mongoose = require("mongoose");
 const ItemSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    unique: true,
-    lowercase: true, // Converts the name to lowercase before saving
-    trim: true, // Removes whitespace around the name
+    required: true, // Name is still required to uniquely identify the item
+    unique: false,
+    lowercase: true,
+    trim: true,
   },
   unit: {
     type: String,
-    required: true,
-    lowercase: true, // Converts the unit to lowercase
+    required: false, // Unit is now optional for minimal item creation
+    lowercase: true,
   },
   price_per_unit: {
     type: Number,
-    required: true,
+    required: false, // Price per unit is now optional
   },
   default_packaging: [
     {
-      quantity: { type: Number, required: true },
-      unit: { type: String, required: true, lowercase: true },
-      price: { type: Number, required: true },
+      quantity: { type: Number, required: false }, // Quantity is optional for future items
+      unit: { type: String, required: false, lowercase: true }, // Unit is optional for default packaging
+      price: { type: Number, required: false }, // Price is optional for default packaging
     },
   ],
   times_bought: {
@@ -32,6 +32,7 @@ const ItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  user_id: { type: Number, required: true }, // Numeric ID from PostgreSQL, still required to associate with a user
 });
 
 const Item = mongoose.model("Item", ItemSchema);

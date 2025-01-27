@@ -12,7 +12,7 @@ const ShoppingListItem = sequelize.define("ShoppingListItem", {
     allowNull: false,
   },
   item_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   quantity: {
