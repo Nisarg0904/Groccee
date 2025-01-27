@@ -249,6 +249,29 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Define a route to update user details
+router.put("/edit", authenticateToken, async (req, res) => {
+  const userId = req.user.id; // Extract the authenticated user ID from the token
+  const { firstName, lastName, shoppingActivity, dietPreference, cuisinePreference, cookingForPeople } = req.body;
+
+  try {
+    // Update the user details in the database
+    const updatedUser = await User.update(
+      { firstName, lastName, shoppingActivity, dietPreference, cuisinePreference, cookingForPeople },
+      { where: { id: userId }, returning: true }
+    );
+
+    if (!updatedUser[0]) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser[1][0]); // Return the updated user details
+  } catch (error) {
+    console.error("Error updating user details:", error.message);
+    res.status(500).json({ message: "Failed to update user details" });
+  }
+});
+
 // 7. Get User Info
 router.get("/profile", authenticateToken, async (req, res) => {
   try {
