@@ -1,4 +1,6 @@
-import { userAPI } from "./api";
+
+import { userAPI } from "../api/api";
+
 import axios from "axios";
 
 // Resend verification email
