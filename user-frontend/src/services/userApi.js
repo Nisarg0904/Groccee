@@ -16,9 +16,13 @@ export const resendVerificationEmail = async (data) => {
 
 // Register a new user
 export const signUpUser = async (userData) => {
+
   try {
+    console.log("sending request to:" + userAPI + "/users/signup"+"\n user data : "+ userData.toString());
     const response = await userAPI.post("/users/signup", userData);
+    console.log("request sent")
     return response.data;
+
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");
   }

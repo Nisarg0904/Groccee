@@ -79,10 +79,10 @@ const SignUpPage = ({ navigation }) => {
     try {
       // Show loading alert while processing
       Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
-  
+      console.log(userData)
       // Call the API to register the user
       await signUpUser(userData);
-  
+      console.log('Success');
       // Success feedback
       Alert.alert(
         "Success",

@@ -38,7 +38,7 @@ const ViewGroceriesPage = () => {
           const groceryData = await fetchGroceries(token);
           const enhancedGroceries = await Promise.all(
             groceryData.map(async (grocery) => {
-              const itemDetails = await fetchItemById(grocery.item_id);
+              const itemDetails = await fetchItemById(grocery.item_id, token);
               return {
                 ...grocery,
                 name: itemDetails.name,
@@ -63,7 +63,7 @@ const ViewGroceriesPage = () => {
         const groceryData = await fetchGroceries(token);
        const enhancedGroceries = await Promise.all(
          groceryData.map(async (grocery) => {
-           const itemDetails = await fetchItemById(grocery.item_id);
+           const itemDetails = await fetchItemById(grocery.item_id, token);
            return {
              ...grocery,
              name: itemDetails.name,
@@ -72,7 +72,7 @@ const ViewGroceriesPage = () => {
            };
          })
        );
-
+        console.log(enhancedGroceries)
         setGroceries(enhancedGroceries);
       } catch (error) {
         console.error("Error loading groceries or items:", error);

@@ -186,7 +186,7 @@ router.post("/signup", async (req, res) => {
       email,
       password,
     });
-    console.log("User Data:", userData);
+    console.log("User Data:", newUser);
     res.status(201).json({
       message: "User registered successfully",
       user: {

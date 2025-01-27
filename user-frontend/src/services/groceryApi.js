@@ -1,4 +1,4 @@
-import { groceryAPI } from "../api/api";
+import { groceryAPI } from "./api";
 
 // Add a new grocery item
 export const addGroceryItem = async (token, groceryData) => {
@@ -16,7 +16,7 @@ export const addGroceryItem = async (token, groceryData) => {
 
 
 // Fetch all grocery items
-export const fetchGroceries = async (token) => {
+export const fetchGroceries = async (token,) => {
   try {
     const response = await groceryAPI.get("/groceryitems", {
       headers: { Authorization: `Bearer ${token}` },
