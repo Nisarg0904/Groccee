@@ -1,5 +1,6 @@
 const Wastage = require("../models/wastage");
 const { validateUser, validateItem } = require("../utils/apiHelper");
+const moveExpiredItemsToWastage = require("../utils/trackExpiry")
 
 // Create a new wastage record
 const createWastage = async (req, res) => {
@@ -92,10 +93,22 @@ const deleteWastage = async (req, res) => {
   }
 };
 
+// Manually trigger wastage processing
+const processExpiredItems = async (req, res) => {
+  try {
+    await moveExpiredItemsToWastage(); // Call the utility function to process expired items
+    res.status(200).json({ message: "Expired items processed successfully." });
+  } catch (error) {
+    console.error("Error processing expired items:", error.message);
+    res.status(500).json({ message: "Failed to process expired items." });
+  }
+};
+
 module.exports = {
   createWastage,
   getAllWastages,
   getWastageById,
   updateWastage,
   deleteWastage,
+  processExpiredItems,
 };

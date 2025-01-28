@@ -3,11 +3,18 @@ require('dotenv').config();
 const express = require("express");
 const wastageDB = require("./config/wastage_db");  
 const wastageRoutes = require("./routes/wastageRoutes");
+const cron = require("node-cron");
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+
+// Schedule the task to run daily at midnight
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running scheduled job to move expired items to wastage...");
+  await moveExpiredItemsToWastage();
+});
 
 // Test the database connection
 wastageDB
