@@ -4,6 +4,7 @@ const {
   validateItem,
   addItemToDefaultShoppingList,
 } = require("../utils/apiHelper");
+const { Op, Sequelize } = require("sequelize");
 
 
 
@@ -167,6 +168,64 @@ async function deleteGroceryItem(req, res) {
   }
 }
 
+// Get expired grocery items
+async function getExpiredGroceryItems(req, res) {
+  const { date } = req.query; // Query parameter to specify the date (e.g., ?date=YYYY-MM-DD)
+
+  try {
+    const today = date || new Date().toISOString().split("T")[0]; // Use today's date if none is provided
+
+    const expiredItems = await GroceryItem.findAll({
+      where: {
+        expiry_date: {
+          [Op.lte]: today, // Items expiring on or before the specified date
+        },
+        status: "active", // Only fetch active items
+      },
+    });
+
+    res.status(200).json(expiredItems);
+  } catch (error) {
+    console.error("Error fetching expired grocery items:", error.message);
+    res.status(500).json({ message: "Failed to fetch expired grocery items" });
+  }
+}
+
+
+
+// Get expiring grocery items
+async function getExpiringGroceryItems(req, res) {
+  try {
+    const { date } = req.query; // Query parameter to specify the target date (e.g., ?date=YYYY-MM-DD)
+
+    const today = new Date();
+    const targetDate = date ? new Date(date) : today;
+    targetDate.setDate(targetDate.getDate() + 2); // Add 2 days for expiring items
+    const formattedTargetDate = targetDate.toISOString().split("T")[0];
+
+    console.log(`Checking for items expiring on: ${formattedTargetDate}`);
+
+    const expiringItems = await GroceryItem.findAll({
+      where: {
+        status: "active",
+        expiry_date: Sequelize.literal(`DATE(expiry_date) = '${formattedTargetDate}'`), 
+      },
+    });
+
+    if (expiringItems.length === 0) {
+      return res.status(404).json({ message: "No expiring grocery items found" });
+    }
+
+    res.status(200).json(expiringItems);
+  } catch (error) {
+    console.error("Error fetching expiring grocery items:", error.message);
+    res.status(500).json({ message: "Failed to fetch expiring grocery items" });
+  }
+}
+
+
+
+
 module.exports = {
   createGroceryItem,
   getAllGroceryItems,
@@ -174,4 +233,6 @@ module.exports = {
   updateGroceryItem,
   deleteGroceryItem,
   getAllUserGroceries,
+  getExpiredGroceryItems,
+  getExpiringGroceryItems,
 };
