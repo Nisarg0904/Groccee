@@ -15,37 +15,48 @@ const ITEM_SERVICE_URL =
 async function validateShoppingList({ name, list_id }, token) {
   try {
     let response;
+    let url;
 
-    // If `list_id` is provided, fetch the shopping list by ID
     if (list_id) {
-      response = await axios.get(
-        `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/${list_id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // If list_id is provided, fetch by ID
+      url = `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/${list_id}`;
     } else if (name) {
-      // Fetch the shopping list by name for the authenticated user
-      response = await axios.get(
-        `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/search?name=${encodeURIComponent(
-          name
-        )}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // If name is provided, fetch by name
+      url = `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/search?name=${encodeURIComponent(
+        name
+      )}`;
     } else {
       throw new Error("Either list_id or name must be provided");
     }
 
+    console.log("Validating shopping list with URL:", url);
+    console.log("Request Headers:", { Authorization: `Bearer ${token}` });
+
+    response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     if (response.status === 200) {
+      console.log("Shopping list found:", response.data);
       return response.data;
     }
 
     return null;
   } catch (error) {
-    if (error.response && error.response.status === 404) {
-      return null; // Shopping list not found
+    if (error.response) {
+      console.error(
+        `API Error: ${error.response.status} - ${error.response.data.message}`
+      );
+      if (error.response.status === 404) {
+        return null; // Shopping list not found
+      }
+    } else {
+      console.error("Network Error:", error.message);
     }
     throw new Error("Error validating shopping list");
   }
 }
+
 
 
 
