@@ -8,6 +8,7 @@ import WelcomePage from "../screens/Welcome/WelcomePage";
 import SignInPage from "../screens/SignIn/SignInPage";
 import SignUpPage from "../screens/SignUp/SignUpPage";
 import ProfileSetupPage from "../screens/ProfileSetup/ProfileSetupPage";
+import EditProfilePage from "../screens/ProfileSetup/EditProfilePage"; // Import EditProfilePage
 import MainMenuPage from "../screens/MainMenu/MainMenuPage";
 import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
 import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
@@ -71,12 +72,17 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ProfileSetup"
           component={ProfileSetupPage}
-          options={{ title: "Profile Setup" }}
+          options={{ title: "Profile" }}
+        />
+        <Stack.Screen 
+          name="EditProfilePage" 
+          component={EditProfilePage} // Added EditProfilePage here
+          options={{ title: "Edit Profile" }}
         />
         <Stack.Screen
           name="MainMenu"
           component={MainMenuPage}
-          options={{ title: "Main Menu" }}
+          options={{ title: "Home" }}
         />
         <Stack.Screen
           name="AddGrocery"

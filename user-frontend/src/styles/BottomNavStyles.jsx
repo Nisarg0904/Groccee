@@ -1,48 +1,50 @@
-import { StyleSheet } from "react-nativescript";
+import { StyleSheet, Dimensions } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   container: {
-    height: 60,
-    backgroundColor: "black",
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
-    elevation: 8,
+    height: 70,
+    backgroundColor: "black",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 10,
   },
   navItem: {
-    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    height: "100%",
-    opacity: 0.7,
-    transition: "all 0.3s",
-  },
-  activeNavItem: {
-    opacity: 1,
+    flex: 1,
+    paddingVertical: 10,
   },
   centerButton: {
-    backgroundColor: "#E52B50", // Turkey red
-    borderRadius: 25,
-    width: 50,
-    height: 50,
+    backgroundColor: "#FF6347", // Turkey Red
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -25,
-    elevation: 4,
-  },
-  icon: {
-    color: "#F8F8FF", // Ghost white
-    fontSize: 20,
-  },
-  plusIcon: {
-    color: "#F8F8FF", // Ghost white
-    fontSize: 24,
+    marginTop: -30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
   label: {
-    color: "#F8F8FF", // Ghost white
+    color: "#F8F8FF", // Ghost White
     fontSize: 12,
-    marginTop: 4,
+    fontWeight: "500",
+    marginTop: 5,
+  },
+  activeLabel: {
+    color: "#E52B50", // Turkey Red
+    fontWeight: "bold",
   },
 });

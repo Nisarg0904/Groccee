@@ -1,33 +1,22 @@
-import { StyleSheet, Dimensions } from "react-native"
+import { StyleSheet, Dimensions } from "react-native";
 
-const { width, height } = Dimensions.get("window")
+const { width, height } = Dimensions.get("window");
 
 export const COLORS = {
-  fulvous: "#E28401",
   gamboge: "#EC9D04",
   xanthous: "#F0B51D",
   sinopia: "#C83701",
   turkeyRed: "#B00005",
-  white: "#DADBDD", //Silver White
+  white: "#DADBDD", // Silver White
   black: "#000000",
   lightText: "rgba(255, 255, 255, 0.9)",
   mediumText: "rgba(255, 255, 255, 0.7)",
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.fulvous,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  
-  gradient: {
-    flex: 1,
+    backgroundColor: COLORS.black,
   },
   scrollContent: {
     flexGrow: 1,
@@ -63,16 +52,35 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     height: height * 0.25,
     borderRadius: 15,
+    alignSelf: "center" ,
   },
   heroText: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: COLORS.white,
     textAlign: "center",
     fontFamily: "Poppins-Regular",
     marginTop: 20,
     paddingHorizontal: 20,
   },
+  carousel: {
+    height: height * 0.25,
+  },
+  carouselDot: {
+    backgroundColor: COLORS.mediumText,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
+  },
+  activeCarouselDot: {
+    backgroundColor: COLORS.turkeyRed,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 3,
+  },
+
   featuresContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -130,14 +138,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
   },
   appleButton: {
     backgroundColor: "#131010",
-    shadowColor: "#2A3335",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -153,7 +156,6 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     alignItems: "center",
-    color: COLORS.turkeyRed,
     marginBottom: 20,
   },
   signInText: {
@@ -171,9 +173,6 @@ const styles = StyleSheet.create({
     color: COLORS.turkeyRed,
     fontWeight: "bold",
   },
+});
 
-  
-})
-
-export default styles
-
+export default styles;
