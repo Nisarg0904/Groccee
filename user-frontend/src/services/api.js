@@ -22,4 +22,19 @@ const itemAPI = axios.create({
   },
 });
 
-export { userAPI, groceryAPI, itemAPI };
+// Add shopping API
+const shoppingAPI = axios.create({
+  baseURL: "http://10.0.2.2:5001/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add shopping API
+const shoppingItemAPI = axios.create({
+  baseURL: "http://10.0.2.2:5002/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+export { userAPI, groceryAPI, itemAPI, shoppingAPI, shoppingItemAPI };

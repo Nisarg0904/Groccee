@@ -1,13 +1,11 @@
-// frontend/screens/MainMenuPage.js
 import React, { useContext } from "react";
-import { View, Text, TouchableOpacity } from "react-native"; // Proper imports
+import { View, Text, TouchableOpacity } from "react-native";
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/MainMenuPageStyles";
 
 const MainMenuPage = ({ navigation }) => {
-  const { setCurrentUser } = useContext(UserContext); // Get the function to unset current user
+  const { setCurrentUser } = useContext(UserContext);
 
-  // Handle logout action
   const handleLogout = () => {
     setCurrentUser(null);
     navigation.navigate("SignIn");
@@ -29,12 +27,17 @@ const MainMenuPage = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Add Grocery</Text>
       </TouchableOpacity>
-
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("ViewGroceries")}
       >
         <Text style={styles.buttonText}>View Groceries</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ShoppingList")}
+      >
+        <Text style={styles.buttonText}>Shopping List</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
