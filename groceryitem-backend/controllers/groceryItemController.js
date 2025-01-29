@@ -9,6 +9,7 @@ const moment = require("moment-timezone")
 
 
 
+
 async function createGroceryItem(req, res) {
   const {
     item_identifier,
@@ -182,6 +183,7 @@ async function getExpiredGroceryItems(req, res) {
   try {
     const today = date || new Date().toISOString().split("T")[0]; // Use today's date if none is provided
 
+    //  Include `user_id` in the response
     const expiredItems = await GroceryItem.findAll({
       where: {
         expiry_date: {
@@ -189,6 +191,7 @@ async function getExpiredGroceryItems(req, res) {
         },
         status: "active", // Only fetch active items
       },
+      attributes: ["grocery_item_id", "item_id", "expiry_date", "available_quantity", "user_id"], // ✅ Ensure `user_id` is included
     });
 
     res.status(200).json(expiredItems);
@@ -200,35 +203,48 @@ async function getExpiredGroceryItems(req, res) {
 
 
 
+
 // Get expiring grocery items
 async function getExpiringGroceryItems(req, res) {
   try {
-    const { date } = req.query; // Query parameter to specify the target date (e.g., ?date=YYYY-MM-DD)
+    const { date, daysAhead } = req.query; // `date` is optional; `daysAhead` is the custom user-defined range
 
     const today = new Date();
-    const targetDate = date ? new Date(date) : today;
-    targetDate.setDate(targetDate.getDate() + 2); // Add 2 days for expiring items
+    today.setHours(0, 0, 0, 0); // ✅ Normalize today's date
+
+    const targetDate = date ? new Date(date) : new Date(today);
+    const range = daysAhead ? parseInt(daysAhead) : 2; // Default to 2 days if `daysAhead` is not provided
+
+    targetDate.setDate(targetDate.getDate() + range); // Add `daysAhead` days for expiring items
+    targetDate.setHours(23, 59, 59, 999); // ✅ Ensure target date includes full day
+
+    const formattedToday = today.toISOString().split("T")[0];
     const formattedTargetDate = targetDate.toISOString().split("T")[0];
 
-    console.log(`Checking for items expiring on: ${formattedTargetDate}`);
+    console.log(`🔍 Checking for items expiring from ${formattedToday} to ${formattedTargetDate}`);
 
+    // ✅ Fix: Use `Sequelize.literal()` to ensure correct date matching
     const expiringItems = await GroceryItem.findAll({
       where: {
         status: "active",
-        expiry_date: Sequelize.literal(`DATE(expiry_date) = '${formattedTargetDate}'`), 
+        [Op.and]: [
+          Sequelize.literal(`DATE(expiry_date) >= '${formattedToday}'`),
+          Sequelize.literal(`DATE(expiry_date) <= '${formattedTargetDate}'`),
+        ],
       },
     });
 
     if (expiringItems.length === 0) {
-      return res.status(404).json({ message: "No expiring grocery items found" });
+      return res.status(404).json({ message: `No grocery items expiring within the next ${range} days.` });
     }
 
     res.status(200).json(expiringItems);
   } catch (error) {
-    console.error("Error fetching expiring grocery items:", error.message);
+    console.error("❌ Error fetching expiring grocery items:", error.message);
     res.status(500).json({ message: "Failed to fetch expiring grocery items" });
   }
 }
+
 
 
 
