@@ -110,7 +110,7 @@ const getUserWastages = async (req, res) => {
 
     res.status(200).json(wastages);
   } catch (error) {
-    console.error("❌ Error fetching wastage items:", error.message);
+    console.error("Error fetching wastage items:", error.message);
     res.status(500).json({ message: "Failed to fetch wastage records" });
   }
 };
@@ -122,7 +122,7 @@ const processExpiredItems = async (req, res) => {
     await moveExpiredItemsToWastage(); // Call the function that normally runs at midnight
     res.status(200).json({ message: "Expired items processed successfully." });
   } catch (error) {
-    console.error("❌ Error processing expired items manually:", error.message);
+    console.error(" Error processing expired items manually:", error.message);
     res.status(500).json({ message: "Failed to process expired items." });
   }
 };

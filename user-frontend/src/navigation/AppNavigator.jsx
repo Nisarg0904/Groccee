@@ -15,6 +15,7 @@ import EditGroceryPage from "../screens/Grocery/EditGroceryPage";
 import ShoppingListPage from "../screens/Shopping/ShoppingListPage";
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
 import ShoppingListItemsPage from "../screens/Shopping/ShoppingListItemsPage";
+import WastagePage from "../screens/Wastage/WastagePage";
 
 const Stack = createStackNavigator();
 
@@ -113,6 +114,11 @@ const AppNavigator = () => {
           name="ShoppingListItems"
           component={ShoppingListItemsPage}
           options={{ title: "Shopping List Items" }}
+        />
+        <Stack.Screen
+          name="Wastage"
+          component={WastagePage}
+          options={{ title: "Wastage Items" }}
         />
       </Stack.Navigator>
     </NavigationContainer>
