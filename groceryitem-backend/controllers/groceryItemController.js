@@ -5,6 +5,7 @@ const {
   addItemToDefaultShoppingList,
 } = require("../utils/apiHelper");
 const { Op, Sequelize } = require("sequelize");
+const moment = require("moment-timezone")
 
 
 
@@ -20,6 +21,7 @@ async function createGroceryItem(req, res) {
   } = req.body;
 
   try {
+
     const token = req.header("Authorization").split(" ")[1]; // Extract token from header
 
     // Validate or create the item
@@ -29,12 +31,17 @@ async function createGroceryItem(req, res) {
       throw new Error("Invalid item returned from validation");
     }
 
+    // Convert received dates to local time before storing
+    const userTimeZone = "America/Toronto"; // Adjust this to the user's actual timezone
+    const formattedPurchasedOn = moment(purchased_on).tz(userTimeZone).format("YYYY-MM-DD");
+    const formattedExpiryDate = moment(expiry_date).tz(userTimeZone).format("YYYY-MM-DD");
+
     // Create a grocery item
     const groceryItem = await GroceryItem.create({
       item_id: item._id,
       purchased_price,
-      purchased_on,
-      expiry_date,
+      purchased_on : formattedPurchasedOn,
+      expiry_date : formattedExpiryDate,
       purchased_quantity,
       available_quantity: available_quantity || purchased_quantity, // Default to purchased_quantity
       packaging,
