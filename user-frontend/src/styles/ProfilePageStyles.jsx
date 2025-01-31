@@ -1,15 +1,18 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
+  // Main container
   container: {
-    flex: 1,
+    // No flex: 1 — it can interfere with ScrollView height
     backgroundColor: "black",
     padding: 20,
   },
+
+  // Profile Section
   profileSection: {
     alignItems: "center",
     marginBottom: 20,
-    backgroundColor: "#36454F", // Charcoal Gray for contrast
+    backgroundColor: "#36454F", // Charcoal Gray
     padding: 15,
     borderRadius: 10,
     position: "relative",
@@ -36,7 +39,7 @@ export default StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "turkeyred",
+    backgroundColor: "#E52B50", // Turkey Red
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 20,
@@ -46,8 +49,15 @@ export default StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+
+  // Achievements Section
   achievementsSection: {
     marginBottom: 20,
+  },
+  achievements: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     color: "ghostwhite",
@@ -55,11 +65,29 @@ export default StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
-  achievements: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 40,
+  achievementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 5,
   },
+  greenBadge: {
+    backgroundColor: "#2ECC71",
+  },
+  orangeBadge: {
+    backgroundColor: "#E67E22",
+  },
+  deepForestBadge: {
+    backgroundColor: "#2C5530",
+  },
+  richPurpleBadge: {
+    backgroundColor: "#9B59B6",
+  },
+  deepNavyBadge: {
+    backgroundColor: "#1B264F",
+  },
+
+  // Last Activities Section
   activitiesSection: {
     marginBottom: 20,
   },
@@ -76,7 +104,7 @@ export default StyleSheet.create({
     padding: 10,
   },
   moneySpentCard: {
-    backgroundColor: "#FF6347", // Turkey Red
+    backgroundColor: "#E52B50", // Turkey Red
   },
   moneySavedCard: {
     backgroundColor: "#2C5530", // Deep Forest Green
@@ -94,6 +122,8 @@ export default StyleSheet.create({
     fontSize: 12,
     color: "ghostwhite",
   },
+
+  // Summary Section
   summarySection: {
     marginTop: 20,
     padding: 10,
@@ -108,10 +138,12 @@ export default StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
   },
+
+  // Encouraging Message
   encouragingMessage: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: "#2C5530", // Deep Forest Green for positivity
+    backgroundColor: "#2C5530", // Deep Forest Green
     borderRadius: 10,
     alignItems: "center",
   },
@@ -122,8 +154,9 @@ export default StyleSheet.create({
     fontStyle: "italic",
   },
 
+  // Logout Button
   logoutButton: {
-    backgroundColor: "#FF0000", // Turkey Red
+    backgroundColor: "#FF0000", // Bright Red
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
@@ -141,5 +174,4 @@ export default StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-
 });

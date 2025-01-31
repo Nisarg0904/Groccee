@@ -1,17 +1,26 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
-import styles from "../../styles/ProfileSetupPageStyles";
-import { BottomNav } from "../../components/BottomNav";
+import styles from "../../styles/ProfilePageStyles"; // Import your styles
+import { BottomNav } from "../../components/BottomNav"; // Adjust the path as necessary
 
-const ProfileSetupPage = ({ navigation, route }) => {
+const ProfilePage = ({ navigation, route }) => {
   const handleLogout = () => {
-    navigation.navigate("Welcome"); // Navigate back to the Welcome page
+    // Navigate back to the Welcome page or any other screen
+    navigation.navigate("Welcome");
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Main Content */}
+      {/*
+        Use contentContainerStyle to add padding at the bottom.
+        This prevents the Logout button from being hidden behind the bottom nav.
+      */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Main Content Container */}
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.profileSection}>
@@ -85,10 +94,10 @@ const ProfileSetupPage = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation Bar */}
+      {/* Bottom Navigation stays fixed at the bottom */}
       <BottomNav navigation={navigation} route={route} />
     </View>
   );
 };
 
-export default ProfileSetupPage;
+export default ProfilePage;

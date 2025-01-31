@@ -43,7 +43,7 @@ export default StyleSheet.create({
   },
   progress: {
     height: "100%",
-    backgroundColor: "#FF6347", // Turkey Red
+    backgroundColor: "#E52B50", // Turkey Red
   },
   progressText: {
     color: "white",
@@ -86,7 +86,7 @@ export default StyleSheet.create({
     marginBottom: 10,
   },
   activeChip: {
-    backgroundColor: "#FF6347",
+    backgroundColor: "#E52B50",
   },
   chipText: {
     color: "#D3D3D3",
@@ -99,7 +99,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FF6347",
+    backgroundColor: "#E52B50",
     paddingVertical: 15,
     borderRadius: 30,
     marginHorizontal: 20,

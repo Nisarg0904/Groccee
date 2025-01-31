@@ -12,7 +12,7 @@ const WelcomePage = () => {
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: 2500,
       useNativeDriver: true,
     }).start();
   }, []);
@@ -31,7 +31,7 @@ const WelcomePage = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
-            <Text style={styles.appName}>GroceryMate</Text>
+            <Text style={styles.appName}>Grocee</Text>
             <Image source={require("../../../assets/logo.png")} style={styles.logo} />
           </View>
         </View>
@@ -40,7 +40,7 @@ const WelcomePage = () => {
         <View style={styles.heroSection}>
           <Swiper
             style={styles.carousel}
-            autoplay
+            autoplay  
             autoplayTimeout={2}
             showsPagination={false}
             dotStyle={styles.carouselDot}

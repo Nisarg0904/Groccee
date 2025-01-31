@@ -7,8 +7,8 @@ import { CardStyleInterpolators } from "@react-navigation/stack";
 import WelcomePage from "../screens/Welcome/WelcomePage";
 import SignInPage from "../screens/SignIn/SignInPage";
 import SignUpPage from "../screens/SignUp/SignUpPage";
-import ProfileSetupPage from "../screens/ProfileSetup/ProfileSetupPage";
-import EditProfilePage from "../screens/ProfileSetup/EditProfilePage"; // Import EditProfilePage
+import ProfilePage from "../screens/ProfilePage/ProfilePage";
+import EditProfilePage from "../screens/ProfilePage/EditProfilePage"; // Import EditProfilePage
 import MainMenuPage from "../screens/MainMenu/MainMenuPage";
 import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
 import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
@@ -68,10 +68,10 @@ const AppNavigator = () => {
           options={authScreenOptions}
         />
 
-        {/* Main App Screens */}
-        <Stack.Screen
-          name="ProfileSetup"
-          component={ProfileSetupPage}
+        {/* Main App Screens - With Header, Horizontal slide transition */}
+        <Stack.Screen 
+          name="ProfileSetup" 
+          component={ProfilePage}
           options={{ title: "Profile" }}
         />
         <Stack.Screen 
