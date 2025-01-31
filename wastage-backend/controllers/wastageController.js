@@ -1,6 +1,7 @@
 const Wastage = require("../models/wastage");
-const { validateUser, validateItem } = require("../utils/apiHelper");
+const { validateUser, validateItem, validateGroceryItemAndItem } = require("../utils/apiHelper");
 const moveExpiredItemsToWastage = require("../utils/trackExpiry")
+
 
 // Create a new wastage record
 const createWastage = async (req, res) => {
@@ -9,7 +10,8 @@ const createWastage = async (req, res) => {
   try {
     // Validate user and item
     await validateUser(user_id);
-    await validateItem(grocery_item_id);
+    await validateItem(grocery_item_id)
+    // const item_id = await validateGroceryItemAndItem(grocery_item_id);
 
     // Create a new wastage record
     const wastage = await Wastage.create({
@@ -17,6 +19,7 @@ const createWastage = async (req, res) => {
       reason_for_waste,
       user_id,
       grocery_item_id,
+      // item_id,
     });
 
     res.status(201).json(wastage);
@@ -114,6 +117,9 @@ const getUserWastages = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch wastage records" });
   }
 };
+
+
+
 
 //manually triggers wastage
 const processExpiredItems = async (req, res) => {

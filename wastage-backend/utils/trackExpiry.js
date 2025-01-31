@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 
 // ✅ Generate a valid system token
 const generateServiceToken = () => {
-  return jwt.sign({ id: "service-user", role: "system" }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign({ id: "service-user", role: "system" }, process.env.JWT_SECRET, { expiresIn: "24h" });
 };
 
 const moveExpiredItemsToWastage = async () => {

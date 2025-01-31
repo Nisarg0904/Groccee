@@ -116,6 +116,7 @@ async function getGroceryItemById(req, res) {
     res.status(500).json({ message: "Failed to fetch grocery item" });
   }
 }
+
 async function updateGroceryItem(req, res) {
   const { id } = req.params; // Grocery item ID
   const { available_quantity, expiry_date, purchased_price } = req.body; // Fields to update
