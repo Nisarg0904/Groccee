@@ -9,7 +9,6 @@ services:
     ports:
       - "5437:5432"
     volumes:
-      - ./postgres_data/wastage_db:/var/lib/postgresql/data
-
+      - postgres-data:/var/lib/postgresql/data
 volumes:
-  postgres_data:
+  postgres-data:
