@@ -3,14 +3,11 @@ import { StyleSheet, Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 export const COLORS = {
-  gamboge: "#EC9D04",
-  xanthous: "#F0B51D",
-  sinopia: "#C83701",
-  turkeyRed: "#B00005",
-  white: "#DADBDD", // Silver White
+  white: "#DADBDD",
   black: "#000000",
-  lightText: "rgba(255, 255, 255, 0.9)",
-  mediumText: "rgba(255, 255, 255, 0.7)",
+  lightGray: "rgba(255, 255, 255, 0.3)",
+  red: "#FF3131", // 🔥 Added red for accents
+  darkRed: "#B00020", // 🔥 Darker red for depth
 };
 
 const styles = StyleSheet.create({
@@ -22,27 +19,49 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 40,
   },
-  logoContainer: {
-    alignItems: "center",
-    marginTop: 40,
-    marginBottom: 20,
-  },
-  logoWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    resizeMode: "contain",
-    marginTop: 23,
-  },
-  appName: {
-    fontSize: 28,
+  titleText: {
+    fontSize: 70,
+    color: COLORS.white, // ✅ White text
+    textAlign: "center",
     fontWeight: "bold",
+    textShadowColor: COLORS.black, // ✅ Black outline effect
+    textShadowOffset: { width: 2, height: 2 }, // ✅ Adjust thickness
+    textShadowRadius: 3, // ✅ Slight blur to create the outline effect
+  },
+  titleShadow: {
+    fontSize: 70,
+    color: "transparent", // ✅ Transparent text, only shadow is visible
+    textAlign: "center",
+    fontWeight: "bold",
+    textShadowColor: COLORS.red, // ✅ Red glow effect
+    textShadowOffset: { width: 0, height: 0 }, // ✅ Keeps the glow centered
+    textShadowRadius: 10, // ✅ Increase for a stronger glow
+    position: "absolute",
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginTop: 50,
+    marginBottom: 40,
+    fontFamily: "Fonarto",
+    textShadowColor: COLORS.lightGray, //  Subtle shadow
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 6,
+  },
+  shadowText: {
+    fontSize: 60,
+    fontFamily: "Fonarto", 
     color: COLORS.white,
-    marginTop: 10,
+    textAlign: "center",
+    letterSpacing: 5, //  Spacing 
+    fontWeight: "900", //  Ensure it's bold
+    textShadowColor: COLORS.lightGray, //  Subtle shadow
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 6,
+  },
+  loadingText: {
+    fontSize: 24,
+    color: COLORS.white,
+    textAlign: "center",
   },
   heroSection: {
     alignItems: "center",
@@ -52,7 +71,8 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     height: height * 0.25,
     borderRadius: 15,
-    alignSelf: "center" ,
+    alignSelf: "center",
+    backgroundColor: COLORS.lightGray, // Prevents blank flash when loading
   },
   heroText: {
     fontSize: 24,
@@ -63,24 +83,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 20,
   },
-  carousel: {
-    height: height * 0.25,
-  },
-  carouselDot: {
-    backgroundColor: COLORS.mediumText,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 3,
-  },
-  activeCarouselDot: {
-    backgroundColor: COLORS.turkeyRed,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 3,
-  },
-
   featuresContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -90,6 +92,7 @@ const styles = StyleSheet.create({
   featureItem: {
     alignItems: "center",
     width: width * 0.28,
+    color: COLORS.red,
   },
   featureTitle: {
     fontSize: 14,
@@ -101,7 +104,7 @@ const styles = StyleSheet.create({
   },
   featureDescription: {
     fontSize: 12,
-    color: COLORS.lightText,
+    color: COLORS.lightGray,
     textAlign: "center",
   },
   ctaContainer: {
@@ -109,50 +112,20 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   ctaButton: {
-    backgroundColor: COLORS.sinopia,
+    backgroundColor: COLORS.red, // 🔥 Red CTA button
     borderRadius: 25,
     paddingVertical: 15,
     paddingHorizontal: 40,
-    shadowColor: "#000",
+    shadowColor: COLORS.darkRed, // 🔥 Dark red shadow for depth
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     elevation: 5,
   },
   ctaText: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: "bold",
-  },
-  socialButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  googleButton: {
-    backgroundColor: "#4285F4",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginRight: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    elevation: 2,
-  },
-  appleButton: {
-    backgroundColor: "#131010",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginLeft: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  socialText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 10,
   },
   signInButton: {
     alignItems: "center",
@@ -165,13 +138,30 @@ const styles = StyleSheet.create({
   },
   termsText: {
     fontSize: 12,
-    color: COLORS.lightText,
+    color: COLORS.lightGray,
     textAlign: "center",
     paddingHorizontal: 20,
   },
   termsLink: {
-    color: COLORS.turkeyRed,
+    color: COLORS.red, // 🔥 Red terms link for emphasis
     fontWeight: "bold",
+  },
+  carousel: {
+    height: height * 0.25,
+  },
+  carouselDot: {
+    backgroundColor: COLORS.lightGray,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
+  },
+  activeCarouselDot: {
+    backgroundColor: COLORS.red, // 🔥 Active dot in red for contrast
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 3,
   },
 });
 

@@ -4,11 +4,7 @@ import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/MainMenuPageStyles";
 import { BottomNav } from "../../components/BottomNav"; // Import BottomNav
 
-<<<<<<< HEAD
-const MainMenuPage = ({ navigation }) => {
-=======
 const MainMenuPage = ({ navigation, route }) => {
->>>>>>> 93cedff (Frontend Added | Welcome | Profile | Bottom Bar | Grocery)
   const { setCurrentUser } = useContext(UserContext);
 
   const handleLogout = () => {
@@ -42,8 +38,7 @@ const MainMenuPage = ({ navigation, route }) => {
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
-
-<<<<<<< HEAD
+      
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("ProfileSetup")}
@@ -78,10 +73,9 @@ const MainMenuPage = ({ navigation, route }) => {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
-=======
+
       {/* Bottom Navigation Bar */}
       <BottomNav navigation={navigation} route={route} />
->>>>>>> 93cedff (Frontend Added | Welcome | Profile | Bottom Bar | Grocery)
     </View>
   );
 };

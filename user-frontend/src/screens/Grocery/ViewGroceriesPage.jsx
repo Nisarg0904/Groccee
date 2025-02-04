@@ -50,7 +50,7 @@ const ViewGroceriesPage = ({ navigation, route }) => {
     }, [token])
   );
 
-<<<<<<< HEAD
+
   // Fetch groceries and enhance them with item details
   useEffect(() => {
     const loadGroceries = async () => {
@@ -77,8 +77,7 @@ const ViewGroceriesPage = ({ navigation, route }) => {
   }, [token]);
 
   // Handle the edit action
-=======
->>>>>>> 93cedff (Frontend Added | Welcome | Profile | Bottom Bar | Grocery)
+
   const handleEdit = (item) => {
     setSelectedGrocery(item);
     setIsEditModalVisible(true);
