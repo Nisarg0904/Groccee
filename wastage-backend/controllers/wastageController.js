@@ -1,25 +1,27 @@
 const Wastage = require("../models/wastage");
-const { validateUser, validateItem, validateGroceryItemAndItem } = require("../utils/apiHelper");
+const {
+  validateOrFetchItem
+} = require("../utils/apiHelper");
 const moveExpiredItemsToWastage = require("../utils/trackExpiry")
 
 
 // Create a new wastage record
 const createWastage = async (req, res) => {
-  const { wasted_quantity, reason_for_waste, user_id, grocery_item_id } = req.body;
+  const { wasted_quantity, reason_for_waste, item_id } = req.body; // Renamed grocery_item_id to item_id
+  const user_id = req.user.id; // Extract user ID from authenticated token
+      const token = req.header("Authorization").split(" ")[1];
+
 
   try {
-    // Validate user and item
-    await validateUser(user_id);
-    await validateItem(grocery_item_id)
-    // const item_id = await validateGroceryItemAndItem(grocery_item_id);
+    // Validate item (since user is already authenticated)
+    await validateOrFetchItem(item_id,token);
 
     // Create a new wastage record
     const wastage = await Wastage.create({
       wasted_quantity,
       reason_for_waste,
       user_id,
-      grocery_item_id,
-      // item_id,
+      item_id,
     });
 
     res.status(201).json(wastage);
@@ -29,9 +31,15 @@ const createWastage = async (req, res) => {
 };
 
 // Get all wastage records
+// Get all wastage records for the authenticated user
 const getAllWastages = async (req, res) => {
+  const user_id = req.user.id; // Extract user ID from authenticated token
+
   try {
-    const wastages = await Wastage.findAll();
+    const wastages = await Wastage.findAll({
+      where: { user_id }, // Fetch only records belonging to the authenticated user
+    });
+
     res.status(200).json(wastages);
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve wastages" });

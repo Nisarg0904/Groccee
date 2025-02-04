@@ -15,18 +15,23 @@ const WastageItemsPage = () => {
         // Fetch wastage records
         const wastageRecords = await getWastageItems(token);
 
-        // Extract unique item IDs from grocery_item field
+        // Extract unique item IDs
         const uniqueItemIds = [
-          ...new Set(wastageRecords.map((item) => item.i)),
+          ...new Set(wastageRecords.map((item) => item.item_id)),
         ];
 
-        // Fetch item details for each unique item_id
+        // Fetch item details for each item_id
         const details = {};
         for (const itemId of uniqueItemIds) {
-            console.log("ID "+ itemId)
-          const itemDetail = await fetchItemById(itemId, token);
-          details[itemId] = itemDetail;
-    
+          try {
+            const itemDetail = await fetchItemById(itemId, token);
+            details[itemId] = itemDetail;
+          } catch (err) {
+            console.error(
+              `Error fetching details for item ${itemId}:`,
+              err.message
+            );
+          }
         }
 
         setWastageItems(wastageRecords);
@@ -40,12 +45,14 @@ const WastageItemsPage = () => {
   }, [token]);
 
   const renderItem = ({ item }) => {
-    const detail = itemDetails[item.grocery_item]; // Get item details
+    const detail = itemDetails[item.item_id]; // Get item details
     return (
       <View style={styles.itemContainer}>
         <Text style={styles.itemName}>{detail?.name || "Loading..."}</Text>
-        <Text style={styles.itemDetails}>Wasted On: {item.date}</Text>
-        <Text style={styles.itemDetails}>Quantity: {item.quantity}</Text>
+        <Text style={styles.itemDetails}>
+          Wasted Quantity: {item.wasted_quantity}
+        </Text>
+        <Text style={styles.itemDetails}>Reason: {item.reason_for_waste}</Text>
       </View>
     );
   };
@@ -56,7 +63,7 @@ const WastageItemsPage = () => {
       <FlatList
         data={wastageItems}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.wastage_id.toString()}
         style={styles.list}
       />
     </View>

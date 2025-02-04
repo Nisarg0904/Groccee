@@ -7,7 +7,7 @@ export const getWastageItems = async (token) => {
   }
 
   try {
-    const response = await wastageAPI.get("/wastage/user", {
+    const response = await wastageAPI.get("/wastage", {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
