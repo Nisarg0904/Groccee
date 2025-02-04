@@ -1,0 +1,227 @@
+[
+  {
+    "name": "Milk",
+    "units": [ "Liter", "ml", "Carton", "Bag" ],
+    "category": "Dairy"
+  },
+  {
+    "name": "Greek Yogurt",
+    "units": [ "ml", "Gram", "Tub" ],
+    "category": "Dairy"
+  },
+  {
+    "name": "Cheddar Cheese",
+    "units": [ "Gram", "kg", "Block", "Slice" ],
+    "category": "Dairy"
+  },
+  {
+    "name": "Butter",
+    "units": [ "Gram", "kg", "Stick" ],
+    "category": "Dairy"
+  },
+  {
+    "name": "Eggs",
+    "units": [ "Dozen", "Carton" ],
+    "category": "Dairy"
+  },
+  {
+    "name": "Apple",
+    "units": [ "Piece", "kg", "Bag" ],
+    "category": "Fruits"
+  },
+  {
+    "name": "Blueberries",
+    "units": [ "Pint", "Gram", "Container" ],
+    "category": "Fruits"
+  },
+  {
+    "name": "Avocado",
+    "units": [ "Piece", "Bag" ],
+    "category": "Fruits"
+  },
+  {
+    "name": "Grapes",
+    "units": [ "Gram", "Bunch" ],
+    "category": "Fruits"
+  },
+  {
+    "name": "Carrot",
+    "units": [ "Piece", "kg", "Bunch" ],
+    "category": "Vegetables"
+  },
+  {
+    "name": "Spinach",
+    "units": [ "Gram", "Bunch", "Bag" ],
+    "category": "Vegetables"
+  },
+  {
+    "name": "Bell Pepper",
+    "units": [ "Piece", "kg" ],
+    "category": "Vegetables"
+  },
+  {
+    "name": "Onion",
+    "units": [ "kg", "Bag", "Piece" ],
+    "category": "Vegetables"
+  },
+  {
+    "name": "Chicken Thighs",
+    "units": [ "Gram", "kg", "Package" ],
+    "category": "Meat"
+  },
+  {
+    "name": "Ground Pork",
+    "units": [ "Gram", "kg", "Package" ],
+    "category": "Meat"
+  },
+  {
+    "name": "Bacon",
+    "units": [ "Gram", "Package", "Slice" ],
+    "category": "Meat"
+  },
+  {
+    "name": "Turkey Breast",
+    "units": [ "Gram", "kg", "Whole" ],
+    "category": "Meat"
+  },
+  {
+    "name": "Whole Wheat Bread",
+    "units": [ "Loaf", "Slice" ],
+    "category": "Bakery"
+  },
+  {
+    "name": "Croissant",
+    "units": [ "Piece", "Pack" ],
+    "category": "Bakery"
+  },
+  {
+    "name": "Bagels",
+    "units": [ "Piece", "Dozen" ],
+    "category": "Bakery"
+  },
+  {
+    "name": "All-Purpose Flour",
+    "units": [ "kg", "Gram", "Bag" ],
+    "category": "Grains"
+  },
+  {
+    "name": "Basmati Rice",
+    "units": [ "kg", "Gram", "Bag" ],
+    "category": "Grains"
+  },
+  {
+    "name": "Quinoa",
+    "units": [ "Gram", "kg", "Bag" ],
+    "category": "Grains"
+  },
+  {
+    "name": "Pasta",
+    "units": [ "Gram", "kg", "Box" ],
+    "category": "Grains"
+  },
+  {
+    "name": "Potato Chips",
+    "units": [ "Gram", "Bag" ],
+    "category": "Snacks"
+  },
+  {
+    "name": "Trail Mix",
+    "units": [ "Gram", "Bag" ],
+    "category": "Snacks"
+  },
+  {
+    "name": "Granola Bars",
+    "units": [ "Piece", "Box" ],
+    "category": "Snacks"
+  },
+  {
+    "name": "Orange Juice",
+    "units": [ "Liter", "ml", "Carton" ],
+    "category": "Beverages"
+  },
+  {
+    "name": "Coffee Beans",
+    "units": [ "Gram", "kg", "Bag" ],
+    "category": "Beverages"
+  },
+  {
+    "name": "Black Tea",
+    "units": [ "Bag", "Box" ],
+    "category": "Beverages"
+  },
+  {
+    "name": "Frozen Berries",
+    "units": [ "Gram", "Bag" ],
+    "category": "Frozen"
+  },
+  {
+    "name": "Frozen Pizza",
+    "units": [ "Gram", "Package" ],
+    "category": "Frozen"
+  },
+  {
+    "name": "Ice Cream",
+    "units": [ "Liter", "ml", "Tub" ],
+    "category": "Frozen"
+  },
+  {
+    "name": "Canned Tomatoes",
+    "units": [ "ml", "Can" ],
+    "category": "Canned Goods"
+  },
+  {
+    "name": "Canned Tuna",
+    "units": [ "Gram", "Can" ],
+    "category": "Canned Goods"
+  },
+  {
+    "name": "Chickpeas",
+    "units": [ "Gram", "Can" ],
+    "category": "Canned Goods"
+  },
+  {
+    "name": "Ketchup",
+    "units": [ "ml", "Bottle" ],
+    "category": "Condiments"
+  },
+  {
+    "name": "Soy Sauce",
+    "units": [ "ml", "Bottle" ],
+    "category": "Condiments"
+  },
+  {
+    "name": "Hot Sauce",
+    "units": [ "ml", "Bottle" ],
+    "category": "Condiments"
+  },
+  {
+    "name": "Tortillas",
+    "units": [ "Pack", "Piece" ],
+    "category": "International"
+  },
+  {
+    "name": "Curry Paste",
+    "units": [ "Gram", "Jar" ],
+    "category": "International"
+  },
+  {
+    "name": "Sushi Rice",
+    "units": [ "kg", "Gram", "Bag" ],
+    "category": "International"
+  },
+  {
+    "name": "Maple Syrup",
+    "units": [ "ml", "Liter", "Bottle" ],
+    "category": "Pantry"
+  },
+  {
+    "name": "Poutine Gravy",
+    "units": [ "Gram", "Can", "Package" ],
+    "category": "Pantry"
+  },
+  {
+    "name": "Nanaimo Bar Mix",
+    "units": [ "Gram", "Box" ],
+    "category": "Baking"
+  }
+]

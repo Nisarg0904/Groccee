@@ -1,10 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
-const itemRoutes = require("./routes/itemRoutes"); // Import item routes
+const seedDatabase = require("./scripts/seedSuggestedItem"); // Import the seeder function
+const suggestedItemRoutes = require("./routes/globalRoutes"); // Import routes
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5010;
 
 // Middleware
 app.use(express.json()); // Replaces bodyParser.json()
@@ -16,14 +17,15 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(async () => {
     console.log("✅ MongoDB connected");
+    // await seedDatabase(); // Run seeder once when the server starts
 })
 .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // Routes
-app.use("/api/items", itemRoutes);
+app.use("/api/global", suggestedItemRoutes);
 
 app.get("/", (req, res) => {
-    res.send("Item Service is running! ✅");
+    res.send("Global Service is running! ✅");
 });
 
 // Start Server
