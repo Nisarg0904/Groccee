@@ -9,82 +9,57 @@ const SHOPPING_LIST_BACKEND_URL =
 
 
 
-// Validate or fetch an item by name or ID
-async function validateItem(itemIdentifier, packaging, token) {
+
+/**
+ * Validate or create an item and its packaging.
+ * @param {string} itemName - Name of the item.
+ * @param {object} packaging - Packaging details (unit).
+ * @param {string} category - Category of the item (required only when creating).
+ * @param {string} token - Authorization token.
+ * @returns {object} - The validated or newly created item.
+ */
+async function validateItem(itemName, packaging, category, token) {
   try {
-    let response;
-
-    // Fetch the item by name or ID
-    if (itemIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
-      response = await axios.get(
-        `${ITEM_BACKEND_URL}/api/items/${itemIdentifier}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    } else {
-      response = await axios.get(
-        `${ITEM_BACKEND_URL}/api/items/by-name/${itemIdentifier.toLowerCase()}`, // Convert name to lowercase for consistency
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    }
-
-    if (response.status === 200) {
-      const item = response.data;
-
-      // Check if the packaging exists
-      const packagingExists = item.default_packaging.some(
-        (p) =>
-          p.quantity === packaging.quantity &&
-          p.unit.toLowerCase() === packaging.unit.toLowerCase()
-      );
-
-      if (!packagingExists) {
-        // Add the new packaging
-        item.default_packaging.push(packaging);
-        const updateResponse = await axios.put(
-          `${ITEM_BACKEND_URL}/api/items/${item._id}`,
-          { default_packaging: item.default_packaging },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        return updateResponse.data;
+    // Step 1: Check if the item exists with the given name and packaging
+    const itemExistsResponse = await axios.get(
+      `${ITEM_BACKEND_URL}/api/items/exists?name=${encodeURIComponent(
+        itemName.toLowerCase()
+      )}&unit=${encodeURIComponent(packaging.unit.toLowerCase())}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
+    );
 
-      return item;
+    // Step 2: If the item and packaging exist, return the item
+    if (itemExistsResponse.status === 200) {
+      return itemExistsResponse.data.item;
     }
   } catch (error) {
-    console.error("Error validating item:", error.message);
-
     if (error.response && error.response.status === 404) {
-      console.log("Item not found, creating new item.");
+      console.log("Item or packaging not found, adding or updating item.");
 
-      // Create the item if it does not exist
-      const newItem = {
-        name: itemIdentifier.toLowerCase(), // Convert name to lowercase for consistency
-        unit: packaging.unit,
-        price_per_unit: packaging.price,
-        default_packaging: [packaging],
-      };
-
-      const createResponse = await axios.post(
-        `${ITEM_BACKEND_URL}/api/items`,
-        newItem,
+      // Step 3: Call `addOrUpdateUserItem` to create or update the item
+      const addItemResponse = await axios.post(
+        `${ITEM_BACKEND_URL}/api/items/add-or-update`,
+        {
+          name: itemName.toLowerCase(),
+          category, // Only needed when creating an item
+          selected_unit: packaging.unit,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      return createResponse.data;
+      return addItemResponse.data.item;
     }
 
+    console.error("Error validating item:", error.message);
     throw new Error("Error validating item");
   }
 }
 
-// Add item to the default shopping list
+module.exports = { validateItem };
 
 
 
 
-module.exports = { validateUser, validateItem };
+

@@ -53,10 +53,6 @@ const GroceryItem = groceryItemDB.define(
       type: DataTypes.STRING, // e.g., "fresh", "expired", "used"
       allowNull: false,
     },
-    status: {
-    type: DataTypes.STRING(50), // 'active', 'expired', or 'wasted'
-    defaultValue: "active",
-    },
   },
   {
     tableName: "grocery_item",

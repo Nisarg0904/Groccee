@@ -202,6 +202,61 @@ const addOrUpdateUserItem = async (req, res) => {
 };
 
 
+const checkItemExists = async (req, res) => {
+  try {
+    const { name, unit } = req.query;
+    const user_id = req.user.id; // Get user ID from JWT
+
+    if (!name || !unit) {
+      return res
+        .status(400)
+        .json({ message: "Item name and packaging unit are required." });
+    }
+
+    // 🔹 Use case-insensitive regex search for item name
+    const existingItem = await Item.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive match
+      user_id,
+    });
+
+    if (!existingItem) {
+      return res.status(404).json({ message: "Item not found." });
+    }
+
+    // 🔹 Ensure `packaging` array exists
+    if (!existingItem.packaging || !Array.isArray(existingItem.packaging)) {
+      return res.status(404).json({ message: "Item has no packaging data." });
+    }
+
+    console.log("🔍 Existing Packaging:", existingItem.packaging);
+
+    // 🔹 Normalize `unit` values (trim spaces & lowercase)
+    const normalizedUnit = unit.trim().toLowerCase();
+    const packagingExists = existingItem.packaging.some(
+      (pack) => pack.unit.trim().toLowerCase() === normalizedUnit
+    );
+
+    if (!packagingExists) {
+      return res
+        .status(404)
+        .json({ message: `Packaging unit '${unit}' not found for this item.` });
+    }
+
+    return res.status(200).json({ item: existingItem });
+  } catch (error) {
+    console.error("Error checking item existence:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
-module.exports = { createUserItem , updateUserItem, addOrUpdateUserItem};
+
+
+
+
+module.exports = {
+  createUserItem,
+  updateUserItem,
+  addOrUpdateUserItem,
+  checkItemExists,
+};
