@@ -92,7 +92,7 @@ const getAllCategories = async (req, res) => {
 };
 
 module.exports = {
-    createSuggestedItem,
+    // createSuggestedItem,
     getAllItems,
     getItemByName,
     getItemsByCategory,

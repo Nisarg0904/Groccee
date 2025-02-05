@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
-    createSuggestedItem,
+    // createSuggestedItem,
     getAllItems,
     getItemByName,
     getItemsByCategory,

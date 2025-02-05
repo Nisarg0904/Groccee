@@ -4,7 +4,7 @@ require("dotenv").config();
 const itemRoutes = require("./routes/itemRoutes"); // Import item routes
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5006;
 
 // Middleware
 app.use(express.json()); // Replaces bodyParser.json()
