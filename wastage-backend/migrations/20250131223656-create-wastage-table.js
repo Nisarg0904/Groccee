@@ -7,6 +7,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
       },
       wasted_quantity: {
         type: Sequelize.INTEGER,
@@ -20,8 +21,8 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      grocery_item_id: {
-        type: Sequelize.INTEGER,
+      item_id: {
+        type: Sequelize.STRING, // Changed from INTEGER to STRING
         allowNull: false,
       },
     });

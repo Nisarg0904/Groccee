@@ -42,11 +42,15 @@ const handleAddGrocery = async () => {
     return;
   }
 
+  const formatDateToLocal = (date) => {
+    return date.toLocaleDateString("en-CA"); // Formats as YYYY-MM-DD
+  };
+
   const groceryData = {
     item_identifier: itemIdentifier.trim(),
     purchased_price: parseFloat(purchasedPrice) || null,
-    purchased_on: purchasedOn.toISOString().split("T")[0],
-    expiry_date: expiryDate.toISOString().split("T")[0],
+    purchased_on: formatDateToLocal(purchasedOn),
+    expiry_date: formatDateToLocal(expiryDate),
     purchased_quantity: parseInt(purchasedQuantity),
     available_quantity: parseInt(purchasedQuantity), // Initial value for available quantity
     packaging: {

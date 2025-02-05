@@ -39,6 +39,12 @@ const MainMenuPage = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Shopping List</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("Wastage")}
+      >
+        <Text style={styles.buttonText}>Wastage</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>

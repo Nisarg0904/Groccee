@@ -37,4 +37,11 @@ const shoppingItemAPI = axios.create({
     "Content-Type": "application/json",
   },
 });
-export { userAPI, groceryAPI, itemAPI, shoppingAPI, shoppingItemAPI };
+
+const wastageAPI = axios.create({
+  baseURL: "http://10.0.2.2:5003/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+export { userAPI, groceryAPI, itemAPI, shoppingAPI, shoppingItemAPI, wastageAPI };

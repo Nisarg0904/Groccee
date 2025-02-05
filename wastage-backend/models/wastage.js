@@ -21,13 +21,18 @@ const Wastage = wastageDB.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    grocery_item_id: {
-      type: DataTypes.INTEGER,
+    item_id: {
+      type: DataTypes.STRING,
       allowNull: false,
+    },
+    created_on: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW, // Automatically set the timestamp
     },
   },
   {
-    timestamps: false, // Disable automatic timestamps
+    timestamps: false, // Prevent Sequelize from creating updatedAt/createdAt
   }
 );
 
