@@ -16,8 +16,8 @@ services:
     image: postgres:latest
     container_name: shopping_list_item_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: shopping_list_item_db
     ports:
       - "5435:5432"

@@ -7,20 +7,7 @@ const ITEM_BACKEND_URL =
 const SHOPPING_LIST_BACKEND_URL =
   process.env.SHOPPING_LIST_BACKEND_URL || "http://localhost:5002";
 
-// Validate user_id via user-backend
-async function validateUser(userId) {
-  try {
-    const response = await axios.get(`${USER_BACKEND_URL}/api/users/${userId}`);
-    if (response.status === 200) {
-      return true;
-    }
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      throw new Error("User does not exist");
-    }
-    throw new Error("Error validating user");
-  }
-}
+
 
 // Validate or fetch an item by name or ID
 async function validateItem(itemIdentifier, packaging, token) {
@@ -96,54 +83,8 @@ async function validateItem(itemIdentifier, packaging, token) {
 }
 
 // Add item to the default shopping list
-async function addItemToDefaultShoppingList(
-  itemIdentifier,
-  quantity,
-  actualPrice,
-  token
-) {
-  const shoppingListPayload = {
-    item_identifier: itemIdentifier,
-    quantity,
-    actual_price: actualPrice,
-  };
-
-  try {
-    // Debugging: Log the payload and URL
-    console.log("Sending payload to add item to default shopping list:");
-    console.log("Payload:", shoppingListPayload);
-    console.log(
-      "Request URL:",
-      `${SHOPPING_LIST_BACKEND_URL}/api/shopping-list-items/default`
-    );
-
-    const response = await axios.post(
-      `${SHOPPING_LIST_BACKEND_URL}/api/shopping-list-items/default`,
-      shoppingListPayload,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (response.status === 201) {
-      console.log(
-        "Item added to default shopping list successfully:",
-        response.data
-      );
-      return response.data;
-    }
-  } catch (error) {
-    // Enhanced error debugging
-    console.error("Error adding item to default shopping list:");
-    console.error("Payload:", shoppingListPayload); // Use the defined payload
-    console.error(
-      "Request URL:",
-      `${SHOPPING_LIST_BACKEND_URL}/api/shopping-list/default`
-    );
-    console.error("Status Code:", error.response?.status || "No status code");
-    console.error("Response Data:", error.response?.data || "No response data");
-    throw new Error("Error adding item to default shopping list");
-  }
-}
 
 
 
-module.exports = { validateUser, validateItem, addItemToDefaultShoppingList };
+
+module.exports = { validateUser, validateItem };

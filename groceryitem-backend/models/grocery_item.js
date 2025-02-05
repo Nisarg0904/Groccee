@@ -4,37 +4,53 @@ const groceryItemDB = require("../config/groceryitem_db");
 const GroceryItem = groceryItemDB.define(
   "GroceryItem",
   {
-    grocery_item_id: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    item_id: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    purchased_price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
-    purchased_on: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
+    item_id: {
+      type: DataTypes.STRING, 
+      allowNull: false,
+    },
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    purchased_quantity: {
+      type: DataTypes.DOUBLE, // Changed to DOUBLE
+      allowNull: false,
+    },
+    available_quantity: {
+      type: DataTypes.DOUBLE, // Changed to DOUBLE
+      allowNull: false,
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    price_per_unit: {
+      type: DataTypes.DECIMAL(10, 2), // Price divided by quantity
+      allowNull: false,
     },
     expiry_date: {
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
-    purchased_quantity: {
-      type: DataTypes.INTEGER, // Total quantity when purchased
-      allowNull: false,
+    purchased_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
-    available_quantity: {
-      type: DataTypes.INTEGER, // Quantity remaining
-      allowNull: false,
-    },
-    user_id: {
-      type: DataTypes.INTEGER,
+    status: {
+      type: DataTypes.STRING, // e.g., "fresh", "expired", "used"
       allowNull: false,
     },
   },

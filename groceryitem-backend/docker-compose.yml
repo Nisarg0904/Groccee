@@ -11,8 +11,9 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./postgres_data/grocery_db:/var/lib/postgresql/data
-  
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
   
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -25,5 +26,3 @@ services:
   #   depends_on:
   #     - postgres
 
-volumes:
-  postgres_data:

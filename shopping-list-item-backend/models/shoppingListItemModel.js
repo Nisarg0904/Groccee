@@ -15,16 +15,24 @@ const ShoppingListItem = sequelize.define("ShoppingListItem", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  quantity: {
-    type: DataTypes.INTEGER,
+  name: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  expected_price: {
-    type: DataTypes.FLOAT,
-    allowNull: true,
+  unit: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-  actual_price: {
-    type: DataTypes.FLOAT,
+  quantity: {
+    type: DataTypes.DOUBLE, // Updated to DOUBLE for precision
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2), // Price instead of expected/actual price
+    allowNull: false,
+  },
+  suggestion: {
+    type: DataTypes.STRING, // Suggestion field for recommendations
     allowNull: true,
   },
 });

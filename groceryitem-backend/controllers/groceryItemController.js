@@ -1,6 +1,5 @@
 const GroceryItem = require("../models/grocery_item");
 const {
-  validateUser,
   validateItem,
   addItemToDefaultShoppingList,
 } = require("../utils/apiHelper");

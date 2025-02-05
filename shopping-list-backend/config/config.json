@@ -2,25 +2,28 @@
   "development": {
     "username": "admin",
     "password": "password",
-    "database": "shopping_list_item_db",
+    "database": "shopping_list_db",
     "host": "127.0.0.1",
-    "port": 5435,
+    "port": 5434,
+
     "dialect": "postgres"
   },
   "test": {
     "username": "admin",
     "password": "password",
-    "database": "test_db",
+    "database": "database_test",
     "host": "127.0.0.1",
-    "port": 5435,
+    "port": 5434,
+
     "dialect": "postgres"
   },
   "production": {
     "username": "admin",
     "password": "password",
-    "database": "production_db",
+    "database": "database_production",
     "host": "127.0.0.1",
-    "port": 5435,
+    "port": 5434,
+
     "dialect": "postgres"
   }
 }
