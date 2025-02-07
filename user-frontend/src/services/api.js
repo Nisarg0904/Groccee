@@ -44,4 +44,19 @@ const wastageAPI = axios.create({
     "Content-Type": "application/json",
   },
 });
-export { userAPI, groceryAPI, itemAPI, shoppingAPI, shoppingItemAPI, wastageAPI };
+const globalItemAPI = axios.create({
+  baseURL: "http://10.0.2.2:5010/api", // Update with correct port if needed
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export {
+  userAPI,
+  groceryAPI,
+  itemAPI,
+  shoppingAPI,
+  shoppingItemAPI,
+  wastageAPI,
+  globalItemAPI,
+};

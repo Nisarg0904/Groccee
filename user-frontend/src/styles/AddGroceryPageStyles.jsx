@@ -35,6 +35,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  suggestionsContainer: {
+    position: "absolute",
+    backgroundColor: "#fff",
+    width: "100%",
+    borderRadius: 8,
+    elevation: 5,
+    zIndex: 100,
+    maxHeight: 150,
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    fontSize: 16,
+  },
   label: {
     fontSize: 16,
     fontWeight: "bold",

@@ -6,114 +6,125 @@ import {
   Button,
   Alert,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 import { UserContext } from "../../contexts/UserContext";
-import { addGroceryItem } from "../../services/groceryApi";
-import DateTimePicker from "@react-native-community/datetimepicker"; // Import Date Picker
+import { addGroceryItem, fetchSuggestedItems } from "../../services/groceryApi"; // Import the new API helpers
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker"; // Import picker for unit selection
 import styles from "../../styles/AddGroceryPageStyles";
 
 const AddGroceryPage = ({ navigation }) => {
-  const { token } = useContext(UserContext); // Get token from UserContext
+  const { token } = useContext(UserContext);
 
-  const [itemIdentifier, setItemIdentifier] = useState("");
-  const [purchasedPrice, setPurchasedPrice] = useState("");
-  const [purchasedOn, setPurchasedOn] = useState(new Date());
-  const [expiryDate, setExpiryDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState(""); // Live search input
+  const [suggestedItems, setSuggestedItems] = useState([]); // Suggested items
+  const [selectedItem, setSelectedItem] = useState(null); // Chosen item
+  const [units, setUnits] = useState([]); // Available units
+  const [selectedUnit, setSelectedUnit] = useState(""); // User-selected unit
+
   const [purchasedQuantity, setPurchasedQuantity] = useState("");
-  const [packaging, setPackaging] = useState({
-    quantity: "",
-    unit: "",
-    price: "",
-  });
-
-  const [showPurchasedOnPicker, setShowPurchasedOnPicker] = useState(false);
+  const [price, setPrice] = useState("");
+  const [expiryDate, setExpiryDate] = useState(new Date());
   const [showExpiryDatePicker, setShowExpiryDatePicker] = useState(false);
 
-const handleAddGrocery = async () => {
-  if (
-    !itemIdentifier ||
-    !expiryDate ||
-    !purchasedQuantity ||
-    !packaging.quantity ||
-    !packaging.unit ||
-    !packaging.price
-  ) {
-    Alert.alert("Error", "Please fill all the required fields.");
-    return;
-  }
-
-  const formatDateToLocal = (date) => {
-    return date.toLocaleDateString("en-CA"); // Formats as YYYY-MM-DD
+  /** 🔎 Fetch matching items based on user input */
+  const handleSearchChange = async (text) => {
+    setSearchQuery(text);
+    if (text.length > 1) {
+      const items = await fetchSuggestedItems(text);
+      setSuggestedItems(items);
+    } else {
+      setSuggestedItems([]);
+    }
   };
 
-  const groceryData = {
-    item_identifier: itemIdentifier.trim(),
-    purchased_price: parseFloat(purchasedPrice) || null,
-    purchased_on: formatDateToLocal(purchasedOn),
-    expiry_date: formatDateToLocal(expiryDate),
-    purchased_quantity: parseInt(purchasedQuantity),
-    available_quantity: parseInt(purchasedQuantity), // Initial value for available quantity
-    packaging: {
-      quantity: parseInt(packaging.quantity),
-      unit: packaging.unit.trim(),
-      price: parseFloat(packaging.price),
-    },
+  /** ✅ Select an item and update available units */
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+    setSearchQuery(item.name); // Set the name in input
+    setUnits(item.units); // Set available units
+    setSelectedUnit(item.units[0]); // Default to first unit
+    setSuggestedItems([]); // Hide suggestions
   };
 
-  try {
-    await addGroceryItem(token, groceryData);
-    Alert.alert("Success", "Grocery item added successfully!");
-    navigation.navigate("MainMenu");
-  } catch (error) {
-    console.error("Error adding grocery item:", error.message);
-    Alert.alert("Error", error.message || "Failed to add grocery item.");
-  }
-};
+  /** 🛒 Add grocery item to database */
+  const handleAddGrocery = async () => {
+    if (!selectedItem || !selectedUnit || !purchasedQuantity || !price) {
+      Alert.alert("Error", "Please fill all required fields.");
+      return;
+    }
 
+    const groceryData = {
+      name: selectedItem.name,
+      unit: selectedUnit,
+      category: selectedItem.category,
+      purchased_quantity: parseInt(purchasedQuantity),
+      price: parseFloat(price),
+      expiry_date: expiryDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+    };
+
+    try {
+      await addGroceryItem(token, groceryData);
+      Alert.alert("Success", "Grocery item added successfully!");
+      navigation.navigate("MainMenu");
+    } catch (error) {
+      console.error("Error adding grocery item:", error.message);
+      Alert.alert("Error", error.message || "Failed to add grocery item.");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Grocery</Text>
 
-      {/* Item Identifier */}
+      {/* 🔎 Search for item */}
       <TextInput
         style={styles.input}
-        placeholder="Item Name"
-        value={itemIdentifier}
-        onChangeText={setItemIdentifier}
+        placeholder="Search Item Name"
+        value={searchQuery}
+        onChangeText={handleSearchChange}
       />
 
-      {/* Purchased Price */}
-      <TextInput
-        style={styles.input}
-        placeholder="Purchased Price"
-        keyboardType="numeric"
-        value={purchasedPrice}
-        onChangeText={setPurchasedPrice}
-      />
-
-      {/* Purchased On Date Picker */}
-      <TouchableOpacity
-        style={styles.dateButton}
-        onPress={() => setShowPurchasedOnPicker(true)}
-      >
-        <Text style={styles.dateButtonText}>
-          Purchased On: {purchasedOn.toDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showPurchasedOnPicker && (
-        <DateTimePicker
-          value={purchasedOn}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowPurchasedOnPicker(false);
-            if (selectedDate) setPurchasedOn(selectedDate);
-          }}
+      {/* Show search suggestions */}
+      {suggestedItems.length > 0 && (
+        <FlatList
+          data={suggestedItems}
+          keyExtractor={(item) => item.name}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleSelectItem(item)}>
+              <Text style={styles.suggestionItem}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+          style={styles.suggestionsContainer}
         />
       )}
 
-      {/* Expiry Date Picker */}
+      {/* 🏷️ Display Available Units */}
+      {selectedItem && (
+        <View>
+          <Text style={styles.label}>Select Unit</Text>
+          <Picker
+            selectedValue={selectedUnit}
+            onValueChange={(value) => setSelectedUnit(value)}
+          >
+            {units.map((unit, index) => (
+              <Picker.Item key={index} label={unit} value={unit} />
+            ))}
+          </Picker>
+        </View>
+      )}
+
+      {/* 💰 Price */}
+      <TextInput
+        style={styles.input}
+        placeholder="Price"
+        keyboardType="numeric"
+        value={price}
+        onChangeText={setPrice}
+      />
+
+      {/* 📅 Expiry Date */}
       <TouchableOpacity
         style={styles.dateButton}
         onPress={() => setShowExpiryDatePicker(true)}
@@ -134,7 +145,7 @@ const handleAddGrocery = async () => {
         />
       )}
 
-      {/* Purchased Quantity */}
+      {/* 📦 Purchased Quantity */}
       <TextInput
         style={styles.input}
         placeholder="Purchased Quantity"
@@ -143,36 +154,7 @@ const handleAddGrocery = async () => {
         onChangeText={setPurchasedQuantity}
       />
 
-      {/* Packaging Details */}
-      <Text style={styles.label}>Packaging Details</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Packaging Quantity"
-        keyboardType="numeric"
-        value={packaging.quantity}
-        onChangeText={(value) =>
-          setPackaging((prev) => ({ ...prev, quantity: value }))
-        }
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Packaging Unit (e.g., medium)"
-        value={packaging.unit}
-        onChangeText={(value) =>
-          setPackaging((prev) => ({ ...prev, unit: value }))
-        }
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Packaging Price"
-        keyboardType="numeric"
-        value={packaging.price}
-        onChangeText={(value) =>
-          setPackaging((prev) => ({ ...prev, price: value }))
-        }
-      />
-
-      {/* Submit Button */}
+      {/* 🛒 Submit Button */}
       <Button title="Add Grocery" onPress={handleAddGrocery} />
     </View>
   );
