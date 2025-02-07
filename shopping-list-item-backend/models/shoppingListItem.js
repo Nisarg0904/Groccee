@@ -8,7 +8,7 @@ const ShoppingListItem = sequelize.define("ShoppingListItem", {
     primaryKey: true,
   },  
   shopping_list_id: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   item_id: {

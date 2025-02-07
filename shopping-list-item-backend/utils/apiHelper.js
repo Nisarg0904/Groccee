@@ -1,39 +1,24 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 
-const SHOPPING_LIST_BACKEND_URL =
-  process.env.SHOPPING_LIST_BACKEND_URL || "http://localhost:5001";
-const ITEM_SERVICE_URL =
-  process.env.ITEM_SERVICE_URL || "http://localhost:5006";
+const LIST_BACKEND_URL = process.env.LIST_BACKEND_URL || "http://localhost:5001";
+const ITEM_SERVICE_URL = process.env.ITEM_SERVICE_URL || "http://localhost:5006";
+
 
 /**
- * Validate if the shopping list exists by name and user_id
+ * ✅ Validate if the shopping list exists by list_id (Required)
  */
-/**
- * Validate if the shopping list exists by name and user_id or by list_id
- */
-async function validateShoppingList({ name, list_id }, token) {
+async function validateShoppingList(list_id, token) {
   try {
-    let response;
-    let url;
-
-    if (list_id) {
-      // If list_id is provided, fetch by ID
-      url = `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/${list_id}`;
-    } else if (name) {
-      // If name is provided, fetch by name
-      url = `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists/search?name=${encodeURIComponent(
-        name
-      )}`;
-    } else {
-      throw new Error("Either list_id or name must be provided");
+    if (!list_id) {
+      throw new Error("Shopping list ID is required");
     }
 
+    const url = `${LIST_BACKEND_URL}/api/shopping-lists/${list_id}`;
     console.log("Validating shopping list with URL:", url);
-    console.log("Request Headers:", { Authorization: `Bearer ${token}` });
 
-    response = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
+    const response = await axios.get(url, {
+      headers: { Authorization: token },
     });
 
     if (response.status === 200) {
@@ -43,136 +28,79 @@ async function validateShoppingList({ name, list_id }, token) {
 
     return null;
   } catch (error) {
-    if (error.response) {
-      console.error(
-        `API Error: ${error.response.status} - ${error.response.data.message}`
-      );
-      if (error.response.status === 404) {
-        return null; // Shopping list not found
-      }
-    } else {
-      console.error("Network Error:", error.message);
+    if (error.response && error.response.status === 404) {
+      console.error("Shopping list not found.");
+      return null;
     }
+    console.error("Error validating shopping list:", error.message);
     throw new Error("Error validating shopping list");
   }
 }
 
+// async function fetchShoppingListByName(name, token) {
+//   try {
+//     if (!name) {
+//       throw new Error("Shopping list name is required");
+//     }
 
+//     const url = `${LIST_BACKEND_URL}/api/shopping-lists/search?name=${encodeURIComponent(name)}`;
+//     console.log("🔍 Fetching shopping list with URL:", url);
 
+//     const response = await axios.get(url, {
+//       headers: { Authorization: token },
+//     });
 
-/**
- * Create a new shopping list
- * - Adds `purchased` flag for default shopping lists.
- */
-async function createShoppingList(name, user_id, token, purchased = false) {
-  try {
-    const shoppingListData = {
-      name,
-      user_id,
-    };
+//     if (response.status === 200 && response.data) {
+//       console.log("✅ Shopping list found:", response.data);
+//       return response.data;
+//     }
 
-    if (purchased) {
-      shoppingListData.purchased = true; // Indicates the list is bought
-    }
-
-    const response = await axios.post(
-      `${SHOPPING_LIST_BACKEND_URL}/api/shopping-lists`,
-      shoppingListData,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (response.status === 201) {
-      return response.data;
-    }
-  } catch (error) {
-    throw new Error("Error creating shopping list");
-  }
-}
+//     console.error("❌ Shopping list not found.");
+//     return null;
+//   } catch (error) {
+//     if (error.response) {
+//       console.error(`❌ Shopping List API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+//     } else {
+//       console.error("❌ Network Error:", error.message);
+//     }
+//     throw new Error("Error fetching shopping list");
+//   }
+// }
 
 /**
- * Validate or fetch an item by ID or name
+ * ✅ Validate or fetch an item by name from the Item Microservice (MongoDB)
  */
-
-
-async function validateOrFetchItem(itemIdentifier, token) {
+async function validateOrFetchItem(name, token) {
   try {
-    let response;
-
-    // Determine if the identifier is a valid MongoDB ObjectId
-    if (mongoose.Types.ObjectId.isValid(itemIdentifier)) {
-      // Fetch by ID
-      response = await axios.get(
-        `${ITEM_SERVICE_URL}/api/items/${itemIdentifier}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    } else {
-      // Fetch by name
-      response = await axios.get(
-        `${ITEM_SERVICE_URL}/api/items/by-name/${itemIdentifier.toLowerCase()}`, // Convert name to lowercase
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    if (!name) {
+      throw new Error("Item name is required");
     }
 
-    // If the item exists, return the data
+    const url = `${ITEM_SERVICE_URL}/api/items/by-name/${encodeURIComponent(name)}`;
+    console.log("Checking if item exists in MongoDB:", url);
+
+    const response = await axios.get(url, {
+      headers: { Authorization: token },
+    });
+
     if (response.status === 200) {
+      console.log("Item found:", response.data);
       return response.data;
     }
-  } catch (error) {
-    // Handle item not found (404) error
-    if (error.response && error.response.status === 404) {
-      return null; // Item not found
-    }
 
-    // Throw other errors
+    return null;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.error(`Item '${name}' not found in MongoDB.`);
+      return null;
+    }
     console.error("Error validating or fetching item:", error.message);
     throw new Error("Error validating or fetching item");
   }
 }
 
-
-
-
-/**
- * Create a new item with minimal information
- */
-async function createItem(name, user_id, token, packaging = {}) {
-  try {
-    const minimalItemData = {
-      name: name.toLowerCase() || "unnamed item", // Ensure name is lowercase
-      unit: packaging.unit || "unknown", // Default unit
-      price_per_unit: packaging.price || 0, // Default price
-      default_packaging: packaging.quantity ? [packaging] : [], // Add packaging only if provided
-      user_id, // User ID for ownership
-    };
-
-    console.log("Creating item with data:", minimalItemData); // Debugging log
-
-    const response = await axios.post(
-      `${ITEM_SERVICE_URL}/api/items`,
-      minimalItemData,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (response.status === 201) {
-      return response.data;
-    }
-  } catch (error) {
-    console.error(
-      "Error creating item:",
-      error.response?.data || error.message
-    ); // Log backend error
-    throw new Error("Error creating item");
-  }
-}
-
-
 module.exports = {
   validateShoppingList,
-  createShoppingList,
   validateOrFetchItem,
-  createItem,
+  // fetchShoppingListByName,
 };

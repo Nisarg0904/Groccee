@@ -1,210 +1,144 @@
+const ShoppingListItem = require("../models/shoppingListItem");
+const { validateShoppingList, validateOrFetchItem } = require("../utils/apiHelper"); // Import helper functions
 
-// Create a shopping list item
-const ShoppingListItem = require("../models/shoppingListItemModel");
-const {
-  validateShoppingList,
-  createShoppingList,
-  validateOrFetchItem,
-  createItem,
-} = require("../utils/apiHelper");
 
-exports.createShoppingListItem = async (req, res) => {
+/**
+ * Create a Shopping List Item (Validates Shopping List & Item First)
+ */
+const createShoppingListItem = async (req, res) => {
   try {
-    const {
-      shopping_list_id,
-      item_identifier,
-      quantity,
-      expected_price,
-      unit,
-    } = req.body; // Include `unit` in the request body
-    const user_id = req.user.id; // Extract user ID from token
-    const token = req.header("Authorization").split(" ")[1];
+    const { shopping_list_id, name, unit, quantity, price } = req.body;
+    const token = req.header("Authorization"); // Get user token for API calls
 
-    // Validate if the shopping list exists
-    let shoppingList = await validateShoppingList(
-      { list_id: shopping_list_id, user_id },
-      token
-    );
+    if (!shopping_list_id || !name) {
+      return res.status(400).json({ message: "Shopping list ID and item name are required" });
+    }
 
+    // Validate if the Shopping List exists & belongs to the user
+    const shoppingList = await validateShoppingList(shopping_list_id, token);
     if (!shoppingList) {
-      return res.status(404).json({
-        message: "Default shopping list does not exist",
-      });
+      return res.status(404).json({ message: "Shopping list not found or does not belong to the user" });
     }
 
-    // Validate or fetch the item
-    console.log("Validating or fetching item...");
-    let item = await validateOrFetchItem(item_identifier, token);
-    console.log("Item:", item);
+    // Check if the item exists in MongoDB's Item Table
+    const existingItem = await validateOrFetchItem(name, token);
+    const item_id = existingItem ? existingItem._id : null; // If item exists, use its ID; otherwise, keep it null
 
-    // If the item doesn't exist, create it
-    if (!item) {
-      console.log("Item not found, creating a new one...");
-      item = await createItem(item_identifier, user_id, token, {
-        unit: unit || "unknown", // Use the unit from the request or fallback to "unknown"
-        price: 0, // Default price
-      });
-      console.log("Created Item:", item);
-    }
-
-    // Check if the item already exists in the shopping list
-    const existingListItem = await ShoppingListItem.findOne({
-      where: { shopping_list_id: shoppingList.list_id, item_id: item._id },
-    });
-
-    if (existingListItem) {
-      // Update the existing item's quantity and price
-      existingListItem.quantity += quantity;
-      if (expected_price !== undefined) {
-        existingListItem.expected_price = expected_price;
-      }
-      await existingListItem.save();
-      return res
-        .status(200)
-        .json({ message: "Item updated in shopping list", existingListItem });
-    }
-
-    // Add a new item to the shopping list
-    const newItem = await ShoppingListItem.create({
-      shopping_list_id: shoppingList.list_id,
-      item_id: item._id, // Use the new or fetched item's ID
+    // Create the shopping list item in PostgreSQL
+    const shoppingListItem = await ShoppingListItem.create({
+      shopping_list_id,
+      name,
+      unit,
       quantity,
-      expected_price,
+      price,
+      item_id, // This will be null if the item doesn't exist
     });
 
-    res.status(201).json({ message: "Item added to shopping list", newItem });
+    res.status(201).json(shoppingListItem);
   } catch (error) {
     console.error("Error creating shopping list item:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
+// const getShoppingListItemsByName = async (req, res) => {
+//   try {
+//     const { name } = req.params; // Get shopping list name from URL params
+//     const token = req.header("Authorization"); // Get user token for validation
+
+//     if (!name) {
+//       return res.status(400).json({ message: "Shopping list name is required" });
+//     }
+
+//     // ✅ Fetch shopping list by name using helper function
+//     const shoppingList = await fetchShoppingListByName(name, token);
+
+//     if (!shoppingList) {
+//       return res.status(404).json({ message: "Shopping list not found" });
+//     }
+
+//     // ✅ Fetch all shopping list items for the found shopping list
+//     const shoppingListItems = await ShoppingListItem.findAll({
+//       where: { shopping_list_id: shoppingList.shopping_list_id },
+//     });
+
+//     res.status(200).json(shoppingListItems);
+//   } catch (error) {
+//     console.error("Error fetching shopping list items by name:", error.message);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 
-
-
-exports.addItemToDefaultShoppingList = async (req, res) => {
+const updateShoppingListItem = async (req, res) => {
   try {
-    const { item_identifier, quantity, actual_price } = req.body;
-    const user_id = req.user.id; // Extract user ID from token
-    const token = req.header("Authorization").split(" ")[1];
+    const { id } = req.params; // Get item ID from URL params
+    const { name, unit, quantity, price, bought } = req.body; // Fields to update
+    const token = req.header("Authorization"); // Get user token for validation
 
-    // Generate today's default shopping list name
-    const today = new Date().toISOString().split("T")[0];
-    const defaultListName = `Default List - ${today}`;
+    // Check if the shopping list item exists
+    const shoppingListItem = await ShoppingListItem.findOne({ where: { list_item_id: id } });
 
-    // Validate or create the default shopping list
-    console.log("Validating or creating shopping list...");
-    let shoppingList = await validateShoppingList(
-      { name: defaultListName, user_id },
-      token
-    );
-
-    console.log("Shopping List:", shoppingList);
-
-    // Handle shopping list structure
-    const shoppingListEntry = Array.isArray(shoppingList)
-      ? shoppingList[0]
-      : shoppingList;
-
-    if (!shoppingListEntry || !shoppingListEntry.list_id) {
-      // Create a new shopping list if none exists
-      shoppingList = await createShoppingList(
-        defaultListName,
-        user_id,
-        token,
-        true // Mark the list as bought
-      );
-      console.log("Created Shopping List:", shoppingList);
-
-      if (!shoppingList || !shoppingList.list_id) {
-        throw new Error("Shopping list creation or retrieval failed");
-      }
+    if (!shoppingListItem) {
+      return res.status(404).json({ message: "Shopping list item not found" });
     }
 
-    // Extract the list ID
-    const listId = shoppingListEntry?.list_id || shoppingList?.list_id;
-
-    // Validate or create the item
-    console.log("Validating or fetching item...");
-    const item = await validateOrFetchItem(item_identifier, token);
-    console.log("Item:", item);
-
-    if (!item) {
-      return res
-        .status(400)
-        .json({ message: "Item validation or creation failed" });
+    // Validate if the Shopping List exists & belongs to the user
+    const shoppingList = await validateShoppingList(shoppingListItem.shopping_list_id, token);
+    if (!shoppingList) {
+      return res.status(403).json({ message: "You are not authorized to update this item" });
     }
 
-    // Add the item to the default shopping list (always as a new entry)
-    const newItem = await ShoppingListItem.create({
-      shopping_list_id: listId,
-      item_id: item._id,
-      quantity,
-      expected_price: null, // Set expected_price to null
-      actual_price, // Use the price passed by the user
+    // ✅ Update the item fields
+    await shoppingListItem.update({
+      name: name || shoppingListItem.name,
+      unit: unit || shoppingListItem.unit,
+      quantity: quantity !== undefined ? quantity : shoppingListItem.quantity,
+      price: price !== undefined ? price : shoppingListItem.price,
+      bought: bought !== undefined ? bought : shoppingListItem.bought,
     });
 
-    console.log("Created Shopping List Item:", newItem);
-
-    res
-      .status(201)
-      .json({ message: "Item added to default shopping list", newItem });
+    res.status(200).json({ message: "Shopping list item updated successfully", shoppingListItem });
   } catch (error) {
-    console.error("Error adding item to default shopping list:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("Error updating shopping list item:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-
-
-
-// Get all items in a shopping list
-exports.getItemsInShoppingList = async (req, res) => {
+/**
+ * Delete a Shopping List Item
+ */
+const deleteShoppingListItem = async (req, res) => {
   try {
-    const { shopping_list_id } = req.params;
+    const { id } = req.params; // Get item ID from URL params
+    const token = req.header("Authorization"); // Get user token for validation
 
-    const items = await ShoppingListItem.findAll({
-      where: { shopping_list_id },
-    });
+    // Check if the shopping list item exists
+    const shoppingListItem = await ShoppingListItem.findOne({ where: { list_item_id: id } });
 
-    res.status(200).json(items);
+    if (!shoppingListItem) {
+      return res.status(404).json({ message: "Shopping list item not found" });
+    }
+
+    // Validate if the Shopping List exists & belongs to the user
+    const shoppingList = await validateShoppingList(shoppingListItem.shopping_list_id, token);
+    if (!shoppingList) {
+      return res.status(403).json({ message: "You are not authorized to delete this item" });
+    }
+
+    // Delete the item
+    await shoppingListItem.destroy();
+
+    res.status(200).json({ message: "Shopping list item deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error deleting shopping list item:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Update a shopping list item
-exports.updateShoppingListItem = async (req, res) => {
-  try {
-    const { list_item_id } = req.params;
-    const { quantity, expected_price, actual_price } = req.body;
-
-    const updatedItem = await ShoppingListItem.update(
-      { quantity, expected_price, actual_price },
-      { where: { list_item_id }, returning: true }
-    );
-
-    res.status(200).json(updatedItem[1][0]); // returning updated object
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Delete a shopping list item
-exports.deleteShoppingListItem = async (req, res) => {
-  try {
-    const { list_item_id } = req.params;
-
-    await ShoppingListItem.destroy({
-      where: { list_item_id },
-    });
-
-    res
-      .status(200)
-      .json({ message: "Shopping list item deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+module.exports = {
+  createShoppingListItem,
+  updateShoppingListItem,
+  // getShoppingListItemsByName,
+  deleteShoppingListItem,
 };

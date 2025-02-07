@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const shoppingListItemRoutes = require("./routes/shoppingListItemRoutes");
-const ShoppingListItem = require("./models/shoppingListItemModel");
+const ShoppingListItem = require("./models/shoppingListItem");
 
 (async () => {
   try {
