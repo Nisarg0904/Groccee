@@ -1,104 +1,174 @@
-import React, { useEffect } from "react"
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Animated, Image, ScrollView } from "react-native"
-// import { LinearGradient } from "expo-linear-gradient"
-import { MaterialIcons, AntDesign, Feather } from "@expo/vector-icons"
-import { useNavigation } from "@react-navigation/native"
-import styles, { COLORS } from "../../styles/WelcomePageStyles"
+import React, { useEffect, useState } from "react";
+import { 
+  View, 
+  Text, 
+  SafeAreaView, 
+  StatusBar, 
+  ScrollView, 
+  Image, 
+  Dimensions, 
+  Platform, 
+  ActivityIndicator 
+} from "react-native";
+import Swiper from "react-native-swiper";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
+import * as Font from "expo-font";
+import { Asset } from "expo-asset"; // Expo Asset for preloading images
+import styles, { COLORS } from "../../styles/WelcomePageStyles";
 
-const WelcomePage = () => {
-  const navigation = useNavigation()
-  const fadeAnim = new Animated.Value(0)
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start()
-  }, [])
-
-  const renderFeature = (icon, title, description) => (
-    <View style={styles.featureItem}> 
-      <Feather name={icon} size={24} color={COLORS.sinopia} />
-      <Text style={styles.featureTitle}>{title}</Text>
-      <Text style={styles.featureDescription}>{description}</Text>
-    </View>
-  )
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.black }]}>
-      <StatusBar barStyle="light-content" />
-      {/* <LinearGradient
-        colors={[COLORS.black]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.6, 1]}
-        style={styles.gradient}
-      > */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-            }}
-          >
-            <View style={styles.logoContainer}>
-              <View style={styles.logoWrapper}>
-                <Text style={styles.appName}>GroceryMate</Text>
-                <Image source={require("../../../assets/logo.png")} style={styles.logo} />
-              </View>
-            </View>
-
-            <View style={styles.heroSection}>
-              <Image source={require("../../../assets/hero-section.jpg")} style={styles.heroImage} />
-              <Text style={styles.heroText}>Simplify Your Grocery Shopping</Text>
-            </View>
-
-            <View style={styles.featuresContainer}>
-              {renderFeature("list", "Easy List Management", "Create and manage your grocery lists effortlessly")}
-              {renderFeature("users", "Real-Time Collaboration", "Share lists with family members in real-time")}
-              {renderFeature("shopping-bag", "Smart Suggestions", "Receive personalized product recommendations")}
-            </View>
-
-            <View style={styles.ctaContainer}>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={() => navigation.navigate("SignUp")}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.ctaText}>Get Started</Text> 
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity style={styles.googleButton} onPress={() => {}}>
-                <AntDesign name="google" size={24} color="white" />
-                <Text style={styles.socialText}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.appleButton} onPress={() => {}}>
-                <MaterialIcons name="apple" size={24} color="white" />
-                <Text style={styles.socialText}>Apple</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.signInButton}
-              onPress={() => navigation.navigate("SignIn")}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.signInText}>Already have an account? Sign In</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.termsText}>
-              By continuing, you agree to our <Text style={styles.termsLink}>Terms and Conditions</Text>.
-            </Text>
-          </Animated.View>
-        </ScrollView>
-      {/* </LinearGradient> */}
-    </SafeAreaView>
-  )
+// Import FastImage ONLY if not using Expo (we are using Expo so this won't be used)
+let FastImage;
+if (Platform.OS !== "web" && !global.__expo) {
+  FastImage = require("react-native-fast-image").default;
 }
 
-export default WelcomePage
+const WelcomePage = () => {
+  const navigation = useNavigation();
+  const { width: screenWidth } = Dimensions.get("window");
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false); // Track when images are preloaded
 
+  const renderFeature = (icon, title = "Feature Title", iconColor = COLORS.red) => (
+    <View style={styles.featureItem} key={title}>
+      <Feather name={icon} size={24} color={iconColor} />
+      <Text style={styles.featureTitle}>{title}</Text>
+    </View>
+  );
+
+  // Load custom font
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        "Fonarto": require("../../../assets/fonts/Fonarto.ttf"),
+      });
+      setFontsLoaded(true);
+    }
+    loadFonts();
+  }, []);
+
+  // Define hero images (local assets in .webp format)
+  const heroImages = [
+    require("../../../assets/hero1.webp"),
+    require("../../../assets/hero2.webp"),
+    require("../../../assets/hero3.webp"),
+    require("../../../assets/hero4.webp"),
+    require("../../../assets/hero5.webp"),
+    require("../../../assets/hero6.webp"),
+  ];
+
+  // Preload images using Expo Asset
+  useEffect(() => {
+    async function loadImages() {
+      try {
+        // Preload each image asset
+        const imageAssets = heroImages.map((img) => Asset.fromModule(img).downloadAsync());
+        await Promise.all(imageAssets);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error("Error preloading images:", error);
+        setImagesLoaded(true); // Even on error, let the page render.
+      }
+    }
+    loadImages();
+  }, []);
+
+  // Preload using FastImage if available (won't be used on Expo)
+  useEffect(() => {
+    if (FastImage) {
+      const heroURIs = heroImages.map((img) => Image.resolveAssetSource(img).uri);
+      FastImage.preload(heroURIs.map((uri) => ({ uri })));
+    }
+  }, []);
+
+  // Show loader until fonts and images are loaded
+  if (!fontsLoaded || !imagesLoaded) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.red} />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Title with custom font */}
+        <View style={styles.titleContainer}>
+          <Text 
+            style={{
+              fontFamily: "Fonarto",
+              fontSize: 58,
+              color: "white",
+              textShadowColor: "#FF3131",
+              textShadowRadius: 3,
+              textShadowOffset: { width: -3, height: -3 },
+            }}
+          >
+            GROCCEE
+          </Text>
+        </View>
+
+        {/* Hero Section with Swiper */}
+        <View style={styles.heroSection}>
+          <Swiper
+            style={styles.carousel}
+            autoplay
+            autoplayTimeout={2}
+            showsPagination={false}
+            dotStyle={styles.carouselDot}
+            activeDotStyle={styles.activeCarouselDot}
+          >
+            {FastImage
+              ? heroImages.map((img, index) => (
+                  <FastImage key={index} source={img} style={styles.heroImage} resizeMode="cover" />
+                ))
+              : heroImages.map((img, index) => (
+                  <Image key={index} source={img} style={styles.heroImage} resizeMode="cover" />
+                ))}
+          </Swiper>
+          <Text style={styles.heroText}>Simplify Your Grocery Shopping</Text>
+        </View>
+
+        {/* Features Section */}
+        <View style={styles.featuresContainer}>
+          {renderFeature("list", "Easy List Management")}
+          {renderFeature("users", "Real-Time Collaboration")}
+          {renderFeature("shopping-bag", "Smart Suggestions")}
+        </View>
+
+        {/* Call-to-Action Button */}
+        <View style={styles.ctaContainer}>
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={() => navigation.navigate("SignUp")}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.ctaText}>Get Started</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign-In Link */}
+        <TouchableOpacity
+          style={styles.signInButton}
+          onPress={() => navigation.navigate("SignIn")}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.signInText}>Already have an account? Sign In</Text>
+        </TouchableOpacity>
+
+        {/* Terms and Conditions */}
+        <Text style={styles.termsText}>
+          By continuing, you agree to our{" "}
+          <Text style={styles.termsLink}>Terms and Conditions</Text>.
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default WelcomePage;

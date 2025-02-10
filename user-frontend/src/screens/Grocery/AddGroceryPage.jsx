@@ -1,18 +1,21 @@
 import React, { useState, useContext } from "react";
 import {
+  SafeAreaView,
+  ScrollView,
   View,
   Text,
   TextInput,
-  Button,
-  Alert,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { UserContext } from "../../contexts/UserContext";
 import { addGroceryItem, fetchSuggestedItems } from "../../services/groceryApi"; // Import the new API helpers
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker"; // Import picker for unit selection
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import * as Animatable from "react-native-animatable";
 import styles from "../../styles/AddGroceryPageStyles";
+import { Picker } from "@react-native-picker/picker";
 
 const AddGroceryPage = ({ navigation }) => {
   const { token } = useContext(UserContext);
@@ -26,7 +29,9 @@ const AddGroceryPage = ({ navigation }) => {
   const [purchasedQuantity, setPurchasedQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [expiryDate, setExpiryDate] = useState(new Date());
-  const [showExpiryDatePicker, setShowExpiryDatePicker] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  // State to control the success animation overlay
+  const [showSuccess, setShowSuccess] = useState(false);
 
   /** 🔎 Fetch matching items based on user input */
   const handleSearchChange = async (text) => {
@@ -42,8 +47,8 @@ const AddGroceryPage = ({ navigation }) => {
   /** ✅ Select an item and update available units */
   const handleSelectItem = (item) => {
     setSelectedItem(item);
-    setSearchQuery(item.name); // Set the name in input
-    setUnits(item.units); // Set available units
+    setSearchQuery(item.name); // Set the name in the search field
+    setUnits(item.units); // Update available units
     setSelectedUnit(item.units[0]); // Default to first unit
     setSuggestedItems([]); // Hide suggestions
   };
@@ -66,97 +71,137 @@ const AddGroceryPage = ({ navigation }) => {
 
     try {
       await addGroceryItem(token, groceryData);
-      Alert.alert("Success", "Grocery item added successfully!");
-      navigation.navigate("MainMenu");
+      // Instead of an alert, display an animated success message.
+      setShowSuccess(true);
+      // After a short delay, navigate to MainMenu.
+      setTimeout(() => {
+        navigation.navigate("MainMenu");
+      }, 1500);
     } catch (error) {
       console.error("Error adding grocery item:", error.message);
       Alert.alert("Error", error.message || "Failed to add grocery item.");
     }
   };
 
+  // Date Picker functions
+  const showDatePicker = () => setDatePickerVisible(true);
+  const hideDatePicker = () => setDatePickerVisible(false);
+  const handleConfirmDate = (date) => {
+    setExpiryDate(date);
+    hideDatePicker();
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Add Grocery</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Add Grocery</Text>
 
-      {/* 🔎 Search for item */}
-      <TextInput
-        style={styles.input}
-        placeholder="Search Item Name"
-        value={searchQuery}
-        onChangeText={handleSearchChange}
-      />
-
-      {/* Show search suggestions */}
-      {suggestedItems.length > 0 && (
-        <FlatList
-          data={suggestedItems}
-          keyExtractor={(item) => item.name}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleSelectItem(item)}>
-              <Text style={styles.suggestionItem}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-          style={styles.suggestionsContainer}
+        {/* 🔎 Search for item */}
+        <TextInput
+          style={styles.input}
+          placeholder="Search Item Name"
+          placeholderTextColor="#888"
+          value={searchQuery}
+          onChangeText={handleSearchChange}
         />
-      )}
 
-      {/* 🏷️ Display Available Units */}
-      {selectedItem && (
-        <View>
-          <Text style={styles.label}>Select Unit</Text>
-          <Picker
-            selectedValue={selectedUnit}
-            onValueChange={(value) => setSelectedUnit(value)}
-          >
-            {units.map((unit, index) => (
-              <Picker.Item key={index} label={unit} value={unit} />
-            ))}
-          </Picker>
-        </View>
-      )}
+        {/* Show search suggestions */}
+        {suggestedItems.length > 0 && (
+          <FlatList
+            data={suggestedItems}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => handleSelectItem(item)}
+                style={styles.suggestionItemContainer}
+              >
+                <Text style={styles.suggestionItem}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+            style={styles.suggestionsContainer}
+          />
+        )}
 
-      {/* 💰 Price */}
-      <TextInput
-        style={styles.input}
-        placeholder="Price"
-        keyboardType="numeric"
-        value={price}
-        onChangeText={setPrice}
-      />
+        {/* 🏷️ Display Available Units */}
+        {selectedItem && (
+          <View>
+            <Text style={styles.label}>Select Unit</Text>
+            <Picker
+              selectedValue={selectedUnit}
+              onValueChange={(value) => setSelectedUnit(value)}
+              style={styles.picker}
+              dropdownIconColor="#fff"
+            >
+              {units.map((unit, index) => (
+                <Picker.Item key={index} label={unit} value={unit} />
+              ))}
+            </Picker>
+          </View>
+        )}
 
-      {/* 📅 Expiry Date */}
-      <TouchableOpacity
-        style={styles.dateButton}
-        onPress={() => setShowExpiryDatePicker(true)}
-      >
-        <Text style={styles.dateButtonText}>
-          Expiry Date: {expiryDate.toDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showExpiryDatePicker && (
-        <DateTimePicker
-          value={expiryDate}
+        {/* 💰 Price in dollars */}
+        <TextInput
+          style={styles.input}
+          placeholder="Price ($)"
+          placeholderTextColor="#888"
+          keyboardType="decimal-pad"
+          value={price}
+          onChangeText={(text) => setPrice(text.replace(/[^0-9.]/g, ""))}
+        />
+
+        {/* 📅 Expiry Date with Modal Date Picker */}
+        <TouchableOpacity
+          style={styles.expiryDateButton}
+          onPress={showDatePicker}
+        >
+          <Text style={styles.expiryDateButtonText}>
+            Expiry Date: {expiryDate.toDateString()}
+          </Text>
+          <MaterialCommunityIcons name="calendar" size={24} color="#f39c12" />
+        </TouchableOpacity>
+
+        {/* Unified Modal Date Picker */}
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
           mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowExpiryDatePicker(false);
-            if (selectedDate) setExpiryDate(selectedDate);
-          }}
+          date={expiryDate}
+          onConfirm={handleConfirmDate}
+          onCancel={hideDatePicker}
+          minimumDate={new Date()}
         />
+
+        {/* 📦 Purchased Quantity (numbers only) */}
+        <TextInput
+          style={styles.input}
+          placeholder="Purchased Quantity"
+          placeholderTextColor="#888"
+          keyboardType="numeric"
+          value={purchasedQuantity}
+          onChangeText={(text) => setPurchasedQuantity(text.replace(/[^0-9]/g, ""))}
+        />
+
+        {/* 🛒 Submit Button */}
+        <TouchableOpacity style={styles.submitButton} onPress={handleAddGrocery}>
+          <Text style={styles.submitButtonText}>Add Grocery</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* Animated Success Overlay */}
+      {showSuccess && (
+        <Animatable.View
+          animation="bounceIn"
+          duration={800}
+          style={styles.successOverlay}
+        >
+          <MaterialCommunityIcons
+            name="check-circle-outline"
+            size={60}
+            color="#f39c12"
+          />
+          <Text style={styles.successText}>Grocery Added Successfully!</Text>
+        </Animatable.View>
       )}
-
-      {/* 📦 Purchased Quantity */}
-      <TextInput
-        style={styles.input}
-        placeholder="Purchased Quantity"
-        keyboardType="numeric"
-        value={purchasedQuantity}
-        onChangeText={setPurchasedQuantity}
-      />
-
-      {/* 🛒 Submit Button */}
-      <Button title="Add Grocery" onPress={handleAddGrocery} />
-    </View>
+    </SafeAreaView>
   );
 };
 

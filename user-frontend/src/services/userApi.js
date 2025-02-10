@@ -1,16 +1,6 @@
 import { userAPI } from "./api";
 import axios from "axios";
 
-// Send verification email
-export const sendVerificationEmail = async (data) => {
-  try {
-    const response = await userAPI.post("/users/send-verification-email", data);
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Network Error");
-  }
-};
-
 // Resend verification email
 export const resendVerificationEmail = async (data) => {
   try {
@@ -26,17 +16,13 @@ export const resendVerificationEmail = async (data) => {
 
 // Register a new user
 export const signUpUser = async (userData) => {
+
   try {
-    console.log(
-      "sending request to:" +
-        userAPI +
-        "/users/signup" +
-        "\n user data : " +
-        userData.toString()
-    );
+    console.log("sending request to:" + userAPI + "/users/signup"+"\n user data : "+ userData.toString());
     const response = await userAPI.post("/users/signup", userData);
-    console.log("request sent");
+    console.log("request sent")
     return response.data;
+
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");
   }
@@ -77,6 +63,7 @@ export const getUserProfile = async (token) => {
 };
 
 // Update user details
+// Update user details
 export const updateUserDetails = async (token, userData) => {
   try {
     const response = await userAPI.put("/users/edit", userData, {
@@ -88,6 +75,7 @@ export const updateUserDetails = async (token, userData) => {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
 
 // Delete user account
 export const deleteUserAccount = async (token) => {

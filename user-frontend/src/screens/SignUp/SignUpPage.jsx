@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   StatusBar,
   ScrollView,
@@ -11,9 +11,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import styles from "../../styles/SignUpPageStyles";
-import { signUpUser, sendVerificationEmail } from "../../services/userApi";
-
-
+import { COLORS } from "../../styles/WelcomePageStyles";
+import { signUpUser } from "../../services/userApi";
 
 const SignUpPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
@@ -25,6 +24,7 @@ const SignUpPage = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePassword = (password) => {
@@ -40,7 +40,7 @@ const SignUpPage = ({ navigation }) => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
     const trimmedConfirmPassword = confirmPassword.trim();
-
+  
     // Validation Checks
     if (!trimmedUsername) {
       return Alert.alert("Error", "Username is required.");
@@ -66,31 +66,32 @@ const SignUpPage = ({ navigation }) => {
     if (!accepted) {
       return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
-
+  
     // Preparing user data
     const userData = {
-      username,
-      firstName,
-      lastName,
+      username: trimmedUsername,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
       email: trimmedEmail,
       password: trimmedPassword,
     };
-
+  
     try {
-      Alert.alert("Processing", "Signing up...");
+      // Show loading alert while processing
+      Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
+      console.log(userData)
+      // Call the API to register the user
       await signUpUser(userData);
-      await sendVerificationEmail(trimmedEmail);
+      console.log('Success');
+      // Success feedback
       Alert.alert(
         "Success",
-        "You have successfully registered! A verification email has been sent.",
+        "You have successfully registered! Please verify your email and then sign in.",
         [{ text: "OK", onPress: () => navigation.navigate("SignIn") }]
       );
     } catch (error) {
       console.error("Sign-up error:", error);
-      Alert.alert(
-        "Sign-Up Failed",
-        error.message || "Something went wrong. Please try again."
-      );
+      Alert.alert("Sign-Up Failed", error.message || "Something went wrong. Please try again.");
     }
   };
 
@@ -98,27 +99,29 @@ const SignUpPage = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <Text style={styles.headerTitle}>User Registration</Text>
         <Text style={styles.title}>Create an Account</Text>
+        
         <TextInput
           style={styles.input}
           placeholder="Username"
           value={username}
           onChangeText={setUsername}
-          placeholderTextColor="#A9A9A9"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
         />
         <TextInput
           style={styles.input}
           placeholder="First Name"
           value={firstName}
           onChangeText={setFirstName}
-          placeholderTextColor="#A9A9A9"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
         />
         <TextInput
           style={styles.input}
           placeholder="Last Name"
           value={lastName}
           onChangeText={setLastName}
-          placeholderTextColor="#A9A9A9"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
         />
         <TextInput
           style={styles.input}
@@ -126,7 +129,7 @@ const SignUpPage = ({ navigation }) => {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
-          placeholderTextColor="#A9A9A9"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
         />
         <View style={styles.passwordContainer}>
           <TextInput
@@ -135,11 +138,16 @@ const SignUpPage = ({ navigation }) => {
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
-            placeholderTextColor="#A9A9A9"
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
           />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={24} color="white" style={styles.icon} />
-          </TouchableOpacity>
+          <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <MaterialIcons 
+              name={showPassword ? "visibility" : "visibility-off"} 
+              size={24} 
+              color="rgba(255, 255, 255, 0.8)" 
+              style={styles.icon} 
+            />
+          </Pressable>
         </View>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -148,23 +156,53 @@ const SignUpPage = ({ navigation }) => {
             secureTextEntry={!showConfirmPassword}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholderTextColor="#A9A9A9"
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
           />
-          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-            <MaterialIcons name={showConfirmPassword ? "visibility" : "visibility-off"} size={24} color="white" style={styles.icon} />
-          </TouchableOpacity>
+          <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <MaterialIcons 
+              name={showConfirmPassword ? "visibility" : "visibility-off"} 
+              size={24} 
+              color="rgba(255, 255, 255, 0.8)" 
+              style={styles.icon} 
+            />
+          </Pressable>
         </View>
         <View style={styles.termsContainer}>
-          <TouchableOpacity onPress={() => setAccepted(!accepted)}>
-            <MaterialIcons name={accepted ? "check-box" : "check-box-outline-blank"} size={20} color="white" />
-          </TouchableOpacity>
+          <Pressable onPress={() => setAccepted(!accepted)}>
+            <MaterialIcons 
+              name={accepted ? "check-box" : "check-box-outline-blank"} 
+              size={20} 
+              color={COLORS.accent}
+            />
+          </Pressable>
           <Text style={styles.termsText}>
             I agree to the <Text style={styles.termsLink}>Terms and Conditions</Text>.
           </Text>
         </View>
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-          <Text style={styles.signUpButtonText}>Sign Up</Text>
-        </TouchableOpacity>
+        
+        <Pressable
+          style={({ pressed }) => [
+            styles.signUpButton,
+            pressed && styles.signUpButtonPressed
+          ]}
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => setIsPressed(false)}
+          onPress={handleSignUp}
+        >
+          <Text style={[
+            styles.signUpButtonText,
+            isPressed && styles.signUpButtonTextPressed
+          ]}>
+            Sign Up
+          </Text>
+        </Pressable>
+
+        <View style={styles.signInContainer}>
+          <Text style={styles.signInText}>Already have an account?</Text>
+          <Pressable onPress={() => navigation.navigate('SignIn')}>
+            <Text style={styles.signInLink}>Sign In</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

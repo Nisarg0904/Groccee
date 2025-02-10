@@ -1,82 +1,102 @@
-import * as React from "react";
-import { useState } from "react";
-import { Animation, CoreTypes } from "@nativescript/core";
-import { styles } from "./BottomNav.styles";
+import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../styles/WelcomePageStyles';
 
-export function BottomNav({ navigation }) {
-  const [activeTab, setActiveTab] = useState("ViewGroceries");
 
-  const animatePress = (view) => {
-    return new Animation([{
-      target: view,
-      scale: { x: 0.9, y: 0.9 },
-      duration: 100,
-      curve: CoreTypes.AnimationCurve.easeInOut
-    }, {
-      target: view,
-      scale: { x: 1, y: 1 },
-      duration: 100,
-      curve: CoreTypes.AnimationCurve.easeInOut
-    }]).play();
+const BottomNav = ({ navigation, route }) => {
+  const currentRoute = route?.name;
+
+  const isActive = (routeName) => {
+    if (routeName === 'MainMenu' && currentRoute === 'MainMenu') return true;
+    if (routeName === 'ShoppingLists' && currentRoute === 'ShoppingLists') return true;
+    if (routeName === 'ViewGroceries' && currentRoute === 'ViewGroceries') return true;
+    if (routeName === 'Wastage' && currentRoute === 'Wastage') return true;
+    return false;
   };
-
-  const handleNavigation = (route, view) => {
-    setActiveTab(route);
-    animatePress(view).then(() => {
-      navigation.navigate(route);
-    });
-  };
-
-  const getNavItemStyle = (tabName) => ({
-    ...styles.navItem,
-    ...(activeTab === tabName && styles.activeNavItem)
-  });
 
   return (
-    <gridLayout rows="*" columns="*, *, *, *, *" style={styles.container}>
-      <flexboxLayout 
-        col={0} 
-        style={getNavItemStyle("ViewGroceries")} 
-        onTap={(args) => handleNavigation("ViewGroceries", args.object)}
-      >
-        <label text="&#xf015;" className="fas" style={styles.icon} />
-        <label text="Groceries" style={styles.label} />
-      </flexboxLayout>
+    <View style={styles.container}>
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('MainMenu')}>
+        <Ionicons 
+          name={isActive('MainMenu') ? "home" : "home-outline"} 
+          size={24} 
+          color={isActive('MainMenu') ? "#FF4141" : "#fff"} 
+        />
+        <Text style={[styles.label, isActive('MainMenu') && styles.activeLabel]}>Home</Text>
+      </Pressable>
       
-      <flexboxLayout 
-        col={1} 
-        style={getNavItemStyle("Inventory")}
-        onTap={(args) => handleNavigation("Inventory", args.object)}
-      >
-        <label text="&#xf466;" className="fas" style={styles.icon} />
-        <label text="Inventory" style={styles.label} />
-      </flexboxLayout>
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('ShoppingLists', { status: 'unbought' })}>
+        <Ionicons 
+          name={isActive('ShoppingLists') ? "cart" : "cart-outline"} 
+          size={24} 
+          color={isActive('ShoppingLists') ? "#FF4141" : "#fff"} 
+        />
+        <Text style={[styles.label, isActive('ShoppingLists') && styles.activeLabel]}>Shopping</Text>
+      </Pressable>
       
-      <flexboxLayout 
-        col={2} 
+      <Pressable 
         style={styles.centerButton}
-        onTap={(args) => handleNavigation("AddGrocery", args.object)}
+        onPress={() => navigation.navigate('AddGrocery')}
       >
-        <label text="&#xf067;" className="fas" style={styles.plusIcon} />
-      </flexboxLayout>
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </Pressable>
       
-      <flexboxLayout 
-        col={3} 
-        style={getNavItemStyle("ShoppingList")}
-        onTap={(args) => handleNavigation("ShoppingList", args.object)}
-      >
-        <label text="&#xf07a;" className="fas" style={styles.icon} />
-        <label text="Shopping" style={styles.label} />
-      </flexboxLayout>
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('ViewGroceries')}>
+        <Ionicons 
+          name={isActive('ViewGroceries') ? "cube" : "cube-outline"} 
+          size={24} 
+          color={isActive('ViewGroceries') ? "#FF4141" : "#fff"} 
+        />
+        <Text style={[styles.label, isActive('ViewGroceries') && styles.activeLabel]}>Inventory</Text>
+      </Pressable>
       
-      <flexboxLayout 
-        col={4} 
-        style={getNavItemStyle("ProfileSetup")}
-        onTap={(args) => handleNavigation("ProfileSetup", args.object)}
-      >
-        <label text="&#xf007;" className="fas" style={styles.icon} />
-        <label text="Profile" style={styles.label} />
-      </flexboxLayout>
-    </gridLayout>
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('Wastage')}>
+        <Ionicons 
+          name={isActive('Wastage') ? "bar-chart" : "bar-chart-outline"} 
+          size={24} 
+          color={isActive('Wastage') ? "#FF4141" : "#fff"} 
+        />
+        <Text style={[styles.label, isActive('Wastage') && styles.activeLabel]}>Reports</Text>
+      </Pressable>
+    </View>
   );
-}
+};
+
+const styles = {
+  container: {
+    flexDirection: "row",
+    backgroundColor: COLORS.primary,
+    height: 65,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  centerButton: {
+    backgroundColor: '#FF4141',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -15,
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: 'Poppins-Regular',
+  },
+  activeLabel: {
+    color: '#FF4141',
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: 'Poppins-Regular',
+  },
+};
+
+export default BottomNav;
