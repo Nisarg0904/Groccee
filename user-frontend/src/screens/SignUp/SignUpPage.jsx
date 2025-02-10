@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import styles from "../../styles/SignUpPageStyles";
-import { signUpUser } from "../../services/userApi";
+import { signUpUser, sendVerificationEmail } from "../../services/userApi";
 
 
 
@@ -40,7 +40,7 @@ const SignUpPage = ({ navigation }) => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
     const trimmedConfirmPassword = confirmPassword.trim();
-  
+
     // Validation Checks
     if (!trimmedUsername) {
       return Alert.alert("Error", "Username is required.");
@@ -66,32 +66,31 @@ const SignUpPage = ({ navigation }) => {
     if (!accepted) {
       return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
-  
+
     // Preparing user data
     const userData = {
-      username: trimmedUsername,
-      firstName: trimmedFirstName,
-      lastName: trimmedLastName,
+      username,
+      firstName,
+      lastName,
       email: trimmedEmail,
       password: trimmedPassword,
     };
-  
+
     try {
-      // Show loading alert while processing
-      Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
-      console.log(userData)
-      // Call the API to register the user
+      Alert.alert("Processing", "Signing up...");
       await signUpUser(userData);
-      console.log('Success');
-      // Success feedback
+      await sendVerificationEmail(trimmedEmail);
       Alert.alert(
         "Success",
-        "You have successfully registered! Please verify your email and then sign in.",
+        "You have successfully registered! A verification email has been sent.",
         [{ text: "OK", onPress: () => navigation.navigate("SignIn") }]
       );
     } catch (error) {
       console.error("Sign-up error:", error);
-      Alert.alert("Sign-Up Failed", error.message || "Something went wrong. Please try again.");
+      Alert.alert(
+        "Sign-Up Failed",
+        error.message || "Something went wrong. Please try again."
+      );
     }
   };
 
