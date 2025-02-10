@@ -136,9 +136,41 @@ const deleteShoppingListItem = async (req, res) => {
   }
 };
 
+/**
+ * Get all Shopping List Items by Shopping List ID
+ */
+const getItemsByShoppingListId = async (req, res) => {
+  try {
+    const { shopping_list_id } = req.params; // Get shopping list ID from URL params
+    const token = req.header("Authorization");
+
+    if (!shopping_list_id) {
+      return res.status(400).json({ message: "Shopping list ID is required" });
+    }
+
+    // Validate if the Shopping List exists & belongs to the user
+    const shoppingList = await validateShoppingList(shopping_list_id, token);
+    if (!shoppingList) {
+      return res.status(404).json({ message: "Shopping list not found or does not belong to the user" });
+    }
+
+    // Fetch all items for this shopping list
+    const items = await ShoppingListItem.findAll({
+      where: { shopping_list_id },
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json(items);
+  } catch (error) {
+    console.error("Error fetching shopping list items:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createShoppingListItem,
   updateShoppingListItem,
   // getShoppingListItemsByName,
+  getItemsByShoppingListId,
   deleteShoppingListItem,
 };

@@ -13,8 +13,12 @@ import ProfilePage from "../screens/ProfilePage/ProfilePage";
 import EditProfilePage from "../screens/ProfilePage/EditProfilePage";
 import NotificationsPage from "../screens/Notifications/NotificationsPage";
 import InventoryPage from "../screens/Inventory/InventoryPage"; // <-- Import InventoryPage
+
+//Shopping 
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
 import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
+import AddShoppingListItemsPage from "../screens/Shopping/AddShoppingListItemPage";
+import ShoppingListItemsPage from "../screens/Shopping/ViewShoppingListItems";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -111,7 +115,7 @@ const ShoppingStack = () => (
       name="ShoppingLists" 
       component={ShoppingListsPage}
       options={{
-        title: 'Shopping Lists',
+        headerShown: false,
       }}
     />
     <Stack.Screen 
@@ -122,13 +126,36 @@ const ShoppingStack = () => (
         presentation: 'modal',
       }}
     />
-    {/* <Stack.Screen 
+      <Stack.Screen 
       name="ShoppingListItems" 
       component={ShoppingListItemsPage}
       options={({ route }) => ({
         title: route.params?.listName || 'Shopping List Items',
       })}
+    />
+    {/* <Stack.Screen 
+      name="AddShoppingListItems" 
+      component={AddShoppingListItemsPage}
+      options={({ route }) => ({
+        title: route.params?.listName || 'Add Items',
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('ShoppingLists')}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+      })}
     /> */}
+    <Stack.Screen 
+      name="AddShoppingListItems" 
+      component={AddShoppingListItemsPage}  // Previous modal page
+      options={{
+        title: 'Add Items',
+        presentation: 'modal',
+      }}
+    />
   </Stack.Navigator>
 );
 

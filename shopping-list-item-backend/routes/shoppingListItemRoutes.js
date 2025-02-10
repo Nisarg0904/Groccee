@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 // const authenticateToken = require("../middleware/authMiddleware");
-const { createShoppingListItem, deleteShoppingListItem, updateShoppingListItem,  } = require("../controllers/shoppingListItemController");
+const { createShoppingListItem, deleteShoppingListItem, updateShoppingListItem, getItemsByShoppingListId,  } = require("../controllers/shoppingListItemController");
 
 // ✅ Create a Shopping List Item (Validates Shopping List & Item First)
+router.get('/list/:shopping_list_id', getItemsByShoppingListId);
 router.delete("/:id",  deleteShoppingListItem);
 router.post("/",createShoppingListItem);
 // router.get("/by-name/:name",  getShoppingListItemsByName);

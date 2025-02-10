@@ -44,3 +44,28 @@ export const getAllShoppingLists = async (token) => {
     throw error.response?.data || new Error('Network Error');
   }
 };
+
+export const updateShoppingList = async (listId, updateData, token) => {
+  try {
+    const response = await shoppingAPI.put(
+      `/shopping-lists/${listId}`,
+      updateData,
+      { headers: getAuthHeader(token) }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || new Error('Network Error');
+  }
+};
+
+export const deleteShoppingList = async (listId, token) => {
+  try {
+    const response = await shoppingAPI.delete(
+      `/shopping-lists/${listId}`,
+      { headers: getAuthHeader(token) }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || new Error('Network Error');
+  }
+};

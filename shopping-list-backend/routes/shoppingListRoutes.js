@@ -12,9 +12,10 @@ const { createShoppingList,
 // Route to Create a Shopping List
 router.post("/", authenticateToken, createShoppingList);
 // Get shopping list by name (Query Parameter)
-router.get("/search", authenticateToken, getShoppingListByName);
 // Get shopping list by ID
 router.get("/:id", authenticateToken, getShoppingListById);
+router.get("/search", authenticateToken, getShoppingListByName);
+
 // Get all shopping lists for the authenticated user
 router.get("/", authenticateToken, getAllShoppingLists);
 
