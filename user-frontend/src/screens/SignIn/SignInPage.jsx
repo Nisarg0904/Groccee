@@ -1,122 +1,19 @@
-// import React, { useState, useContext } from "react";
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   Alert,
-//   SafeAreaView,
-//   StatusBar,
-// } from "react-native";
-// import { MaterialIcons } from "@expo/vector-icons";
-// import { UserContext } from "../../contexts/UserContext";
-// import { signInUser, resendVerificationEmail } from "../../services/userApi";
-// import styles from "../../styles/SignInPageStyles";
-
-// const SignInPage = ({ navigation }) => {
-//   const [input, setInput] = useState("");
-//   const [password, setPassword] = useState("");
-//   const { setToken, setCurrentUser } = useContext(UserContext);
-//   const [showPassword, setShowPassword] = useState(false);
-
-//   const handleSignIn = async () => {
-//     try {
-//       const credentials = { input, password };
-//       const response = await signInUser(credentials);
-
-//       const { token, user } = response;
-
-//       if (token && user) {
-//         setToken(token);
-//         setCurrentUser(user);
-//         Alert.alert("Success", "You are signed in!");
-//         navigation.navigate("MainMenu");
-//       }
-//     } catch (error) {
-//       if (error.message.includes("Please verify your email")) {
-//         Alert.alert(
-//           "Email Not Verified",
-//           "Would you like to resend the verification email?",
-//           [
-//             {
-//               text: "Resend Email",
-//               onPress: () => resendVerificationEmail(input),
-//             },
-//             {
-//               text: "Cancel",
-//               style: "cancel",
-//             },
-//           ]
-//         );
-//       } else {
-//         Alert.alert("Sign In Failed", error.message);
-//       }
-//     }
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <StatusBar barStyle="light-content" />
-//       <View style={styles.content}>
-//         <Text style={styles.title}>Sign In</Text>
-
-//         <TextInput
-//           style={styles.input}
-//           placeholder="Email or Username"
-//           placeholderTextColor="#D3D3D3"
-//           value={input}
-//           onChangeText={setInput}
-//         />
-
-//         <View style={styles.passwordContainer}>
-//           <TextInput
-//             style={styles.passwordInput}
-//             placeholder="Password"
-//             placeholderTextColor="#D3D3D3"
-//             secureTextEntry={!showPassword}
-//             value={password}
-//             onChangeText={setPassword}
-//           />
-//           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-//             <MaterialIcons
-//               name={showPassword ? "visibility" : "visibility-off"}
-//               size={24}
-//               color="white"
-//             />
-//           </TouchableOpacity>
-//         </View>
-
-//         <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-//           <Text style={styles.signInButtonText}>Sign In</Text>
-//         </TouchableOpacity>
-
-//         <Text
-//           style={styles.signUpText}
-//           onPress={() => navigation.navigate("SignUp")}
-//         >
-//           Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
-//         </Text>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default SignInPage;
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
+// screens/SignIn/SignInPage.jsx
 import React, { useState, useContext } from "react";
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Alert,
   SafeAreaView,
   StatusBar,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signInUser } from "../../services/userApi";  // Import the signInUser function
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/SignInPageStyles";
 
@@ -125,81 +22,145 @@ const SignInPage = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const { setToken, setCurrentUser } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
+    if (!input.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      // Mock response for testing purposes
-      const mockToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ0ZXN0X3VzZXIiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE2NzAwMDAwMDAsImV4cCI6MTY3MDAwMDYwMH0.N1Ggkp6-EY2fTTAufKgPiUHdFBlGbcOEtXDBrv8sfiM";
-      const mockUser = {
-        id: 1,
-        username: "test_user",
-        email: "test@example.com",
-        firstName: "Test",
-        lastName: "User",
-      };
+      console.log("Attempting sign in with:", { input: input.trim() }); // Debug log
+      const response = await signInUser({
+        input: input.trim(),
+        password: password.trim(),
+      });
+      console.log("Sign in response:", response); // Debug log
 
-      // Set the mock token and user in context
-      setToken(mockToken);
-      setCurrentUser(mockUser);
+      const { token, user, message } = response;
 
-      // Show a success alert
-      Alert.alert("Success", "You are signed in!");
+      if (token && user) {
+        // Store token without quotes
+        await AsyncStorage.setItem('userToken', token);
+        
+        // Update context
+        setToken(token);
+        setCurrentUser(user);
 
-      // Navigate to the main menu (or the next screen)
-      navigation.navigate("MainMenu");
+        // Clear input fields
+        setInput("");
+        setPassword("");
+
+        // Navigate to main app
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Grocce" }],
+        });
+      } else {
+        Alert.alert("Error", "Invalid response from server");
+      }
     } catch (error) {
-      // Catch any unexpected errors during mock login
-      Alert.alert(
-        "Sign In Failed",
-        "This is a mocked response. No backend calls were made."
-      );
+      console.error("Sign in error:", error);
+      
+      let errorMessage = "Failed to sign in. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes("User not found")) {
+          errorMessage = "User not found";
+        } else if (error.message.includes("Wrong password")) {
+          errorMessage = "Invalid password";
+        } else if (error.message.includes("verify your email")) {
+          errorMessage = "Please verify your email before logging in";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Rest of your component remains the same...
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.content}>
-        <Text style={styles.title}>Sign In</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.headerTitle}>Welcome Back</Text>
+        <Text style={styles.title}>Sign in to your account</Text>
 
         <TextInput
           style={styles.input}
           placeholder="Email or Username"
-          placeholderTextColor="#D3D3D3"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
           value={input}
           onChangeText={setInput}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          editable={!loading}
         />
 
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             placeholder="Password"
-            placeholderTextColor="#D3D3D3"
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
+            autoCapitalize="none"
+            editable={!loading}
           />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Pressable onPress={() => setShowPassword(!showPassword)}>
             <MaterialIcons
               name={showPassword ? "visibility" : "visibility-off"}
               size={24}
-              color="white"
+              color="rgba(255, 255, 255, 0.8)"
+              style={styles.icon}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
-        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-          <Text style={styles.signInButtonText}>Sign In</Text>
-        </TouchableOpacity>
-
-        <Text
-          style={styles.signUpText}
-          onPress={() => navigation.navigate("SignUp")}
+        <Pressable
+          style={({ pressed }) => [
+            styles.signInButton,
+            pressed && styles.signInButtonPressed,
+            (!input.trim() || !password.trim()) && styles.signInButtonDisabled
+          ]}
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => setIsPressed(false)}
+          onPress={handleSignIn}
+          disabled={loading || !input.trim() || !password.trim()}
         >
-          Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
-        </Text>
-      </View>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text
+              style={[
+                styles.signInButtonText,
+                isPressed && styles.signInButtonTextPressed,
+              ]}
+            >
+              Sign In
+            </Text>
+          )}
+        </Pressable>
+
+        <View style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>Don't have an account?</Text>
+          <Pressable 
+            onPress={() => navigation.navigate("SignUp")}
+            disabled={loading}
+          >
+            <Text style={styles.signUpLink}>Sign Up</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

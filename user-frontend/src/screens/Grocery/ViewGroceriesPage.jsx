@@ -18,7 +18,6 @@ import {
 import { fetchItemById } from "../../services/itemApi";
 import styles from "../../styles/ViewGroceriesPageStyles";
 import { useFocusEffect } from "@react-navigation/native";
-import { BottomNav } from "../../components/BottomNav"; // Import BottomNav
 
 const ViewGroceriesPage = ({ navigation, route }) => {
   const { token } = useContext(UserContext);
@@ -50,24 +49,23 @@ const ViewGroceriesPage = ({ navigation, route }) => {
     }, [token])
   );
 
-
   // Fetch groceries and enhance them with item details
   useEffect(() => {
     const loadGroceries = async () => {
       try {
         const groceryData = await fetchGroceries(token);
-       const enhancedGroceries = await Promise.all(
-         groceryData.map(async (grocery) => {
-           const itemDetails = await fetchItemById(grocery.item_id, token);
-           return {
-             ...grocery,
-             name: itemDetails.name,
-             unit: itemDetails.unit,
-             available_quantity: grocery.available_quantity || 0, // Ensure it’s always present
-           };
-         })
-       );
-        console.log(enhancedGroceries)
+        const enhancedGroceries = await Promise.all(
+          groceryData.map(async (grocery) => {
+            const itemDetails = await fetchItemById(grocery.item_id, token);
+            return {
+              ...grocery,
+              name: itemDetails.name,
+              unit: itemDetails.unit,
+              available_quantity: grocery.available_quantity || 0, // Ensure it's always present
+            };
+          })
+        );
+        console.log(enhancedGroceries);
         setGroceries(enhancedGroceries);
       } catch (error) {
         console.error("Error loading groceries or items:", error);
@@ -76,11 +74,19 @@ const ViewGroceriesPage = ({ navigation, route }) => {
     loadGroceries();
   }, [token]);
 
-  // Handle the edit action
-
   const handleEdit = (item) => {
     setSelectedGrocery(item);
     setIsEditModalVisible(true);
+  };
+
+  const handleDelete = async (groceryItemId) => {
+    try {
+      await deleteGroceryItem(groceryItemId, token);
+      setGroceries(groceries.filter(item => item.grocery_item_id !== groceryItemId));
+    } catch (error) {
+      console.error("Error deleting grocery item:", error);
+      Alert.alert("Error", "Failed to delete grocery item");
+    }
   };
 
   return (
@@ -120,9 +126,6 @@ const ViewGroceriesPage = ({ navigation, route }) => {
           )}
         />
       </View>
-
-      {/* Bottom Navigation Bar */}
-      <BottomNav navigation={navigation} route={route} />
     </View>
   );
 };

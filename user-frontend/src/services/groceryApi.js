@@ -1,4 +1,16 @@
-import { groceryAPI } from "./api";
+import { groceryAPI,globalItemAPI } from "./api";
+
+// Fetch suggested items based on user input
+export const fetchSuggestedItems = async (query) => {
+  try {
+    const response = await globalItemAPI.get(`/global/search/${query}`); // Ensure this matches your backend
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching suggested items:", error);
+    return [];
+  }
+};
+
 
 // Add a new grocery item
 export const addGroceryItem = async (token, groceryData) => {

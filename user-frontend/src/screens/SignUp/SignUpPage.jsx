@@ -1,174 +1,160 @@
-import React, { useState } from "react";
+// screens/SignIn/SignInPage.jsx
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
+  Alert,
   SafeAreaView,
   StatusBar,
   ScrollView,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import styles from "../../styles/SignUpPageStyles";
-import { signUpUser } from "../../services/userApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signInUser } from "../../services/userApi";
+import { UserContext } from "../../contexts/UserContext";
+import styles from "../../styles/SignInPageStyles";
 
-
-
-const SignUpPage = ({ navigation }) => {
-  const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+const SignInPage = ({ navigation }) => {
+  const [input, setInput] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { setToken, setCurrentUser } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [accepted, setAccepted] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-  };
+  const handleSignIn = async () => {
+    if (!input.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
 
-  const handleSignUp = async () => {
-    // Trim inputs to remove accidental spaces
-    const trimmedUsername = username.trim();
-    const trimmedFirstName = firstName.trim();
-    const trimmedLastName = lastName.trim();
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-    const trimmedConfirmPassword = confirmPassword.trim();
-  
-    // Validation Checks
-    if (!trimmedUsername) {
-      return Alert.alert("Error", "Username is required.");
-    }
-    if (!trimmedFirstName) {
-      return Alert.alert("Error", "First name is required.");
-    }
-    if (!trimmedLastName) {
-      return Alert.alert("Error", "Last name is required.");
-    }
-    if (!validateEmail(trimmedEmail)) {
-      return Alert.alert("Error", "Please enter a valid email address.");
-    }
-    if (!validatePassword(trimmedPassword)) {
-      return Alert.alert(
-        "Error",
-        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
-      );
-    }
-    if (trimmedPassword !== trimmedConfirmPassword) {
-      return Alert.alert("Error", "Passwords do not match.");
-    }
-    if (!accepted) {
-      return Alert.alert("Error", "You must accept the Terms and Conditions.");
-    }
-  
-    // Preparing user data
-    const userData = {
-      username: trimmedUsername,
-      firstName: trimmedFirstName,
-      lastName: trimmedLastName,
-      email: trimmedEmail,
-      password: trimmedPassword,
-    };
-  
+    setLoading(true);
+
     try {
-      // Show loading alert while processing
-      Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
-      console.log(userData)
-      // Call the API to register the user
-      await signUpUser(userData);
-      console.log('Success');
-      // Success feedback
-      Alert.alert(
-        "Success",
-        "You have successfully registered! Please verify your email and then sign in.",
-        [{ text: "OK", onPress: () => navigation.navigate("SignIn") }]
-      );
+      const response = await signInUser({
+        input: input.trim(),
+        password: password.trim(),
+      });
+
+      const { token, user, message } = response;
+
+      if (token && user) {
+        // Store token without quotes
+        await AsyncStorage.setItem('userToken', token);
+        
+        // Update context
+        setToken(token);
+        setCurrentUser(user);
+
+        // Clear input fields
+        setInput("");
+        setPassword("");
+
+        // Navigate to main app
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Grocce" }],
+        });
+      } else {
+        Alert.alert("Error", "Invalid response from server");
+      }
     } catch (error) {
-      console.error("Sign-up error:", error);
-      Alert.alert("Sign-Up Failed", error.message || "Something went wrong. Please try again.");
+      console.error("Sign in error:", error);
+      
+      if (error.response) {
+        Alert.alert("Error", error.response.message || "Invalid credentials");
+      } else if (error.message) {
+        Alert.alert("Error", error.message);
+      } else {
+        Alert.alert(
+          "Connection Error",
+          "Unable to connect to the server. Please check your internet connection."
+        );
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create an Account</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.headerTitle}>Welcome Back</Text>
+        <Text style={styles.title}>Sign in to your account</Text>
+
         <TextInput
           style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          placeholderTextColor="#A9A9A9"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholderTextColor="#A9A9A9"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
-          placeholderTextColor="#A9A9A9"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
+          placeholder="Email or Username"
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+          value={input}
+          onChangeText={setInput}
+          autoCapitalize="none"
           keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          placeholderTextColor="#A9A9A9"
+          editable={!loading}
         />
+
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             placeholder="Password"
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
-            placeholderTextColor="#A9A9A9"
+            autoCapitalize="none"
+            editable={!loading}
           />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={24} color="white" style={styles.icon} />
-          </TouchableOpacity>
+          <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <MaterialIcons
+              name={showPassword ? "visibility" : "visibility-off"}
+              size={24}
+              color="rgba(255, 255, 255, 0.8)"
+              style={styles.icon}
+            />
+          </Pressable>
         </View>
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Confirm Password"
-            secureTextEntry={!showConfirmPassword}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholderTextColor="#A9A9A9"
-          />
-          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-            <MaterialIcons name={showConfirmPassword ? "visibility" : "visibility-off"} size={24} color="white" style={styles.icon} />
-          </TouchableOpacity>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.signInButton,
+            pressed && styles.signInButtonPressed,
+            (!input.trim() || !password.trim()) && styles.signInButtonDisabled
+          ]}
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => setIsPressed(false)}
+          onPress={handleSignIn}
+          disabled={loading || !input.trim() || !password.trim()}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text
+              style={[
+                styles.signInButtonText,
+                isPressed && styles.signInButtonTextPressed,
+              ]}
+            >
+              Sign In
+            </Text>
+          )}
+        </Pressable>
+
+        <View style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>Don't have an account?</Text>
+          <Pressable 
+            onPress={() => navigation.navigate("SignUp")}
+            disabled={loading}
+          >
+            <Text style={styles.signUpLink}>Sign Up</Text>
+          </Pressable>
         </View>
-        <View style={styles.termsContainer}>
-          <TouchableOpacity onPress={() => setAccepted(!accepted)}>
-            <MaterialIcons name={accepted ? "check-box" : "check-box-outline-blank"} size={20} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.termsText}>
-            I agree to the <Text style={styles.termsLink}>Terms and Conditions</Text>.
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-          <Text style={styles.signUpButtonText}>Sign Up</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default SignUpPage;
+export default SignInPage;

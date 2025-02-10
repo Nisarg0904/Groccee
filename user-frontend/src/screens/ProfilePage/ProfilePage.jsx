@@ -1,26 +1,29 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
-import styles from "../../styles/ProfilePageStyles"; // Import your styles
-import { BottomNav } from "../../components/BottomNav"; // Adjust the path as necessary
+import React, { useContext } from "react";
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, Image } from "react-native";
+import styles from "../../styles/ProfilePageStyles";
+import { UserContext } from "../../contexts/UserContext";
 
 const ProfilePage = ({ navigation, route }) => {
+  const { setCurrentUser, setToken } = useContext(UserContext);
+
   const handleLogout = () => {
-    // Navigate back to the Welcome page or any other screen
-    navigation.navigate("Welcome");
+    // Clear user data to force re-render and load the AuthNavigator (Welcome screen)
+    setCurrentUser(null);
+    setToken(null);
+    // Reset the navigation stack so that the Welcome screen is the only screen
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Welcome" }],
+    });
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {/*
-        Use contentContainerStyle to add padding at the bottom.
-        This prevents the Logout button from being hidden behind the bottom nav.
-      */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        style={{ backgroundColor: "black" }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Main Content Container */}
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.profileSection}>
@@ -93,10 +96,7 @@ const ProfilePage = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation stays fixed at the bottom */}
-      <BottomNav navigation={navigation} route={route} />
-    </View>
+    </SafeAreaView>
   );
 };
 

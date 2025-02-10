@@ -1,102 +1,138 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
+import Constants from "expo-constants";
+import { COLORS } from "./WelcomePageStyles";
 
-const Colors = {
-  background: "#000000",
-  text: "#F8F8FF",      // Ghost White
-  primary: "#FF6347",  // Turkey Red variation 2
-  accent: "#228B22",   // Deep Forest Green
-  inputBg: "#1A1A1A",
-  placeholder: "#666666"
-};
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
-  // Top-level container that fills the screen and sets background
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: COLORS.primary, // consistent dark background
+    // Use paddingTop to avoid the notch on Android devices
+    paddingTop: Platform.OS === "android" ? Constants.statusBarHeight + 20 : 40,
   },
-  // Use this in `contentContainerStyle` to add padding & prevent cutting the button
   scrollContent: {
-    padding: 16,
-    paddingBottom: 80, // Extra padding at bottom for button
+    padding: 20,
+    paddingBottom: 40,
+    flexGrow: 1, // ensures content expands properly
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    color: Colors.text,
-    marginVertical: 20,
+    marginBottom: 20,
     textAlign: "center",
-    marginHorizontal: 8,
-  },
-  groupTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.primary,
-    marginTop: 20,
-    marginBottom: 12,
-    marginHorizontal: 8,
+    color: COLORS.white,
   },
   input: {
-    backgroundColor: Colors.inputBg,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    color: Colors.text,
-    fontSize: 16,
-    marginHorizontal: 8,
+    height: 50,
+    borderColor: COLORS.lightGray,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    backgroundColor: COLORS.black,
+    color: COLORS.white,
   },
   dateButton: {
-    backgroundColor: Colors.inputBg,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginHorizontal: 8,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.accent,
+    borderRadius: 10,
+    marginBottom: 15,
   },
-  dateText: {
-    color: Colors.text,
+  dateButtonText: {
+    color: COLORS.white,
     fontSize: 16,
+    fontWeight: "bold",
   },
-  // If you want a container for the button, you'd do it here.
-  // But we can just keep the button inside the ScrollView.
-  submitButtonContainer: {
-    padding: 16,
-    backgroundColor: Colors.background,
-    marginHorizontal: 8,
+  expiryDateButton: {
+    height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    backgroundColor: "transparent",
   },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 8,
-    alignSelf: 'center',
-    width: '60%',
-    alignItems: 'center',
-    marginBottom: 16,
+  expiryDateButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  submitText: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: "600",
+  suggestionsContainer: {
+    backgroundColor: COLORS.black,
+    width: "100%",
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 5, // for Android shadow
+    zIndex: 100,
+    maxHeight: 150,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+      },
+    }),
+  },
+  suggestionItemContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  suggestionItem: {
+    padding: 10,
+    fontSize: 16,
+    color: COLORS.white,
   },
   label: {
-    color: Colors.text,
-    fontSize: 14,
-    marginBottom: 4,
-    marginHorizontal: 8,
+    fontSize: 16,
+    fontWeight: "bold",
+    marginVertical: 10,
+    color: COLORS.white,
   },
-  required: {
-    color: Colors.primary,
-    fontSize: 14,
-    marginLeft: 4,
+  picker: {
+    backgroundColor: COLORS.black,
+    color: COLORS.white,
+    marginBottom: 15,
   },
-  inputNote: {
-    color: Colors.placeholder,
-    fontSize: 12,
-    marginTop: -12,
-    marginBottom: 16,
-    marginLeft: 4,
+  submitButton: {
+    height: 50,
+    backgroundColor: COLORS.accent,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  submitButtonText: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  datePicker: {
+    backgroundColor: COLORS.black,
+  },
+  // Style for the animated success overlay.
+  successOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 200,
+  },
+  successText: {
+    marginTop: 15,
+    fontSize: 18,
+    color: COLORS.white,
+    fontWeight: "bold",
   },
 });
 

@@ -1,110 +1,102 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { styles } from "../styles/BottomNavStyles";
+import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../styles/WelcomePageStyles';
 
-export function BottomNav({ navigation, route }) {
-  const [activeTab, setActiveTab] = useState("MainMenu");
 
-  useEffect(() => {
-    const currentRoute = route?.name || "MainMenu"; // Default to MainMenu if route is undefined
-    setActiveTab(currentRoute);
-  }, [route]);
+const BottomNav = ({ navigation, route }) => {
+  const currentRoute = route?.name;
 
-  const navigateTo = (tab, screen) => {
-    setActiveTab(tab);
-    navigation.navigate(screen);
+  const isActive = (routeName) => {
+    if (routeName === 'MainMenu' && currentRoute === 'MainMenu') return true;
+    if (routeName === 'ShoppingLists' && currentRoute === 'ShoppingLists') return true;
+    if (routeName === 'ViewGroceries' && currentRoute === 'ViewGroceries') return true;
+    if (routeName === 'Wastage' && currentRoute === 'Wastage') return true;
+    return false;
   };
 
   return (
     <View style={styles.container}>
-      {/* Home */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigateTo("MainMenu", "MainMenu")}
-      >
-        <Ionicons
-          name="home-outline"
-          size={24}
-          color={activeTab === "MainMenu" ? "#E52B50" : "#F8F8FF"}
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('MainMenu')}>
+        <Ionicons 
+          name={isActive('MainMenu') ? "home" : "home-outline"} 
+          size={24} 
+          color={isActive('MainMenu') ? "#FF4141" : "#fff"} 
         />
-        <Text
-          style={[
-            styles.label,
-            activeTab === "MainMenu" ? styles.activeLabel : null,
-          ]}
-        >
-          Home
-        </Text>
-      </TouchableOpacity>
-
-      {/* Shopping List */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigateTo("ShoppingList", "ShoppingList")}
-      >
-        <Ionicons
-          name="cart-outline"
-          size={24}
-          color={activeTab === "ShoppingList" ? "#E52B50" : "#F8F8FF"}
+        <Text style={[styles.label, isActive('MainMenu') && styles.activeLabel]}>Home</Text>
+      </Pressable>
+      
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('ShoppingLists', { status: 'unbought' })}>
+        <Ionicons 
+          name={isActive('ShoppingLists') ? "cart" : "cart-outline"} 
+          size={24} 
+          color={isActive('ShoppingLists') ? "#FF4141" : "#fff"} 
         />
-        <Text
-          style={[
-            styles.label,
-            activeTab === "ShoppingList" ? styles.activeLabel : null,
-          ]}
-        >
-          Shopping
-        </Text>
-      </TouchableOpacity>
-
-      {/* Add Grocery */}
-      <TouchableOpacity
+        <Text style={[styles.label, isActive('ShoppingLists') && styles.activeLabel]}>Shopping</Text>
+      </Pressable>
+      
+      <Pressable 
         style={styles.centerButton}
-        onPress={() => navigation.navigate("AddGrocery")}
+        onPress={() => navigation.navigate('AddGrocery')}
       >
-        <Ionicons name="add-circle-outline" size={30} color="#F8F8FF" />
-      </TouchableOpacity>
-
-      {/* Inventory */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigateTo("ViewGroceries", "ViewGroceries")}
-      >
-        <Ionicons
-          name="cube-outline"
-          size={24}
-          color={activeTab === "ViewGroceries" ? "#E52B50" : "#F8F8FF"}
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </Pressable>
+      
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('ViewGroceries')}>
+        <Ionicons 
+          name={isActive('ViewGroceries') ? "cube" : "cube-outline"} 
+          size={24} 
+          color={isActive('ViewGroceries') ? "#FF4141" : "#fff"} 
         />
-        <Text
-          style={[
-            styles.label,
-            activeTab === "ViewGroceries" ? styles.activeLabel : null,
-          ]}
-        >
-          Inventory
-        </Text>
-      </TouchableOpacity>
-
-      {/* Profile */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigateTo("ProfilePage", "ProfilePage")}
-      >
-        <Ionicons
-          name="person-outline"
-          size={24}
-          color={activeTab === "ProfilePage" ? "#E52B50" : "#F8F8FF"}
+        <Text style={[styles.label, isActive('ViewGroceries') && styles.activeLabel]}>Inventory</Text>
+      </Pressable>
+      
+      <Pressable style={styles.navItem} onPress={() => navigation.navigate('Wastage')}>
+        <Ionicons 
+          name={isActive('Wastage') ? "bar-chart" : "bar-chart-outline"} 
+          size={24} 
+          color={isActive('Wastage') ? "#FF4141" : "#fff"} 
         />
-        <Text
-          style={[
-            styles.label,
-            activeTab === "ProfilePage" ? styles.activeLabel : null,
-          ]}
-        >
-          Profile
-        </Text>
-      </TouchableOpacity>
+        <Text style={[styles.label, isActive('Wastage') && styles.activeLabel]}>Reports</Text>
+      </Pressable>
     </View>
   );
-}
+};
+
+const styles = {
+  container: {
+    flexDirection: "row",
+    backgroundColor: COLORS.primary,
+    height: 65,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  centerButton: {
+    backgroundColor: '#FF4141',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -15,
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: 'Poppins-Regular',
+  },
+  activeLabel: {
+    color: '#FF4141',
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: 'Poppins-Regular',
+  },
+};
+
+export default BottomNav;

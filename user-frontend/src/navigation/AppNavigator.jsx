@@ -1,101 +1,215 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { View, TouchableOpacity } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { NavigationContainer } from "@react-navigation/native";
-import { CardStyleInterpolators } from "@react-navigation/stack";
-import * as Font from "expo-font";
-import { View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-// Import pages from the pages folder
-import WelcomePage from "../screens/Welcome/WelcomePage";
-import SignInPage from "../screens/SignIn/SignInPage";
-import SignUpPage from "../screens/SignUp/SignUpPage";
+// Import your screens
+import MainMenuPage from "../screens/MainMenu/MainMenuPage";
+import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
+import WastagePage from "../screens/Wastage/WastagePage";
+import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
 import ProfilePage from "../screens/ProfilePage/ProfilePage";
 import EditProfilePage from "../screens/ProfilePage/EditProfilePage";
-import MainMenuPage from "../screens/MainMenu/MainMenuPage";
-import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
-import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
-import EditGroceryPage from "../screens/Grocery/EditGroceryPage";
-import ShoppingListPage from "../screens/Shopping/ShoppingListPage";
+import NotificationsPage from "../screens/Notifications/NotificationsPage";
+import InventoryPage from "../screens/Inventory/InventoryPage"; // <-- Import InventoryPage
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
-import ShoppingListItemsPage from "../screens/Shopping/ShoppingListItemsPage";
-import WastagePage from "../screens/Wastage/WastagePage";
+import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
 
+const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+const HomeStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen 
+      name="Grocce" 
+      component={MainMenuPage}
+      options={({ navigation }) => ({
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: 'black', // Black header background
+        },
+        headerTintColor: '#fff', // White header text
+        headerRight: () => (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Notifications')}
+              style={{ marginHorizontal: 10 }}
+            >
+              <Ionicons name="notifications-outline" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={{ width: 15 }} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Profile')}
+              style={{ marginRight: 15 }}
+            >
+              <Ionicons name="person-circle-outline" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        ),
+      })}
+    />
+    <Stack.Screen 
+      name="Profile" 
+      component={ProfilePage}
+      options={{
+        headerShown: true,
+        title: 'Profile',
+        headerStyle: {
+          backgroundColor: 'black',
+        },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen
+      name="EditProfilePage"
+      component={EditProfilePage}
+      options={{
+        headerShown: true,
+        title: 'Edit Profile',
+        headerStyle: {
+          backgroundColor: 'black',
+        },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen 
+      name="Notifications" 
+      component={NotificationsPage} 
+      options={{
+        headerShown: true,
+        title: 'Notifications',
+        headerStyle: {
+          backgroundColor: 'black',
+        },
+        headerTintColor: '#fff',
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const InventoryStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false, // Let the Tab Navigator header appear
+    }}
+  >
+    <Stack.Screen name="InventoryScreen" component={InventoryPage} />
+  </Stack.Navigator>
+);
+
+const ShoppingStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: {
+        backgroundColor: 'black',
+      },
+      headerTintColor: '#fff',
+    }}
+  >
+    <Stack.Screen 
+      name="ShoppingLists" 
+      component={ShoppingListsPage}
+      options={{
+        title: 'Shopping Lists',
+      }}
+    />
+    <Stack.Screen 
+      name="CreateShoppingList" 
+      component={CreateShoppingListPage}
+      options={{
+        title: 'Create New List',
+        presentation: 'modal',
+      }}
+    />
+    {/* <Stack.Screen 
+      name="ShoppingListItems" 
+      component={ShoppingListItemsPage}
+      options={({ route }) => ({
+        title: route.params?.listName || 'Shopping List Items',
+      })}
+    /> */}
+  </Stack.Navigator>
+);
+
+const ReportsStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="WastageScreen" component={WastagePage} />
+  </Stack.Navigator>
+);
+
 const AppNavigator = () => {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        "Fonarto": require("../../assets/fonts/Fonarto.ttf"), // ✅ Custom Font Path
-      });
-      setFontsLoaded(true);
-    }
-    loadFonts();
-  }, []);
-
-  if (!fontsLoaded) {
-    return <View><Text>Loading Fonts...</Text></View>;
-  }
-
-  const screenOptions = {
-    headerStyle: {
-      backgroundColor: "black",
-      elevation: 0, // Remove shadow on Android
-      shadowOpacity: 0, // Remove shadow on iOS
-    },
-    headerTintColor: "#F8F8FF", // Ghost white
-    headerTitleStyle: {
-      fontWeight: "bold",
-      fontSize: 22,
-      fontFamily: "Fonarto", // ✅ Now uses custom font for navigation titles
-    },
-    cardStyle: { backgroundColor: "black" },
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-    transitionSpec: {
-      open: { animation: "timing", config: { duration: 300 } },
-      close: { animation: "timing", config: { duration: 300 } },
-    },
-    gestureEnabled: true,
-    gestureDirection: "horizontal",
-  };
-
-  const authScreenOptions = {
-    ...screenOptions,
-    headerShown: false,
-    cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
-  };
-
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Welcome" screenOptions={screenOptions}>
-        {/* Authentication Screens */}
-        <Stack.Screen name="Welcome" component={WelcomePage} options={authScreenOptions} />
-        <Stack.Screen name="SignIn" component={SignInPage} options={authScreenOptions} />
-        <Stack.Screen name="SignUp" component={SignUpPage} options={authScreenOptions} />
-
-        {/* Main App Screens */}
-        <Stack.Screen name="ProfilePage" component={ProfilePage} options={{ title: "Profile" }} />
-        <Stack.Screen name="EditProfilePage" component={EditProfilePage} options={{ title: "Edit Profile" }} />
-        <Stack.Screen name="MainMenu" component={MainMenuPage} options={{ title: "Home" }} />
-        <Stack.Screen name="AddGrocery" component={AddGroceryPage} options={{ title: "Add Grocery" }} />
-        <Stack.Screen name="ViewGroceries" component={ViewGroceriesPage} options={{ title: "My Groceries" }} />
-        <Stack.Screen name="EditGrocery" component={EditGroceryPage} options={{ title: "Edit Grocery" }} />
-        <Stack.Screen name="ShoppingList" component={ShoppingListPage} options={{ title: "Shopping List" }} />
-
-        <Stack.Screen
-          name="ShoppingLists"
-          component={ShoppingListsPage}
-          options={({ route }) => ({
-            title: route.params.status === "bought" ? "Bought Items" : "Unbought Items",
-          })}
-        />
-
-        <Stack.Screen name="ShoppingListItems" component={ShoppingListItemsPage} options={{ title: "Shopping List Items" }} />
-        <Stack.Screen name="Wastage" component={WastagePage} options={{ title: "Wastage Items" }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerStyle: { backgroundColor: 'black' },
+        headerTintColor: '#fff',
+        tabBarStyle: {
+          backgroundColor: 'black',
+          height: 60,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        tabBarActiveTintColor: '#FF4141',
+        tabBarInactiveTintColor: 'gray',
+        tabBarLabelStyle: {
+          fontSize: 10,
+          marginBottom: 5,
+        },
+        tabBarIcon: ({ focused, color }) => {
+          let iconName;
+          switch (route.name) {
+            case 'Home':
+              iconName = focused ? 'home' : 'home-outline';
+              break;
+            case 'Shopping':
+              iconName = focused ? 'cart' : 'cart-outline';
+              break;
+            case 'Inventory':
+              iconName = focused ? 'cube' : 'cube-outline';
+              break;
+            case 'Reports':
+              iconName = focused ? 'bar-chart' : 'bar-chart-outline';
+              break;
+          }
+          return <Ionicons name={iconName} size={24} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={HomeStack} 
+        options={{ headerShown: false }} 
+      />
+      <Tab.Screen name="Shopping" component={ShoppingStack} />
+      <Tab.Screen 
+        name="AddGrocery" 
+        component={AddGroceryPage}
+        options={{
+          tabBarIcon: () => (
+            <View style={{
+              top: -15,
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: '#FF4141',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <Ionicons name="add" size={28} color="#FFFFFF" />
+            </View>
+          ),
+          tabBarLabel: () => null,
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen name="Inventory" component={InventoryStack} />
+      <Tab.Screen name="Reports" component={ReportsStack} />
+    </Tab.Navigator>
   );
 };
 

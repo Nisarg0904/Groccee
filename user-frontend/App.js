@@ -1,37 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
 import AppNavigator from "./src/navigation/AppNavigator";
-import UserProvider from "./src/contexts/UserContext";
+import AuthNavigator from "./src/navigation/AuthNavigator";
+import UserProvider, { UserContext } from "./src/contexts/UserContext";
 import Toast from "react-native-toast-message";
-import AppLoading from "expo-app-loading";
+import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 
-// Function to load custom fonts
-const fetchFonts = () => {
-  return Font.loadAsync({
-    // 'Crotah' key is used in your styles (e.g., fontFamily: 'Crotah')
-    Crotah: require("./assets/fonts/Crotah.ttf"),
-    // Add more fonts here if needed
-  });
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
+const AppContent = () => {
+  const { token } = React.useContext(UserContext);
+  return (
+    <NavigationContainer>
+      {token ? <AppNavigator /> : <AuthNavigator />}
+      <Toast />
+    </NavigationContainer>
+  );
 };
 
 export default function App() {
-  const [fontLoaded, setFontLoaded] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
-  if (!fontLoaded) {
-    // Display a loading screen until the fonts are loaded
-    return (
-      <AppLoading
-        startAsync={fetchFonts}
-        onFinish={() => setFontLoaded(true)}
-        onError={console.warn}
-      />
-    );
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Load your custom fonts
+        await Font.loadAsync({
+          Crotah: require("./assets/fonts/Crotah.ttf"),
+        });
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+    prepare();
+  }, []);
+
+  if (!appIsReady) {
+    return null;
   }
 
   return (
     <UserProvider>
-      <AppNavigator />
-      <Toast />
+      <AppContent />
     </UserProvider>
   );
 }

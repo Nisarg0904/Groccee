@@ -1,15 +1,25 @@
-import React, { useEffect, useState, useRef } from "react";
-import { View, Text, SafeAreaView, StatusBar, ScrollView, Image, Dimensions, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import { 
+  View, 
+  Text, 
+  SafeAreaView, 
+  StatusBar, 
+  ScrollView, 
+  Image, 
+  Dimensions, 
+  Platform, 
+  ActivityIndicator 
+} from "react-native";
 import Swiper from "react-native-swiper";
-import MaskedView from "@react-native-masked-view/masked-view";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import * as Font from "expo-font";
+import { Asset } from "expo-asset"; // Expo Asset for preloading images
 import styles, { COLORS } from "../../styles/WelcomePageStyles";
 
-// Import FastImage ONLY if not using Expo
+// Import FastImage ONLY if not using Expo (we are using Expo so this won't be used)
 let FastImage;
 if (Platform.OS !== "web" && !global.__expo) {
   FastImage = require("react-native-fast-image").default;
@@ -19,26 +29,27 @@ const WelcomePage = () => {
   const navigation = useNavigation();
   const { width: screenWidth } = Dimensions.get("window");
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false); // Track when images are preloaded
+
   const renderFeature = (icon, title = "Feature Title", iconColor = COLORS.red) => (
     <View style={styles.featureItem} key={title}>
       <Feather name={icon} size={24} color={iconColor} />
       <Text style={styles.featureTitle}>{title}</Text>
     </View>
   );
-  
 
-  // Load Custom Font (Fonarto)
+  // Load custom font
   useEffect(() => {
     async function loadFonts() {
       await Font.loadAsync({
-        "Fonarto": require("../../../assets/fonts/Fonarto.ttf"), // ✅ Correct font path
+        "Fonarto": require("../../../assets/fonts/Fonarto.ttf"),
       });
       setFontsLoaded(true);
     }
     loadFonts();
   }, []);
 
-  // Fix for FastImage local image loading
+  // Define hero images (local assets in .webp format)
   const heroImages = [
     require("../../../assets/hero1.webp"),
     require("../../../assets/hero2.webp"),
@@ -48,20 +59,35 @@ const WelcomePage = () => {
     require("../../../assets/hero6.webp"),
   ];
 
-  const heroURIs = heroImages.map((img) => Image.resolveAssetSource(img).uri);
+  // Preload images using Expo Asset
+  useEffect(() => {
+    async function loadImages() {
+      try {
+        // Preload each image asset
+        const imageAssets = heroImages.map((img) => Asset.fromModule(img).downloadAsync());
+        await Promise.all(imageAssets);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error("Error preloading images:", error);
+        setImagesLoaded(true); // Even on error, let the page render.
+      }
+    }
+    loadImages();
+  }, []);
 
-  // Preload images (only if using FastImage)
+  // Preload using FastImage if available (won't be used on Expo)
   useEffect(() => {
     if (FastImage) {
+      const heroURIs = heroImages.map((img) => Image.resolveAssetSource(img).uri);
       FastImage.preload(heroURIs.map((uri) => ({ uri })));
     }
   }, []);
 
-
-  // Show loading state if fonts are not loaded
-  if (!fontsLoaded) {
+  // Show loader until fonts and images are loaded
+  if (!fontsLoaded || !imagesLoaded) {
     return (
       <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.red} />
         <Text style={styles.loadingText}>Loading...</Text>
       </SafeAreaView>
     );
@@ -71,7 +97,7 @@ const WelcomePage = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Custom Font Title with Gradient Mask */}
+        {/* Title with custom font */}
         <View style={styles.titleContainer}>
           <Text 
             style={{
@@ -80,10 +106,10 @@ const WelcomePage = () => {
               color: "white",
               textShadowColor: "#FF3131",
               textShadowRadius: 3,
-              textShadowOffset: { width: -3, height: -3 },  
+              textShadowOffset: { width: -3, height: -3 },
             }}
           >
-            GROCEE
+            GROCCEE
           </Text>
         </View>
 
@@ -98,22 +124,19 @@ const WelcomePage = () => {
             activeDotStyle={styles.activeCarouselDot}
           >
             {FastImage
-              ? heroURIs.map((uri, index) => (
-                  <FastImage key={index} source={{ uri }} style={styles.heroImage} resizeMode="cover" />
+              ? heroImages.map((img, index) => (
+                  <FastImage key={index} source={img} style={styles.heroImage} resizeMode="cover" />
                 ))
               : heroImages.map((img, index) => (
                   <Image key={index} source={img} style={styles.heroImage} resizeMode="cover" />
                 ))}
           </Swiper>
           <Text style={styles.heroText}>Simplify Your Grocery Shopping</Text>
-
         </View>
-
-        
 
         {/* Features Section */}
         <View style={styles.featuresContainer}>
-          {renderFeature("list", "Easy List Management", )}
+          {renderFeature("list", "Easy List Management")}
           {renderFeature("users", "Real-Time Collaboration")}
           {renderFeature("shopping-bag", "Smart Suggestions")}
         </View>
