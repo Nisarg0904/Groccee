@@ -7,15 +7,18 @@ import { Ionicons } from "@expo/vector-icons";
 // Import your screens
 import MainMenuPage from "../screens/MainMenu/MainMenuPage";
 import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
-import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
 import WastagePage from "../screens/Wastage/WastagePage";
 import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
 import ProfilePage from "../screens/ProfilePage/ProfilePage";
 import EditProfilePage from "../screens/ProfilePage/EditProfilePage";
-import ShoppingListItemsPage from "../screens/Shopping/ShoppingListItemsPage";
-import ShoppingListPage from "../screens/Shopping/ShoppingListPage";
 import NotificationsPage from "../screens/Notifications/NotificationsPage";
 import InventoryPage from "../screens/Inventory/InventoryPage"; // <-- Import InventoryPage
+
+//Shopping 
+import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
+import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
+import AddShoppingListItemsPage from "../screens/Shopping/AddShoppingListItemPage";
+import ShoppingListItemsPage from "../screens/Shopping/ViewShoppingListItems";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -102,17 +105,56 @@ const InventoryStack = () => (
 const ShoppingStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerShown: false,
+      headerStyle: {
+        backgroundColor: 'black',
+      },
+      headerTintColor: '#fff',
     }}
   >
     <Stack.Screen 
-      name="ShoppingListScreen" 
-      component={ShoppingListPage}
-      initialParams={{ status: 'unbought' }}
+      name="ShoppingLists" 
+      component={ShoppingListsPage}
+      options={{
+        headerShown: false,
+      }}
     />
     <Stack.Screen 
+      name="CreateShoppingList" 
+      component={CreateShoppingListPage}
+      options={{
+        title: 'Create New List',
+        presentation: 'modal',
+      }}
+    />
+      <Stack.Screen 
       name="ShoppingListItems" 
       component={ShoppingListItemsPage}
+      options={({ route }) => ({
+        title: route.params?.listName || 'Shopping List Items',
+      })}
+    />
+    {/* <Stack.Screen 
+      name="AddShoppingListItems" 
+      component={AddShoppingListItemsPage}
+      options={({ route }) => ({
+        title: route.params?.listName || 'Add Items',
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('ShoppingLists')}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+      })}
+    /> */}
+    <Stack.Screen 
+      name="AddShoppingListItems" 
+      component={AddShoppingListItemsPage}  // Previous modal page
+      options={{
+        title: 'Add Items',
+        presentation: 'modal',
+      }}
     />
   </Stack.Navigator>
 );

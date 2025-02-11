@@ -1,3 +1,4 @@
+// screens/SignIn/SignInPage.jsx
 import React, { useState, useContext } from "react";
 import {
   View,
@@ -11,7 +12,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signInUser } from "../../services/userApi";  // Import the signInUser function
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/SignInPageStyles";
 
@@ -24,57 +26,67 @@ const SignInPage = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
+    if (!input.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     setLoading(true);
 
-    // Temporary bypassing backend integration:
-    setTimeout(() => {
-      const tempToken = "temporary-bypass-token";
-      const tempUser = {
-        id: 1,
-        username: "temp_user",
-        email: "temp@example.com",
-        firstName: "Temp",
-        lastName: "User",
-      };
-
-      setToken(tempToken);
-      setCurrentUser(tempUser);
-      setLoading(false);
-      Alert.alert("Success", "Temporary bypass sign-in successful!");
-
-      // Reset navigation to remove the Auth flow and go straight to the main app.
-      // 'Grocce' is the name of the home screen in your AppNavigator.
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Grocce" }],
-      });
-    }, 1000);
-
-    /*
-    // --- Old Axios integration with backend ---
     try {
-      // Replace the URL with your actual backend sign-in endpoint.
-      const response = await axios.post("http://YOUR_BACKEND_URL/api/auth/signin", {
-        input,
-        password,
+      console.log("Attempting sign in with:", { input: input.trim() }); // Debug log
+      const response = await signInUser({
+        input: input.trim(),
+        password: password.trim(),
       });
-      const { token, user } = response.data;
-      setToken(token);
-      setCurrentUser(user);
-      Alert.alert("Success", "You are signed in!");
-      navigation.navigate("MainMenu");
-    } catch (error) {
-      if (error.response && error.response.data) {
-        Alert.alert("Sign In Failed", error.response.data.message || "Invalid credentials");
+      console.log("Sign in response:", response); // Debug log
+
+      const { token, user, message } = response;
+
+      if (token && user) {
+        // Store token without quotes
+        await AsyncStorage.setItem('userToken', token);
+        
+        // Update context
+        setToken(token);
+        setCurrentUser(user);
+
+        // Clear input fields
+        setInput("");
+        setPassword("");
+
+        // Navigate to main app
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Grocce" }],
+        });
       } else {
-        Alert.alert("Sign In Failed", error.message);
+        Alert.alert("Error", "Invalid response from server");
       }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      
+      let errorMessage = "Failed to sign in. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes("User not found")) {
+          errorMessage = "User not found";
+        } else if (error.message.includes("Wrong password")) {
+          errorMessage = "Invalid password";
+        } else if (error.message.includes("verify your email")) {
+          errorMessage = "Please verify your email before logging in";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
-    */
   };
 
+  // Rest of your component remains the same...
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -88,6 +100,9 @@ const SignInPage = ({ navigation }) => {
           placeholderTextColor="rgba(255, 255, 255, 0.5)"
           value={input}
           onChangeText={setInput}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          editable={!loading}
         />
 
         <View style={styles.passwordContainer}>
@@ -98,6 +113,8 @@ const SignInPage = ({ navigation }) => {
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
+            autoCapitalize="none"
+            editable={!loading}
           />
           <Pressable onPress={() => setShowPassword(!showPassword)}>
             <MaterialIcons
@@ -113,11 +130,12 @@ const SignInPage = ({ navigation }) => {
           style={({ pressed }) => [
             styles.signInButton,
             pressed && styles.signInButtonPressed,
+            (!input.trim() || !password.trim()) && styles.signInButtonDisabled
           ]}
           onPressIn={() => setIsPressed(true)}
           onPressOut={() => setIsPressed(false)}
           onPress={handleSignIn}
-          disabled={loading}
+          disabled={loading || !input.trim() || !password.trim()}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -135,7 +153,10 @@ const SignInPage = ({ navigation }) => {
 
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Don't have an account?</Text>
-          <Pressable onPress={() => navigation.navigate("SignUp")}>
+          <Pressable 
+            onPress={() => navigation.navigate("SignUp")}
+            disabled={loading}
+          >
             <Text style={styles.signUpLink}>Sign Up</Text>
           </Pressable>
         </View>
