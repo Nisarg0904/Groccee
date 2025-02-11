@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Animated, Dimensions } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
-import styles from "../styles/WelcomePageStyles";
+import styles from "../../styles/WelcomePageStyles";
 import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get("window");
