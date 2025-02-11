@@ -1,5 +1,5 @@
 // components/ShoppingList/AddItemsModal.jsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { UserContext } from '../../contexts/UserContext';
-import { createMultipleShoppingListItems } from '../../services/shoppingItemApi';
+import { createMultipleShoppingListItems, fetchSuggestedItems } from '../../services/shoppingItemApi';
+import debounce from 'lodash/debounce';
 
 const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
   const { token } = useContext(UserContext);
@@ -22,11 +23,59 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
   const [items, setItems] = useState([]);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [currentItem, setCurrentItem] = useState({
     name: '',
     unit: '',
     quantity: '',
+    availableUnits: [],
   });
+
+  // Debounced search function
+  const debouncedSearch = debounce(async (searchTerm) => {
+    if (!searchTerm || searchTerm.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const results = await fetchSuggestedItems(searchTerm);
+      setSuggestions(Array.isArray(results) ? results : []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, 300);
+
+  useEffect(() => {
+    if (itemName) {
+      debouncedSearch(itemName);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+    return () => debouncedSearch.cancel();
+  }, [itemName]);
+
+  const handleSuggestionSelect = (suggestion) => {
+    setCurrentItem({
+      name: suggestion.name,
+      unit: suggestion.preferred_unit || '',
+      quantity: '',
+      availableUnits: suggestion.units || [],
+    });
+    setItemName('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setDetailsModalVisible(true);
+  };
 
   const handleItemSubmit = () => {
     if (!itemName.trim()) return;
@@ -35,6 +84,7 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
       name: itemName.trim(),
       unit: '',
       quantity: '',
+      availableUnits: [],
     });
     setItemName('');
     setDetailsModalVisible(true);
@@ -54,7 +104,7 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
       quantity: withDetails ? currentItem.quantity : '',
     }]);
     setDetailsModalVisible(false);
-    setCurrentItem({ name: '', unit: '', quantity: '' });
+    setCurrentItem({ name: '', unit: '', quantity: '', availableUnits: [] });
   };
   
   const saveAllItems = async () => {
@@ -64,16 +114,12 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
       return;
     }
   
-    // if (items.length === 0) {
-    //   Alert.alert('Error', 'Please add at least one item');
-    //   return;
-    // }
-  
     setSaving(true);
     try {
       await createMultipleShoppingListItems(items, shopping_list_id, token);
       setItems([]); // Clear the items
       onSuccess?.(); // Call onSuccess if it exists
+      onClose?.(); // Close the modal after successful save
     } catch (error) {
       console.error('Error saving items:', error);
       Alert.alert('Error', error.message || 'Failed to save items');
@@ -81,6 +127,7 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
       setSaving(false);
     }
   };
+
 
   const handleClose = () => {
     if (items.length > 0) {
@@ -133,38 +180,73 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
 
   return (
     <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Items</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
+    visible={visible}
+    transparent
+    animationType="slide"
+    onRequestClose={handleClose}
+  >
+    {/* Your existing JSX structure remains the same */}
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Add Items</Text>
+          <TouchableOpacity onPress={handleClose}>
+            <Ionicons name="close" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter item name"
-              value={itemName}
-              onChangeText={setItemName}
-              onSubmitEditing={handleItemSubmit}
-              returnKeyType="next"
-              editable={!saving}
-            />
-            <TouchableOpacity
-              style={[styles.addButton, saving && styles.disabledButton]}
-              onPress={handleItemSubmit}
-              disabled={saving}
-            >
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter item name"
+            value={itemName}
+            onChangeText={setItemName}
+            onSubmitEditing={() => {
+              if (itemName.trim()) {
+                handleItemSubmit();
+              }
+            }}
+            returnKeyType="next"
+            editable={!saving}
+          />
+          <TouchableOpacity
+            style={[styles.addButton, saving && styles.disabledButton]}
+            onPress={() => {
+              if (itemName.trim()) {
+                handleItemSubmit();
+              }
+            }}
+            disabled={saving}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#FF4141" />
           </View>
+        )}
+
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            <FlatList
+              data={suggestions}
+              keyExtractor={(item, index) => `${item.name}-${index}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.suggestionItem}
+                  onPress={() => handleSuggestionSelect(item)}
+                >
+                  <Text style={styles.suggestionText}>{item.name}</Text>
+                  {item.category && (
+                    <Text style={styles.suggestionCategory}>{item.category}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
 
           {saving && (
             <View style={styles.savingOverlay}>
@@ -207,12 +289,37 @@ const AddItemsModal = ({ visible, onClose, shopping_list_id, onSuccess }) => {
                       Enter details for {currentItem.name}
                     </Text>
                     
-                    <TextInput
-                      style={styles.detailsModalInput}
-                      placeholder="Unit (e.g., kg, pieces)"
-                      value={currentItem.unit}
-                      onChangeText={(text) => setCurrentItem({...currentItem, unit: text})}
-                    />
+                    {currentItem.availableUnits.length > 0 ? (
+                      <View style={styles.unitSelector}>
+                        <Text style={styles.label}>Select Unit:</Text>
+                        <FlatList
+                          data={currentItem.availableUnits}
+                          horizontal
+                          renderItem={({ item }) => (
+                            <TouchableOpacity
+                              style={[
+                                styles.unitOption,
+                                currentItem.unit === item && styles.selectedUnit
+                              ]}
+                              onPress={() => setCurrentItem({...currentItem, unit: item})}
+                            >
+                              <Text style={[
+                                styles.unitText,
+                                currentItem.unit === item && styles.selectedUnitText
+                              ]}>{item}</Text>
+                            </TouchableOpacity>
+                          )}
+                          keyExtractor={(item) => item}
+                        />
+                      </View>
+                    ) : (
+                      <TextInput
+                        style={styles.detailsModalInput}
+                        placeholder="Unit (e.g., kg, pieces)"
+                        value={currentItem.unit}
+                        onChangeText={(text) => setCurrentItem({...currentItem, unit: text})}
+                      />
+                    )}
                     
                     <TextInput
                       style={styles.detailsModalInput}
@@ -404,6 +511,51 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  suggestionsContainer: {
+    maxHeight: 200,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  suggestionText: {
+    fontSize: 16,
+  },
+  suggestionCategory: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  unitSelector: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  unitOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    marginRight: 8,
+  },
+  selectedUnit: {
+    backgroundColor: '#FF4141',
+  },
+  unitText: {
+    color: '#666',
+  },
+  selectedUnitText: {
+    color: '#fff',
   },
 });
 

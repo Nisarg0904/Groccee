@@ -91,11 +91,36 @@ const getAllCategories = async (req, res) => {
     }
 };
 
+const searchItemsByName = async (req, res) => {
+    try {
+      const searchQuery = req.params.query;
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Search query is required." });
+      }
+  
+      // Search for items where the name contains the query (case insensitive)
+      const items = await SuggestedItem.find(
+        { name: { $regex: new RegExp(searchQuery, "i") } },
+        "name units category" // Fetch only name, units, and category
+      );
+  
+      if (items.length === 0) {
+        return res.status(404).json({ message: "No matching items found." });
+      }
+  
+      res.status(200).json(items);
+    } catch (error) {
+      console.error("Error searching for items:", error);
+      res.status(500).json({ message: "Error searching for items", error });
+    }
+  };
+
 module.exports = {
     // createSuggestedItem,
     getAllItems,
     getItemByName,
     getItemsByCategory,
     getItemsByUnit,
-    getAllCategories
+    getAllCategories,
+    searchItemsByName
 };
