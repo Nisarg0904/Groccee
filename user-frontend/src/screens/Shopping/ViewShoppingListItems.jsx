@@ -19,12 +19,16 @@ import { UserContext } from '../../contexts/UserContext';
 import { 
   fetchShoppingListItems, 
   updateShoppingListItem, 
-  deleteShoppingListItem 
+  deleteShoppingListItem,
+  createGroceryItemFromShoppingItem,
 } from '../../services/shoppingItemApi';
 import AddItemsModal from './AddShoppingListItemPage';
+import FullDetailsModal from '../../components/FullDetailsModel';
 
 const ShoppingListItemsPage = ({ route, navigation }) => {
   const [addItemsModalVisible, setAddItemsModalVisible] = useState(false);
+  const [fullDetailsModalVisible, setFullDetailsModalVisible] = useState(false);
+  const [selectedBoughtItem, setSelectedBoughtItem] = useState(null);
   const { listId } = route.params;
   const { token } = useContext(UserContext);
   const [items, setItems] = useState([]);
@@ -135,6 +139,8 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     );
   };
 
+  
+
   const renderLeftActions = (progress, dragX, item) => {
     const scale = dragX.interpolate({
       inputRange: [0, 100],
@@ -198,13 +204,16 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
             </Text>
           )}
         </View>
-        <TouchableOpacity style={styles.checkButton}>
+        <TouchableOpacity 
+          style={styles.checkButton}
+          onPress={() => handleBought(item)}
+        >
           <Ionicons 
             name={item.bought ? "checkmark-circle" : "ellipse-outline"} 
             size={24} 
             color={item.bought ? "#4CAF50" : "#666"}
           />
-        </TouchableOpacity>
+      </TouchableOpacity>
       </View>
     </Swipeable>
   );
@@ -242,6 +251,85 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     );
   }
 
+  //handleBought
+  const handleBought = async (item) => {
+    try {
+      const hasDetails = item.quantity && item.unit;
+      
+      if (hasDetails) {
+        Alert.prompt(
+          'Add Price and Expiry',
+          'Please enter the following details:',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Save',
+              onPress: async (price, expiryDate, category) => {
+                try {
+                  // Use the service instead of direct fetch
+                  await createGroceryItemFromShoppingItem({
+                    name: item.name,
+                    unit: item.unit,
+                    purchased_quantity: item.quantity,
+                    price: parseFloat(price),
+                    expiry_date: expiryDate,
+                    purchased_date: new Date().toISOString().split('T')[0],
+                    category: category,
+                  }, token);
+  
+                  await updateShoppingListItem(
+                    item.list_item_id,
+                    { ...item, bought: true },
+                    token
+                  );
+  
+                  fetchItems();
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                }
+              },
+            },
+          ],
+          'plain-text'
+        );
+      } else {
+        setSelectedBoughtItem(item);
+        setFullDetailsModalVisible(true);
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const handleFullDetailsSubmit = async (details) => {
+    try {
+      await createGroceryItemFromShoppingItem({
+        name: selectedBoughtItem.name,
+        unit: details.unit,
+        purchased_quantity: parseFloat(details.quantity),
+        price: parseFloat(details.price),
+        expiry_date: details.expiryDate,
+        purchased_date: details.purchasedDate,
+        category: details.category,
+      }, token);
+  
+      await updateShoppingListItem(
+        selectedBoughtItem.list_item_id,
+        { ...selectedBoughtItem, bought: true },
+        token
+      );
+  
+      setFullDetailsModalVisible(false);
+      setSelectedBoughtItem(null);
+      fetchItems();
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
   return (
     <View style={styles.container}>
     <FlatList
@@ -257,15 +345,68 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
       }
     />
     <AddItemsModal
-  visible={addItemsModalVisible}
-  onClose={() => setAddItemsModalVisible(false)}
-  shopping_list_id={listId}
-  onSuccess={() => {
-    fetchItems(); // This will refresh the items list
-    setAddItemsModalVisible(false); // Close the modal
-  }}
-/>
-
+      visible={addItemsModalVisible}
+      onClose={() => setAddItemsModalVisible(false)}
+      shopping_list_id={listId}
+      onSuccess={() => {
+        fetchItems(); // This will refresh the items list
+        setAddItemsModalVisible(false); // Close the modal
+      }}
+    />
+    <Modal
+  visible={editModalVisible}
+  transparent={true}
+  animationType="fade"
+  onRequestClose={() => setEditModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Edit Item</Text>
+      <TextInput
+        style={styles.modalInput}
+        value={editName}
+        onChangeText={setEditName}
+        placeholder="Item name"
+      />
+      <TextInput
+        style={styles.modalInput}
+        value={editQuantity}
+        onChangeText={setEditQuantity}
+        placeholder="Quantity"
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.modalInput}
+        value={editUnit}
+        onChangeText={setEditUnit}
+        placeholder="Unit (optional)"
+      />
+      <View style={styles.modalButtons}>
+        <TouchableOpacity
+          style={[styles.modalButton, styles.cancelButton]}
+          onPress={() => setEditModalVisible(false)}
+        >
+          <Text style={styles.modalButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modalButton, styles.saveButton]}
+          onPress={handleUpdate}
+        >
+          <Text style={styles.modalButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+ <FullDetailsModal
+        visible={fullDetailsModalVisible}
+        onClose={() => {
+          setFullDetailsModalVisible(false);
+          setSelectedBoughtItem(null);
+        }}
+        onSubmit={handleFullDetailsSubmit}
+        itemName={selectedBoughtItem?.name || ''}
+      />
   </View>
   );
 };

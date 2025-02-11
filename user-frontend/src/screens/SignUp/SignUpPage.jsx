@@ -17,7 +17,7 @@ import { signInUser } from "../../services/userApi";
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/SignInPageStyles";
 
-const SignInPage = ({ navigation }) => {
+const SignUpPage = ({ navigation }) => {
   const [input, setInput] = useState("");
   const [password, setPassword] = useState("");
   const { setToken, setCurrentUser } = useContext(UserContext);
@@ -157,4 +157,4 @@ const SignInPage = ({ navigation }) => {
   );
 };
 
-export default SignInPage;
+export default SignUpPage;
