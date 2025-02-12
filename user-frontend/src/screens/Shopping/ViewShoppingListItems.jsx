@@ -252,83 +252,109 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
   }
 
   //handleBought
-  const handleBought = async (item) => {
-    try {
-      const hasDetails = item.quantity && item.unit;
+  // const handleBought = async (item) => {
+  //   try {
+  //     const hasDetails = item.quantity && item.unit;
       
-      if (hasDetails) {
-        Alert.prompt(
-          'Add Price and Expiry',
-          'Please enter the following details:',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Save',
-              onPress: async (price, expiryDate, category) => {
-                try {
-                  // Use the service instead of direct fetch
-                  await createGroceryItemFromShoppingItem({
-                    name: item.name,
-                    unit: item.unit,
-                    purchased_quantity: item.quantity,
-                    price: parseFloat(price),
-                    expiry_date: expiryDate,
-                    purchased_date: new Date().toISOString().split('T')[0],
-                    category: category,
-                  }, token);
+  //     if (hasDetails) {
+  //       Alert.prompt(
+  //         'Add Price and Expiry',
+  //         'Please enter the following details:',
+  //         [
+  //           {
+  //             text: 'Cancel',
+  //             style: 'cancel',
+  //           },
+  //           {
+  //             text: 'Save',
+  //             onPress: async (price, expiryDate, category) => {
+  //               try {
+  //                 // Use the service instead of direct fetch
+  //                 await createGroceryItemFromShoppingItem({
+  //                   name: item.name,
+  //                   unit: item.unit,
+  //                   purchased_quantity: item.quantity,
+  //                   price: parseFloat(price),
+  //                   expiry_date: expiryDate,
+  //                   purchased_date: new Date().toISOString().split('T')[0],
+  //                   category: category,
+  //                 }, token);
   
-                  await updateShoppingListItem(
-                    item.list_item_id,
-                    { ...item, bought: true },
-                    token
-                  );
+  //                 await updateShoppingListItem(
+  //                   item.list_item_id,
+  //                   { ...item, bought: true },
+  //                   token
+  //                 );
   
-                  fetchItems();
-                } catch (error) {
-                  Alert.alert('Error', error.message);
-                }
-              },
-            },
-          ],
-          'plain-text'
-        );
-      } else {
-        setSelectedBoughtItem(item);
-        setFullDetailsModalVisible(true);
-      }
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
-  };
+  //                 fetchItems();
+  //               } catch (error) {
+  //                 Alert.alert('Error', error.message);
+  //               }
+  //             },
+  //           },
+  //         ],
+  //         'plain-text'
+  //       );
+  //     } else {
+  //       setSelectedBoughtItem(item);
+  //       setFullDetailsModalVisible(true);
+  //     }
+  //   } catch (error) {
+  //     Alert.alert('Error', error.message);
+  //   }
+  // };
 
-  const handleFullDetailsSubmit = async (details) => {
-    try {
-      await createGroceryItemFromShoppingItem({
-        name: selectedBoughtItem.name,
-        unit: details.unit,
-        purchased_quantity: parseFloat(details.quantity),
-        price: parseFloat(details.price),
-        expiry_date: details.expiryDate,
-        purchased_date: details.purchasedDate,
-        category: details.category,
-      }, token);
-  
-      await updateShoppingListItem(
-        selectedBoughtItem.list_item_id,
-        { ...selectedBoughtItem, bought: true },
-        token
-      );
-  
-      setFullDetailsModalVisible(false);
-      setSelectedBoughtItem(null);
-      fetchItems();
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
-  };
+    //handleBought
+    const handleBought = async (item) => {
+      try {
+        // Whether the item has pre-existing unit and quantity
+        const hasDetails = item.quantity && item.unit;
+        
+        // In both cases, we'll use the FullDetailsModal but pre-populate fields if details exist
+        setSelectedBoughtItem({
+          ...item,
+          // If hasDetails is true, pre-populate the fields
+          prePopulatedFields: hasDetails ? {
+            unit: item.unit,
+            quantity: item.quantity.toString(),
+          } : null
+        });
+        setFullDetailsModalVisible(true);
+        
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      }
+    };
+
+    const handleFullDetailsSubmit = async (details) => {
+      try {
+        // Create grocery item with all details
+        await createGroceryItemFromShoppingItem({
+          name: selectedBoughtItem.name,
+          // If we have pre-populated fields, use those values, otherwise use the entered values
+          unit: selectedBoughtItem.prePopulatedFields?.unit || details.unit,
+          purchased_quantity: parseFloat(selectedBoughtItem.prePopulatedFields?.quantity || details.quantity),
+          price: parseFloat(details.price),
+          expiry_date: details.expiryDate,
+          purchased_date: details.purchasedDate || new Date().toISOString().split('T')[0],
+          category: details.category,
+        }, token);
+    
+        // Update the shopping list item to mark it as bought
+        await updateShoppingListItem(
+          selectedBoughtItem.list_item_id,
+          { ...selectedBoughtItem, bought: true },
+          token
+        );
+    
+        // Close modal and refresh
+        setFullDetailsModalVisible(false);
+        setSelectedBoughtItem(null);
+        fetchItems();
+      } catch (error) {
+        Alert.alert('Error', error.message || 'Failed to update item');
+      }
+    };
 
   return (
     <View style={styles.container}>
@@ -398,15 +424,16 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     </View>
   </View>
 </Modal>
- <FullDetailsModal
-        visible={fullDetailsModalVisible}
-        onClose={() => {
-          setFullDetailsModalVisible(false);
-          setSelectedBoughtItem(null);
-        }}
-        onSubmit={handleFullDetailsSubmit}
-        itemName={selectedBoughtItem?.name || ''}
-      />
+<FullDetailsModal
+  visible={fullDetailsModalVisible}
+  onClose={() => {
+    setFullDetailsModalVisible(false);
+    setSelectedBoughtItem(null);
+  }}
+  onSubmit={handleFullDetailsSubmit}
+  itemName={selectedBoughtItem?.name || ''}
+  prePopulatedFields={selectedBoughtItem?.prePopulatedFields}
+/>
   </View>
   );
 };
