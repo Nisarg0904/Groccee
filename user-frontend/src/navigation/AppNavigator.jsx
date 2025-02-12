@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-// Import your screens
+// Import screens
 import MainMenuPage from "../screens/MainMenu/MainMenuPage";
 import ViewGroceriesPage from "../screens/Grocery/ViewGroceriesPage";
 import WastagePage from "../screens/Wastage/WastagePage";
@@ -12,9 +12,9 @@ import AddGroceryPage from "../screens/Grocery/AddGroceryPage";
 import ProfilePage from "../screens/ProfilePage/ProfilePage";
 import EditProfilePage from "../screens/ProfilePage/EditProfilePage";
 import NotificationsPage from "../screens/Notifications/NotificationsPage";
-import InventoryPage from "../screens/Inventory/InventoryPage"; // <-- Import InventoryPage
+import InventoryPage from "../screens/Inventory/InventoryPage";
 
-//Shopping 
+// Shopping Screens
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
 import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
 import AddShoppingListItemsPage from "../screens/Shopping/AddShoppingListItemPage";
@@ -23,81 +23,51 @@ import ShoppingListItemsPage from "../screens/Shopping/ViewShoppingListItems";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// ✅ Fix: Renamed "Grocce" to "MainMenu"
 const HomeStack = () => (
   <Stack.Navigator>
-    <Stack.Screen 
-      name="Grocce" 
+    <Stack.Screen
+      name="MainMenu"
       component={MainMenuPage}
       options={({ navigation }) => ({
         headerShown: true,
-        headerStyle: {
-          backgroundColor: 'black', // Black header background
-        },
-        headerTintColor: '#fff', // White header text
+        headerStyle: { backgroundColor: "black" },
+        headerTintColor: "#fff",
         headerRight: () => (
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Notifications')}
+              onPress={() => navigation.navigate("Notifications")}
               style={{ marginHorizontal: 10 }}
             >
-              <Ionicons name="notifications-outline" size={28} color="#FFFFFF" />
+              <Ionicons
+                name="notifications-outline"
+                size={28}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
             <View style={{ width: 15 }} />
             <TouchableOpacity
-              onPress={() => navigation.navigate('Profile')}
+              onPress={() => navigation.navigate("Profile")}
               style={{ marginRight: 15 }}
             >
-              <Ionicons name="person-circle-outline" size={28} color="#FFFFFF" />
+              <Ionicons
+                name="person-circle-outline"
+                size={28}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
           </View>
         ),
       })}
     />
-    <Stack.Screen 
-      name="Profile" 
-      component={ProfilePage}
-      options={{
-        headerShown: true,
-        title: 'Profile',
-        headerStyle: {
-          backgroundColor: 'black',
-        },
-        headerTintColor: '#fff',
-      }}
-    />
-    <Stack.Screen
-      name="EditProfilePage"
-      component={EditProfilePage}
-      options={{
-        headerShown: true,
-        title: 'Edit Profile',
-        headerStyle: {
-          backgroundColor: 'black',
-        },
-        headerTintColor: '#fff',
-      }}
-    />
-    <Stack.Screen 
-      name="Notifications" 
-      component={NotificationsPage} 
-      options={{
-        headerShown: true,
-        title: 'Notifications',
-        headerStyle: {
-          backgroundColor: 'black',
-        },
-        headerTintColor: '#fff',
-      }}
-    />
+    <Stack.Screen name="Profile" component={ProfilePage} />
+    <Stack.Screen name="EditProfilePage" component={EditProfilePage} />
+    <Stack.Screen name="Notifications" component={NotificationsPage} />
   </Stack.Navigator>
 );
 
 const InventoryStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false, // Let the Tab Navigator header appear
-    }}
-  >
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="InventoryScreen" component={InventoryPage} />
   </Stack.Navigator>
 );
@@ -105,66 +75,37 @@ const InventoryStack = () => (
 const ShoppingStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: {
-        backgroundColor: 'black',
-      },
-      headerTintColor: '#fff',
+      headerStyle: { backgroundColor: "black" },
+      headerTintColor: "#fff",
     }}
   >
-    <Stack.Screen 
-      name="ShoppingLists" 
+    <Stack.Screen
+      name="ShoppingLists"
       component={ShoppingListsPage}
-      options={{
-        headerShown: false,
-      }}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="CreateShoppingList" 
+    <Stack.Screen
+      name="CreateShoppingList"
       component={CreateShoppingListPage}
-      options={{
-        title: 'Create New List',
-        presentation: 'modal',
-      }}
+      options={{ title: "Create New List", presentation: "modal" }}
     />
-      <Stack.Screen 
-      name="ShoppingListItems" 
+    <Stack.Screen
+      name="ShoppingListItems"
       component={ShoppingListItemsPage}
       options={({ route }) => ({
-        title: route.params?.listName || 'Shopping List Items',
+        title: route.params?.listName || "Shopping List Items",
       })}
     />
-    {/* <Stack.Screen 
-      name="AddShoppingListItems" 
+    <Stack.Screen
+      name="AddShoppingListItems"
       component={AddShoppingListItemsPage}
-      options={({ route }) => ({
-        title: route.params?.listName || 'Add Items',
-        headerLeft: () => (
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('ShoppingLists')}
-            style={{ marginLeft: 16 }}
-          >
-            <Ionicons name="close" size={24} color="#fff" />
-          </TouchableOpacity>
-        ),
-      })}
-    /> */}
-    <Stack.Screen 
-      name="AddShoppingListItems" 
-      component={AddShoppingListItemsPage}  // Previous modal page
-      options={{
-        title: 'Add Items',
-        presentation: 'modal',
-      }}
+      options={{ title: "Add Items", presentation: "modal" }}
     />
   </Stack.Navigator>
 );
 
 const ReportsStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="WastageScreen" component={WastagePage} />
   </Stack.Navigator>
 );
@@ -173,60 +114,59 @@ const AppNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: 'black' },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: "black" },
+        headerTintColor: "#fff",
         tabBarStyle: {
-          backgroundColor: 'black',
+          backgroundColor: "black",
           height: 60,
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
         },
-        tabBarActiveTintColor: '#FF4141',
-        tabBarInactiveTintColor: 'gray',
-        tabBarLabelStyle: {
-          fontSize: 10,
-          marginBottom: 5,
-        },
+        tabBarActiveTintColor: "#FF4141",
+        tabBarInactiveTintColor: "gray",
+        tabBarLabelStyle: { fontSize: 10, marginBottom: 5 },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
           switch (route.name) {
-            case 'Home':
-              iconName = focused ? 'home' : 'home-outline';
+            case "Home":
+              iconName = focused ? "home" : "home-outline";
               break;
-            case 'Shopping':
-              iconName = focused ? 'cart' : 'cart-outline';
+            case "Shopping":
+              iconName = focused ? "cart" : "cart-outline";
               break;
-            case 'Inventory':
-              iconName = focused ? 'cube' : 'cube-outline';
+            case "Inventory":
+              iconName = focused ? "cube" : "cube-outline";
               break;
-            case 'Reports':
-              iconName = focused ? 'bar-chart' : 'bar-chart-outline';
+            case "Reports":
+              iconName = focused ? "bar-chart" : "bar-chart-outline";
               break;
           }
           return <Ionicons name={iconName} size={24} color={color} />;
         },
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeStack} 
-        options={{ headerShown: false }} 
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{ headerShown: false }}
       />
       <Tab.Screen name="Shopping" component={ShoppingStack} />
-      <Tab.Screen 
-        name="AddGrocery" 
+      <Tab.Screen
+        name="AddGrocery"
         component={AddGroceryPage}
         options={{
           tabBarIcon: () => (
-            <View style={{
-              top: -15,
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: '#FF4141',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
+            <View
+              style={{
+                top: -15,
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                backgroundColor: "#FF4141",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <Ionicons name="add" size={28} color="#FFFFFF" />
             </View>
           ),

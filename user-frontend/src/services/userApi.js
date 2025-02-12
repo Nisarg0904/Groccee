@@ -1,60 +1,42 @@
 import { userAPI } from "./api";
-import axios from "axios";
 
-// Resend verification email
+// ✅ **Resend verification email**
 export const resendVerificationEmail = async (data) => {
   try {
-    const response = await userAPI.post(
-      "/users/resend-verification-email",
-      data
-    );
+    const response = await userAPI.post("/email/send-verification-email", data);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
 
-// Register a new user
+// ✅ **Register a new user (Signup)**
 export const signUpUser = async (userData) => {
-
   try {
-    console.log("sending request to:" + userAPI + "/users/signup"+"\n user data : "+ userData.toString());
-    const response = await userAPI.post("/users/signup", userData);
-    console.log("request sent")
-    return response.data;
-
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Network Error");
-  }
-};
-
-// Send password reset email
-export const sendPasswordResetEmail = async (data) => {
-  try {
-    const response = await userAPI.post("/users/send-password-reset", data);
+    console.log("Sending request to: /auth/signup", "\nUser data:", userData);
+    const response = await userAPI.post("/auth/signup", userData);
+    console.log("Request sent");
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
 
-// Login a user
+// ✅ **Login user**
 export const signInUser = async (credentials) => {
   try {
-    const response = await userAPI.post("/users/login", credentials);
+    const response = await userAPI.post("/auth/login", credentials);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
 
-// Get user profile
+// ✅ **Get user profile**
 export const getUserProfile = async (token) => {
   try {
     const response = await userAPI.get("/users/profile", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error) {
@@ -62,11 +44,10 @@ export const getUserProfile = async (token) => {
   }
 };
 
-// Update user details
-// Update user details
+// ✅ **Update user profile**
 export const updateUserDetails = async (token, userData) => {
   try {
-    const response = await userAPI.put("/users/edit", userData, {
+    const response = await userAPI.put("/users/profile", userData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
@@ -76,15 +57,54 @@ export const updateUserDetails = async (token, userData) => {
   }
 };
 
-
-// Delete user account
+// ✅ **Delete user account**
 export const deleteUserAccount = async (token) => {
   try {
     const response = await userAPI.delete("/users/delete", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
+// ✅ **Send password reset OTP**
+export const sendPasswordResetEmail = async (data) => {
+  try {
+    const response = await userAPI.post("/password/send-password-reset", data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
+// ✅ **Verify password reset OTP**
+export const verifyPasswordResetOTP = async (data) => {
+  try {
+    const response = await userAPI.post("/password/verify-reset-otp", data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
+// ✅ **Reset password**
+export const resetPassword = async (data) => {
+  try {
+    const response = await userAPI.put("/password/reset-password", data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
+// ✅ **Verify email**
+export const verifyEmail = async (userId, token) => {
+  try {
+    const response = await userAPI.get(
+      `/email/verify-email?userId=${userId}&token=${token}`
+    );
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Network Error");

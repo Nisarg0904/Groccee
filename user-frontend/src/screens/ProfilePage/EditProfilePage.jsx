@@ -1,52 +1,99 @@
-import React, { useState } from "react";
-import { 
-  SafeAreaView, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Image, 
-  ScrollView 
+import React, { useState, useEffect, useContext } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
+import { getUserProfile, updateUserDetails } from "../../services/userApi";
+import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/EditProfilePageStyles";
 
-// Reusable component for the profile picture section
+const dietOptions = ["none", "vegan", "vegetarian", "pescatarian", "keto"];
+const cuisineOptions = [
+  "none",
+  "indian",
+  "korean",
+  "chinese",
+  "italian",
+  "mexican",
+];
+const shoppingOptions = ["daily", "weekly", "biweekly", "monthly"];
+const cookingOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 const ProfilePictureSection = ({ profileImage, onPress }) => (
-  <View style={{ alignItems: "center" }}>
+  <View style={{ alignItems: "center", marginBottom: 20 }}>
     <View style={styles.profilePictureContainer}>
       <Image
-        source={profileImage ? { uri: profileImage } : require("../../../assets/profile.png")}
+        source={
+          profileImage
+            ? { uri: profileImage }
+            : require("../../../assets/profile.png")
+        }
         style={styles.profilePicture}
       />
     </View>
-    <TouchableOpacity 
-      onPress={onPress} 
-      style={{ marginTop: 8, flexDirection: "row", alignItems: "center" }}
-    >
+    <TouchableOpacity onPress={onPress} style={styles.editPhotoButton}>
       <Ionicons name="camera" size={20} color="#E52B50" />
-      <Text style={{ marginLeft: 4, color: "#E52B50", fontSize: 14 }}>Edit Photo</Text>
+      <Text style={styles.editPhotoText}>Edit Photo</Text>
     </TouchableOpacity>
   </View>
 );
 
 const EditProfilePage = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const { token } = useContext(UserContext);
 
+  const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
-  const [username, setUsername] = useState("user");
-  const [email, setEmail] = useState("user@gmail.com");
-  const [phoneNumber, setPhoneNumber] = useState("+14987899999");
-  const [password, setPassword] = useState("Password#");
-  const [preferences, setPreferences] = useState("Vegan");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [shoppingActivity, setShoppingActivity] = useState("daily");
+  const [dietPreference, setDietPreference] = useState("none");
+  const [cookingForPeople, setCookingForPeople] = useState(1);
+  const [cuisinePreference, setCuisinePreference] = useState("none");
+  const [customCuisine, setCustomCuisine] = useState("");
 
-  // Called when the user taps the profile picture camera icon.
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const userData = await getUserProfile(token);
+
+        setFirstName(userData.firstName || "");
+        setLastName(userData.lastName || "");
+        setShoppingActivity(userData.shoppingActivity || "daily");
+        setDietPreference(userData.dietPreference || "none");
+        setCookingForPeople(userData.cookingForPeople || 1);
+        setCuisinePreference(userData.cuisinePreference || "none");
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to fetch user profile",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [token]);
+
+  // ✅ Handle profile picture update
   const handleProfilePictureUpdate = async () => {
-    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    let permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Toast.show({
         type: "error",
@@ -75,159 +122,144 @@ const EditProfilePage = ({ navigation }) => {
   };
 
   const handleUpdate = async () => {
-    // Placeholder for update logic. Will connect to the database later.
     try {
-      const response = await fetch('https://your-api-endpoint.com/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          email,
-          phoneNumber,
-          password,
-          preferences,
-        }),
-      });
+      const updatedData = {
+        firstName,
+        lastName,
+        shoppingActivity,
+        dietPreference,
+        cookingForPeople,
+        cuisinePreference:
+          cuisinePreference === "none" ? customCuisine : cuisinePreference,
+      };
 
-      if (!response.ok) throw new Error("Failed to update profile!");
+      await updateUserDetails(token, updatedData);
 
       Toast.show({
         type: "success",
         text1: "Success",
         text2: "Profile updated successfully!",
       });
+
       navigation.goBack();
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "An error occurred while updating your profile. Please try again.",
+        text2:
+          "An error occurred while updating your profile. Please try again.",
       });
     }
   };
 
-  const togglePreference = (preference) => {
-    setPreferences(preference);
-  };
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#E52B50" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Gradient Header */}
-        <LinearGradient 
-          colors={['#4A235A', '#1B264F']} 
-          style={styles.header}
-          start={[0, 0]} 
-          end={[1, 1]}
-        >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
+        <LinearGradient colors={["#4A235A", "#1B264F"]} style={styles.header}>
           <Text style={styles.headerText}>Edit Profile</Text>
-          {/* Use the reusable ProfilePictureSection component */}
-          <ProfilePictureSection 
+          <ProfilePictureSection
             profileImage={profileImage}
-            onPress={handleProfilePictureUpdate} 
+            onPress={handleProfilePictureUpdate}
           />
         </LinearGradient>
 
-        {/* Progress Indicator */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progress, { width: "80%" }]} />
-          </View>
-          <Text style={styles.progressText}>Profile 80% Complete</Text>
-        </View>
-
-        {/* Content */}
         <View style={styles.content}>
-          {/* Personal Info Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Info</Text>
-            <View style={styles.inputCard}>
-              <TextInput
-                style={styles.input}
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Username"
-                placeholderTextColor="#D3D3D3"
-              />
-            </View>
-            <View style={styles.inputCard}>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email"
-                placeholderTextColor="#D3D3D3"
-                keyboardType="email-address"
-              />
-            </View>
-          </View>
-
-          {/* Security Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Security</Text>
-            <View style={styles.inputCard}>
-              <TextInput
-                style={styles.input}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                placeholder="Phone Number"
-                placeholderTextColor="#D3D3D3"
-                keyboardType="phone-pad"
-              />
-            </View>
-            <View style={styles.inputCard}>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                placeholderTextColor="#D3D3D3"
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          {/* Preferences Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
-            <View style={styles.chipsContainer}>
-              {["Vegan", "Vegetarian", "Non-Vegetarian", "Keto", "Paleo"].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.chip,
-                    preferences === item ? styles.activeChip : null,
-                  ]}
-                  onPress={() => togglePreference(item)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      preferences === item ? styles.activeChipText : null,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Shopping Activity</Text>
+          <View style={styles.dropdownContainer}>
+            <Picker
+              selectedValue={shoppingActivity}
+              onValueChange={setShoppingActivity}
+            >
+              {shoppingOptions.map((option) => (
+                <Picker.Item key={option} label={option} value={option} />
               ))}
-            </View>
+            </Picker>
+          </View>
+
+          <Text style={styles.sectionTitle}>Diet Preference</Text>
+          <View style={styles.checkboxContainer}>
+            {dietOptions.map((option) => (
+              <TouchableOpacity
+                key={option}
+                onPress={() => setDietPreference(option)}
+              >
+                <Text
+                  style={
+                    dietPreference === option
+                      ? styles.activeCheckbox
+                      : styles.checkbox
+                  }
+                >
+                  {dietPreference === option ? `✔ ${option}` : option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Cuisine Preference</Text>
+          <View style={styles.checkboxContainer}>
+            {cuisineOptions.map((option) => (
+              <TouchableOpacity
+                key={option}
+                onPress={() => setCuisinePreference(option)}
+              >
+                <Text
+                  style={
+                    cuisinePreference === option
+                      ? styles.activeCheckbox
+                      : styles.checkbox
+                  }
+                >
+                  {cuisinePreference === option ? `✔ ${option}` : option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {cuisinePreference === "none" && (
+            <TextInput
+              style={styles.input}
+              value={customCuisine}
+              onChangeText={setCustomCuisine}
+              placeholder="Enter custom cuisine"
+            />
+          )}
+
+          <Text style={styles.sectionTitle}>Cooking for How Many People?</Text>
+          <View style={styles.dropdownContainer}>
+            <Picker
+              selectedValue={cookingForPeople}
+              onValueChange={setCookingForPeople}
+            >
+              {cookingOptions.map((option) => (
+                <Picker.Item
+                  key={option}
+                  label={`${option} People`}
+                  value={option}
+                />
+              ))}
+            </Picker>
           </View>
         </View>
       </ScrollView>
 
-      {/* Sticky Update Button */}
-      <TouchableOpacity 
-        style={[
-          styles.updateButton, 
-          { marginBottom: insets.bottom + 25 }
-        ]}
-        onPress={handleUpdate}
-      >
+      <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
         <Ionicons name="checkmark-done" size={24} color="white" />
         <Text style={styles.updateButtonText}>Update</Text>
       </TouchableOpacity>
-      
-      {/* Toast Message Container */}
+
       <Toast />
     </SafeAreaView>
   );

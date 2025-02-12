@@ -3,18 +3,19 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "#121212", // Darker shade for better contrast
+    paddingBottom: 20,
   },
   header: {
-    height: 200,
-    backgroundColor: "linear-gradient(45deg, #4A235A, #1B264F)", // Gradient
+    height: 220,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    paddingTop: 20,
+    backgroundColor: "#1B264F", // Darker blue to match the theme
   },
   headerText: {
     color: "white",
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
   },
@@ -25,75 +26,79 @@ export default StyleSheet.create({
     overflow: "hidden",
     borderWidth: 3,
     borderColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
   },
   profilePicture: {
     width: "100%",
     height: "100%",
   },
-  progressContainer: {
+  editPhotoButton: {
+    marginTop: 8,
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    justifyContent: "center",
   },
-  progressBar: {
-    width: "80%",
-    height: 10,
-    backgroundColor: "#D3D3D3",
-    borderRadius: 5,
-    overflow: "hidden",
-  },
-  progress: {
-    height: "100%",
-    backgroundColor: "#E52B50", // Turkey Red
-  },
-  progressText: {
-    color: "white",
-    marginTop: 5,
+  editPhotoText: {
+    marginLeft: 4,
+    color: "#E52B50",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   content: {
     paddingHorizontal: 20,
+    marginTop: 10,
   },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   inputCard: {
-    backgroundColor: "#36454F", // Charcoal Gray
-    borderRadius: 25,
+    backgroundColor: "#2C2C2C", // Dark grey for better contrast
+    borderRadius: 12,
     paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginBottom: 10,
+    paddingVertical: 12,
+    marginBottom: 12,
   },
   input: {
-    color: "white",
-    fontSize: 14,
+    color: "#FFFFFF",
+    fontSize: 16,
   },
-  chipsContainer: {
+  dropdownContainer: {
+    backgroundColor: "#2C2C2C",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 12,
+  },
+  picker: {
+    color: "white",
+    fontSize: 16,
+  },
+  checkboxContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+    marginTop: 5,
   },
-  chip: {
-    backgroundColor: "#36454F",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    marginRight: 10,
-    marginBottom: 10,
-  },
-  activeChip: {
-    backgroundColor: "#E52B50",
-  },
-  chipText: {
+  checkbox: {
+    backgroundColor: "#333333",
     color: "#D3D3D3",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
     fontSize: 14,
+    textAlign: "center",
   },
-  activeChipText: {
+  activeCheckbox: {
+    backgroundColor: "#E52B50",
     color: "white",
+    fontWeight: "bold",
   },
   updateButton: {
     flexDirection: "row",
@@ -103,7 +108,7 @@ export default StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 30,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   updateButtonText: {
     color: "white",
