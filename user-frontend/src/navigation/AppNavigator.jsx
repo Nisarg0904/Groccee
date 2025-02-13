@@ -13,6 +13,7 @@ import ProfilePage from "../screens/ProfilePage/ProfilePage";
 import EditProfilePage from "../screens/ProfilePage/EditProfilePage";
 import NotificationsPage from "../screens/Notifications/NotificationsPage";
 import InventoryPage from "../screens/Inventory/InventoryPage";
+import EditGroceryPage from "../screens/Grocery/EditGroceryPage";
 
 // Shopping Screens
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
@@ -65,12 +66,22 @@ const HomeStack = () => (
     <Stack.Screen name="Notifications" component={NotificationsPage} />
   </Stack.Navigator>
 );
-
 const InventoryStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="InventoryScreen" component={InventoryPage} />
+    <Stack.Screen
+      name="EditGroceryPage"
+      component={EditGroceryPage}
+      options={{
+        headerShown: true,
+        title: "Edit Grocery",
+        headerStyle: { backgroundColor: "black" },
+        headerTintColor: "#fff",
+      }}
+    />
   </Stack.Navigator>
 );
+
 
 const ShoppingStack = () => (
   <Stack.Navigator

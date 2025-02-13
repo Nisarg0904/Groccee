@@ -1,5 +1,12 @@
 import React, { useState, useContext, useCallback } from "react";
-import { View, Text, TextInput, SectionList, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  SectionList,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchGroceries, deleteGroceryItem } from "../../services/groceryApi";
@@ -18,7 +25,10 @@ const InventoryPage = ({ navigation }) => {
       setGroceries(data);
     } catch (error) {
       console.error("Error fetching groceries:", error);
-      Alert.alert("Error", "Failed to load groceries. Check your network or backend.");
+      Alert.alert(
+        "Error",
+        "Failed to load groceries. Check your network or backend."
+      );
     }
   };
 
@@ -28,8 +38,9 @@ const InventoryPage = ({ navigation }) => {
     }, [token])
   );
 
-  const filteredGroceries = groceries.filter((item) =>
-    item.name && item.name.toLowerCase().includes(filterQuery.toLowerCase())
+  const filteredGroceries = groceries.filter(
+    (item) =>
+      item.name && item.name.toLowerCase().includes(filterQuery.toLowerCase())
   );
 
   const groupGroceries = () => {
@@ -60,7 +71,10 @@ const InventoryPage = ({ navigation }) => {
       sections.push({ title: "Expiring Soon", data: expiringSoon });
     }
     if (expiringInSomeTime.length) {
-      sections.push({ title: "Expiring In Some Time", data: expiringInSomeTime });
+      sections.push({
+        title: "Expiring In Some Time",
+        data: expiringInSomeTime,
+      });
     }
     if (hasTime.length) {
       sections.push({ title: "Has Time", data: hasTime });
@@ -74,7 +88,12 @@ const InventoryPage = ({ navigation }) => {
     <Text
       style={[
         styles.sectionHeader,
-        { backgroundColor: "#f4f4f4", padding: 8, fontSize: 18, fontWeight: "bold" },
+        {
+          backgroundColor: "#f4f4f4",
+          padding: 8,
+          fontSize: 18,
+          fontWeight: "bold",
+        },
       ]}
     >
       {title}
@@ -82,6 +101,13 @@ const InventoryPage = ({ navigation }) => {
   );
 
   const handleDelete = (id) => {
+    if (!id) {
+      Alert.alert("Error", "Invalid item ID.");
+      return;
+    }
+
+    console.log("Attempting to delete item with ID:", id);
+
     Alert.alert(
       "Confirm Deletion",
       "Are you sure you want to delete this grocery item?",
@@ -104,34 +130,51 @@ const InventoryPage = ({ navigation }) => {
     );
   };
 
-  const renderRightActions = (item) => (
-    <View style={{ flexDirection: "row" }}>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.editButton, { paddingHorizontal: 15, justifyContent: "center" }]}
-        onPress={() => navigation.navigate("EditGroceryPage", { item })}
-      >
-        <Text style={styles.actionText}>Edit</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.deleteButton, { paddingHorizontal: 15, justifyContent: "center" }]}
-        onPress={() => handleDelete(item._id)}
-      >
-        <Text style={styles.actionText}>Delete</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderRightActions = (item) => {
+    console.log("Item in renderRightActions:", item); // Debugging
+    const itemId = item._id || item.id;
 
-  const renderItem = ({ item }) => (
-    <Swipeable renderRightActions={() => renderRightActions(item)}>
-      <View style={styles.itemContainer}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemDetail}>
-          Expiry: {item.expiry_date ? item.expiry_date : "N/A"}{" "}
-          {item.diffDays !== "N/A" && `(in ${item.diffDays} days)`}
-        </Text>
+    return (
+      <View style={{ flexDirection: "row" }}>
+        <TouchableOpacity
+          style={[
+            styles.actionButton,
+            styles.editButton,
+            { paddingHorizontal: 15, justifyContent: "center" },
+          ]}
+          onPress={() => navigation.navigate("EditGroceryPage", { item })}
+        >
+          <Text style={styles.actionText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.actionButton,
+            styles.deleteButton,
+            { paddingHorizontal: 15, justifyContent: "center" },
+          ]}
+          onPress={() => handleDelete(itemId)}
+        >
+          <Text style={styles.actionText}>Delete</Text>
+        </TouchableOpacity>
       </View>
-    </Swipeable>
-  );
+    );
+  };
+
+  const renderItem = ({ item }) => {
+    console.log("Rendering item:", item); // Debugging
+
+    return (
+      <Swipeable renderRightActions={() => renderRightActions(item)}>
+        <View style={styles.itemContainer}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemDetail}>
+            Expiry: {item.expiry_date ? item.expiry_date : "N/A"}{" "}
+            {item.diffDays !== "N/A" && `(in ${item.diffDays} days)`}
+          </Text>
+        </View>
+      </Swipeable>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -145,11 +188,15 @@ const InventoryPage = ({ navigation }) => {
       />
       <SectionList
         sections={sections}
-        keyExtractor={(item, index) => (item._id ? item._id.toString() : index.toString())}
+        keyExtractor={(item, index) =>
+          item._id ? item._id.toString() : index.toString()
+        }
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         ListEmptyComponent={
-          <Text style={{ textAlign: "center", marginTop: 20 }}>No groceries found.</Text>
+          <Text style={{ textAlign: "center", marginTop: 20 }}>
+            No groceries found.
+          </Text>
         }
         contentContainerStyle={{ paddingBottom: 100 }}
       />
