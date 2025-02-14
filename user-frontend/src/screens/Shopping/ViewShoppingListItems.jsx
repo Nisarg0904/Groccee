@@ -4,9 +4,8 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
+  ActivityIndicator,
   RefreshControl,
   Alert,
   Animated,
@@ -24,6 +23,7 @@ import {
 } from '../../services/shoppingItemApi';
 import AddItemsModal from './AddShoppingListItemPage';
 import FullDetailsModal from '../../components/FullDetailsModel';
+import styles from '../../styles/ViewShoppingListStyles';
 
 const ShoppingListItemsPage = ({ route, navigation }) => {
   const [addItemsModalVisible, setAddItemsModalVisible] = useState(false);
@@ -50,7 +50,7 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
 
     try {
       const data = await fetchShoppingListItems(listId, token);
-      console.log('Fetched items:', data); // Add this for debugging
+      console.log('Fetched items:', data);
       setItems(data);
       setError(null);
     } catch (err) {
@@ -139,8 +139,6 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     );
   };
 
-  
-
   const renderLeftActions = (progress, dragX, item) => {
     const scale = dragX.interpolate({
       inputRange: [0, 100],
@@ -213,11 +211,54 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
             size={24} 
             color={item.bought ? "#4CAF50" : "#666"}
           />
-      </TouchableOpacity>
+        </TouchableOpacity>
       </View>
     </Swipeable>
   );
 
+  const handleBought = async (item) => {
+    try {
+      const hasDetails = item.quantity && item.unit;
+      
+      setSelectedBoughtItem({
+        ...item,
+        prePopulatedFields: hasDetails ? {
+          unit: item.unit,
+          quantity: item.quantity.toString(),
+        } : null
+      });
+      setFullDetailsModalVisible(true);
+      
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const handleFullDetailsSubmit = async (details) => {
+    try {
+      await createGroceryItemFromShoppingItem({
+        name: selectedBoughtItem.name,
+        unit: selectedBoughtItem.prePopulatedFields?.unit || details.unit,
+        purchased_quantity: parseFloat(selectedBoughtItem.prePopulatedFields?.quantity || details.quantity),
+        price: parseFloat(details.price),
+        expiry_date: details.expiryDate,
+        purchased_date: details.purchasedDate || new Date().toISOString().split('T')[0],
+        category: details.category,
+      }, token);
+  
+      await updateShoppingListItem(
+        selectedBoughtItem.list_item_id,
+        { ...selectedBoughtItem, bought: true },
+        token
+      );
+  
+      setFullDetailsModalVisible(false);
+      setSelectedBoughtItem(null);
+      fetchItems();
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to update item');
+    }
+  };
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -251,347 +292,86 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     );
   }
 
-  //handleBought
-  // const handleBought = async (item) => {
-  //   try {
-  //     const hasDetails = item.quantity && item.unit;
-      
-  //     if (hasDetails) {
-  //       Alert.prompt(
-  //         'Add Price and Expiry',
-  //         'Please enter the following details:',
-  //         [
-  //           {
-  //             text: 'Cancel',
-  //             style: 'cancel',
-  //           },
-  //           {
-  //             text: 'Save',
-  //             onPress: async (price, expiryDate, category) => {
-  //               try {
-  //                 // Use the service instead of direct fetch
-  //                 await createGroceryItemFromShoppingItem({
-  //                   name: item.name,
-  //                   unit: item.unit,
-  //                   purchased_quantity: item.quantity,
-  //                   price: parseFloat(price),
-  //                   expiry_date: expiryDate,
-  //                   purchased_date: new Date().toISOString().split('T')[0],
-  //                   category: category,
-  //                 }, token);
-  
-  //                 await updateShoppingListItem(
-  //                   item.list_item_id,
-  //                   { ...item, bought: true },
-  //                   token
-  //                 );
-  
-  //                 fetchItems();
-  //               } catch (error) {
-  //                 Alert.alert('Error', error.message);
-  //               }
-  //             },
-  //           },
-  //         ],
-  //         'plain-text'
-  //       );
-  //     } else {
-  //       setSelectedBoughtItem(item);
-  //       setFullDetailsModalVisible(true);
-  //     }
-  //   } catch (error) {
-  //     Alert.alert('Error', error.message);
-  //   }
-  // };
-
-    //handleBought
-    const handleBought = async (item) => {
-      try {
-        // Whether the item has pre-existing unit and quantity
-        const hasDetails = item.quantity && item.unit;
-        
-        // In both cases, we'll use the FullDetailsModal but pre-populate fields if details exist
-        setSelectedBoughtItem({
-          ...item,
-          // If hasDetails is true, pre-populate the fields
-          prePopulatedFields: hasDetails ? {
-            unit: item.unit,
-            quantity: item.quantity.toString(),
-          } : null
-        });
-        setFullDetailsModalVisible(true);
-        
-      } catch (error) {
-        Alert.alert('Error', error.message);
-      }
-    };
-
-    const handleFullDetailsSubmit = async (details) => {
-      try {
-        // Create grocery item with all details
-        await createGroceryItemFromShoppingItem({
-          name: selectedBoughtItem.name,
-          // If we have pre-populated fields, use those values, otherwise use the entered values
-          unit: selectedBoughtItem.prePopulatedFields?.unit || details.unit,
-          purchased_quantity: parseFloat(selectedBoughtItem.prePopulatedFields?.quantity || details.quantity),
-          price: parseFloat(details.price),
-          expiry_date: details.expiryDate,
-          purchased_date: details.purchasedDate || new Date().toISOString().split('T')[0],
-          category: details.category,
-        }, token);
-    
-        // Update the shopping list item to mark it as bought
-        await updateShoppingListItem(
-          selectedBoughtItem.list_item_id,
-          { ...selectedBoughtItem, bought: true },
-          token
-        );
-    
-        // Close modal and refresh
-        setFullDetailsModalVisible(false);
-        setSelectedBoughtItem(null);
-        fetchItems();
-      } catch (error) {
-        Alert.alert('Error', error.message || 'Failed to update item');
-      }
-    };
-
   return (
     <View style={styles.container}>
-    <FlatList
-      data={items}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.list_item_id?.toString() || Math.random().toString()}
-      contentContainerStyle={styles.listContainer}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      ListEmptyComponent={
-        <Text style={styles.emptyText}>No items in this list</Text>
-      }
-    />
-    <AddItemsModal
-      visible={addItemsModalVisible}
-      onClose={() => setAddItemsModalVisible(false)}
-      shopping_list_id={listId}
-      onSuccess={() => {
-        fetchItems(); // This will refresh the items list
-        setAddItemsModalVisible(false); // Close the modal
-      }}
-    />
-    <Modal
-  visible={editModalVisible}
-  transparent={true}
-  animationType="fade"
-  onRequestClose={() => setEditModalVisible(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Edit Item</Text>
-      <TextInput
-        style={styles.modalInput}
-        value={editName}
-        onChangeText={setEditName}
-        placeholder="Item name"
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.list_item_id?.toString() || Math.random().toString()}
+        contentContainerStyle={styles.listContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No items in this list</Text>
+        }
       />
-      <TextInput
-        style={styles.modalInput}
-        value={editQuantity}
-        onChangeText={setEditQuantity}
-        placeholder="Quantity"
-        keyboardType="numeric"
+      <AddItemsModal
+        visible={addItemsModalVisible}
+        onClose={() => setAddItemsModalVisible(false)}
+        shopping_list_id={listId}
+        onSuccess={() => {
+          fetchItems();
+          setAddItemsModalVisible(false);
+        }}
       />
-      <TextInput
-        style={styles.modalInput}
-        value={editUnit}
-        onChangeText={setEditUnit}
-        placeholder="Unit (optional)"
+      <Modal
+        visible={editModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Item</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Item name"
+            />
+            <TextInput
+              style={styles.modalInput}
+              value={editQuantity}
+              onChangeText={setEditQuantity}
+              placeholder="Quantity"
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.modalInput}
+              value={editUnit}
+              onChangeText={setEditUnit}
+              placeholder="Unit (optional)"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleUpdate}
+              >
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <FullDetailsModal
+        visible={fullDetailsModalVisible}
+        onClose={() => {
+          setFullDetailsModalVisible(false);
+          setSelectedBoughtItem(null);
+        }}
+        onSubmit={handleFullDetailsSubmit}
+        itemName={selectedBoughtItem?.name || ''}
+        prePopulatedFields={selectedBoughtItem?.prePopulatedFields}
       />
-      <View style={styles.modalButtons}>
-        <TouchableOpacity
-          style={[styles.modalButton, styles.cancelButton]}
-          onPress={() => setEditModalVisible(false)}
-        >
-          <Text style={styles.modalButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.modalButton, styles.saveButton]}
-          onPress={handleUpdate}
-        >
-          <Text style={styles.modalButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
     </View>
-  </View>
-</Modal>
-<FullDetailsModal
-  visible={fullDetailsModalVisible}
-  onClose={() => {
-    setFullDetailsModalVisible(false);
-    setSelectedBoughtItem(null);
-  }}
-  onSubmit={handleFullDetailsSubmit}
-  itemName={selectedBoughtItem?.name || ''}
-  prePopulatedFields={selectedBoughtItem?.prePopulatedFields}
-/>
-  </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContainer: {
-    padding: 16,
-    flexGrow: 1,
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
-  },
-  itemDetails: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  checkButton: {
-    padding: 4,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 24,
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  error: {
-    color: '#FF3B30',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontSize: 14,
-  },
-  retryButton: {
-    padding: 8,
-  },
-  retryText: {
-    color: '#FF4141',
-    fontSize: 16,
-  },
-  leftAction: {
-    width: 80,
-    height: '92%',
-    marginBottom: 12,
-    justifyContent: 'center',
-  },
-  rightAction: {
-    width: 80,
-    height: '92%',
-    marginBottom: 12,
-    justifyContent: 'center',
-  },
-  editButton: {
-    flex: 1,
-    backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-  },
-  deleteButton: {
-    flex: 1,
-    backgroundColor: '#FF4141',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-  },
-  actionText: {
-    color: 'white',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    width: '80%',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modalButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#ddd',
-  },
-  saveButton: {
-    backgroundColor: '#FF4141',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-});
 
 export default ShoppingListItemsPage;
