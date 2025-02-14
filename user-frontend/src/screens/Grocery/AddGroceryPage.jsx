@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { UserContext } from "../../contexts/UserContext";
-import { addGroceryItem, fetchSuggestedItems } from "../../services/groceryApi"; // Import the new API helpers
+import { addGroceryItem, fetchSuggestedItems } from "../../services/groceryApi";
+import { getAllCategories } from "../../services/globalItemApi"; // Fetch all categories
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Animatable from "react-native-animatable";
 import styles from "../../styles/AddGroceryPageStyles";
@@ -20,22 +21,38 @@ import { Picker } from "@react-native-picker/picker";
 const AddGroceryPage = ({ navigation }) => {
   const { token } = useContext(UserContext);
 
-  const [searchQuery, setSearchQuery] = useState(""); // Live search input
-  const [suggestedItems, setSuggestedItems] = useState([]); // Suggested items
-  const [selectedItem, setSelectedItem] = useState(null); // Chosen item
-  const [units, setUnits] = useState([]); // Available units
-  const [selectedUnit, setSelectedUnit] = useState(""); // User-selected unit
+  const [searchQuery, setSearchQuery] = useState(""); // User input
+  const [suggestedItems, setSuggestedItems] = useState([]); // Suggested items from API
+  const [selectedItem, setSelectedItem] = useState(null); // Selected item from suggestions
+
+  const [units, setUnits] = useState([]); // Available units (Fetched or manually added)
+  const [selectedUnit, setSelectedUnit] = useState(""); // Selected unit
+  const [customUnit, setCustomUnit] = useState(""); // Custom unit input
 
   const [purchasedQuantity, setPurchasedQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [expiryDate, setExpiryDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
-  // State to control the success animation overlay
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  const [showSuccess, setShowSuccess] = useState(false); // Success animation
+  const [categories, setCategories] = useState([]); // Available categories
+  const [selectedCategory, setSelectedCategory] = useState(""); // Selected category for custom items
+
+  // Fetch categories when the component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const fetchedCategories = await getAllCategories();
+      setCategories(fetchedCategories);
+    };
+
+    fetchCategories();
+  }, []);
 
   /** 🔎 Fetch matching items based on user input */
   const handleSearchChange = async (text) => {
     setSearchQuery(text);
+    setSelectedItem(null); // Reset selected item when user types
+
     if (text.length > 1) {
       const items = await fetchSuggestedItems(text);
       setSuggestedItems(items);
@@ -44,26 +61,26 @@ const AddGroceryPage = ({ navigation }) => {
     }
   };
 
-  /** ✅ Select an item and update available units */
+  /** ✅ Select an item from suggestions */
   const handleSelectItem = (item) => {
     setSelectedItem(item);
-    setSearchQuery(item.name); // Set the name in the search field
-    setUnits(item.units); // Update available units
-    setSelectedUnit(item.units[0]); // Default to first unit
+    setSearchQuery(item.name); // Set item name in input
+    setUnits(item.units); // Set available units
+    setSelectedUnit(item.units[0]); // Select first unit
     setSuggestedItems([]); // Hide suggestions
   };
 
   /** 🛒 Add grocery item to database */
   const handleAddGrocery = async () => {
-    if (!selectedItem || !selectedUnit || !purchasedQuantity || !price) {
+    if (!searchQuery || !selectedUnit || !purchasedQuantity || !price) {
       Alert.alert("Error", "Please fill all required fields.");
       return;
     }
 
     const groceryData = {
-      name: selectedItem.name,
-      unit: selectedUnit,
-      category: selectedItem.category,
+      name: searchQuery,
+      unit: selectedUnit || customUnit,
+      category: selectedItem ? selectedItem.category : selectedCategory,
       purchased_quantity: parseInt(purchasedQuantity),
       price: parseFloat(price),
       expiry_date: expiryDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
@@ -71,11 +88,9 @@ const AddGroceryPage = ({ navigation }) => {
 
     try {
       await addGroceryItem(token, groceryData);
-      // Instead of an alert, display an animated success message.
       setShowSuccess(true);
-      // After a short delay, navigate to MainMenu.
       setTimeout(() => {
-        navigation.navigate("MainMenu");
+        navigation.navigate("Home"); // Navigate to main menu
       }, 1500);
     } catch (error) {
       console.error("Error adding grocery item:", error.message);
@@ -122,24 +137,58 @@ const AddGroceryPage = ({ navigation }) => {
           />
         )}
 
-        {/* 🏷️ Display Available Units */}
+        {/* 🏷️ Category (Non-Editable for Suggested Items) */}
         {selectedItem && (
           <View>
-            <Text style={styles.label}>Select Unit</Text>
+            <Text style={styles.label}>Category</Text>
+            <TextInput
+              style={styles.disabledInput}
+              value={selectedItem.category}
+              editable={false}
+            />
+          </View>
+        )}
+
+        {/* ✅ Allow selecting category for custom items */}
+        {!selectedItem && (
+          <View>
+            <Text style={styles.label}>Select Category</Text>
             <Picker
-              selectedValue={selectedUnit}
-              onValueChange={(value) => setSelectedUnit(value)}
+              selectedValue={selectedCategory}
+              onValueChange={(value) => setSelectedCategory(value)}
               style={styles.picker}
               dropdownIconColor="#fff"
             >
-              {units.map((unit, index) => (
-                <Picker.Item key={index} label={unit} value={unit} />
+              {categories.map((category) => (
+                <Picker.Item key={category} label={category} value={category} />
               ))}
             </Picker>
           </View>
         )}
 
-        {/* 💰 Price in dollars */}
+        {/* 🏷️ Units - Either from suggestion or custom */}
+        <Text style={styles.label}>Select Unit</Text>
+        {selectedItem ? (
+          <Picker
+            selectedValue={selectedUnit}
+            onValueChange={setSelectedUnit}
+            style={styles.picker}
+          >
+            {units.map((unit) => (
+              <Picker.Item key={unit} label={unit} value={unit} />
+            ))}
+          </Picker>
+        ) : (
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Custom Unit"
+            placeholderTextColor="#888"
+            value={customUnit}
+            onChangeText={setCustomUnit}
+          />
+        )}
+
+        {/* 💰 Price */}
         <TextInput
           style={styles.input}
           placeholder="Price ($)"
@@ -149,7 +198,7 @@ const AddGroceryPage = ({ navigation }) => {
           onChangeText={(text) => setPrice(text.replace(/[^0-9.]/g, ""))}
         />
 
-        {/* 📅 Expiry Date with Modal Date Picker */}
+        {/* 📅 Expiry Date */}
         <TouchableOpacity
           style={styles.expiryDateButton}
           onPress={showDatePicker}
@@ -160,7 +209,6 @@ const AddGroceryPage = ({ navigation }) => {
           <MaterialCommunityIcons name="calendar" size={24} color="#f39c12" />
         </TouchableOpacity>
 
-        {/* Unified Modal Date Picker */}
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
@@ -170,23 +218,28 @@ const AddGroceryPage = ({ navigation }) => {
           minimumDate={new Date()}
         />
 
-        {/* 📦 Purchased Quantity (numbers only) */}
+        {/* 📦 Purchased Quantity */}
         <TextInput
           style={styles.input}
           placeholder="Purchased Quantity"
           placeholderTextColor="#888"
           keyboardType="numeric"
           value={purchasedQuantity}
-          onChangeText={(text) => setPurchasedQuantity(text.replace(/[^0-9]/g, ""))}
+          onChangeText={(text) =>
+            setPurchasedQuantity(text.replace(/[^0-9]/g, ""))
+          }
         />
 
         {/* 🛒 Submit Button */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleAddGrocery}>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleAddGrocery}
+        >
           <Text style={styles.submitButtonText}>Add Grocery</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Animated Success Overlay */}
+      {/* Success Animation */}
       {showSuccess && (
         <Animatable.View
           animation="bounceIn"

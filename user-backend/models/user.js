@@ -62,6 +62,14 @@ const User = userDB.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    verificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true, // ✅ Ensure allowNull is true
+    },
+    verificationTokenExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true, // ✅ Ensure allowNull is true
+    },
     resetToken: {
       type: DataTypes.STRING,
       allowNull: true,

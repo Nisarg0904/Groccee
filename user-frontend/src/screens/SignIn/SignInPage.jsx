@@ -13,9 +13,10 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signInUser } from "../../services/userApi";  // Import the signInUser function
+import { signInUser,resendVerificationEmail } from "../../services/userApi"; // Import the signInUser function
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/SignInPageStyles";
+
 
 const SignInPage = ({ navigation }) => {
   const [input, setInput] = useState("");
@@ -44,18 +45,18 @@ const SignInPage = ({ navigation }) => {
       const { token, user, message } = response;
 
       if (token && user) {
-        // Store token without quotes
-        await AsyncStorage.setItem('userToken', token);
-        
-        // Update context
+        // ✅ Store token securely
+        await AsyncStorage.setItem("userToken", token);
+
+        // ✅ Update context
         setToken(token);
         setCurrentUser(user);
 
-        // Clear input fields
+        // ✅ Clear input fields
         setInput("");
         setPassword("");
 
-        // Navigate to main app
+        // ✅ Navigate to main app
         navigation.reset({
           index: 0,
           routes: [{ name: "Grocce" }],
@@ -65,16 +66,33 @@ const SignInPage = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Sign in error:", error);
-      
+
       let errorMessage = "Failed to sign in. Please try again.";
-      
+
       if (error.message) {
         if (error.message.includes("User not found")) {
           errorMessage = "User not found";
         } else if (error.message.includes("Wrong password")) {
           errorMessage = "Invalid password";
         } else if (error.message.includes("verify your email")) {
-          errorMessage = "Please verify your email before logging in";
+          errorMessage = "Please verify your email before logging in.";
+
+          // ✅ Automatically resend verification email
+          try {
+            await resendVerificationEmail({ email: input.trim() });
+            Alert.alert(
+              "Email Verification Required",
+              "Your email is not verified. We have sent you a new verification email. Please check your inbox and verify your email before signing in."
+            );
+          } catch (emailError) {
+            console.error("Error resending verification email:", emailError);
+            Alert.alert(
+              "Error",
+              "Your email is not verified, and we could not resend the verification email. Please try again later."
+            );
+          }
+
+          return; // Exit function to prevent further alerts
         } else {
           errorMessage = error.message;
         }
@@ -130,7 +148,7 @@ const SignInPage = ({ navigation }) => {
           style={({ pressed }) => [
             styles.signInButton,
             pressed && styles.signInButtonPressed,
-            (!input.trim() || !password.trim()) && styles.signInButtonDisabled
+            (!input.trim() || !password.trim()) && styles.signInButtonDisabled,
           ]}
           onPressIn={() => setIsPressed(true)}
           onPressOut={() => setIsPressed(false)}
@@ -153,7 +171,7 @@ const SignInPage = ({ navigation }) => {
 
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Don't have an account?</Text>
-          <Pressable 
+          <Pressable
             onPress={() => navigation.navigate("SignUp")}
             disabled={loading}
           >

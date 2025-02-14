@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import { View, Text, Button, Alert, TouchableOpacity } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { UserContext } from "../../contexts/UserContext";
 import { updateGroceryItem } from "../../services/groceryApi";
 import styles from "../../styles/EditGroceryPageStyles";
@@ -8,42 +9,38 @@ const EditGroceryPage = ({ route, navigation }) => {
   const { token } = useContext(UserContext);
   const { item } = route.params;
 
-  // Safely initialize state with default values or empty strings
   const [availableQuantity, setAvailableQuantity] = useState(
-    item.available_quantity != null ? item.available_quantity.toString() : ""
+    item.available_quantity || 0
   );
-  const [expiryDate, setExpiryDate] = useState(item.expiry_date || "");
-  const [purchasedPrice, setPurchasedPrice] = useState(
-    item.purchased_price != null ? item.purchased_price.toString() : ""
-  );
+  const [expiryDate, setExpiryDate] = useState(new Date(item.expiry_date));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDecreaseQuantity = () => {
+    if (availableQuantity > 0.25) {
+      setAvailableQuantity((prevQty) =>
+        parseFloat((prevQty - 0.25).toFixed(2))
+      );
+    } else {
+      Alert.alert("Error", "Quantity cannot be less than 0.");
+    }
+  };
 
   const handleUpdate = async () => {
-    if (!availableQuantity && !expiryDate && !purchasedPrice) {
-      Alert.alert("Error", "Please provide at least one field to update.");
+    if (!availableQuantity) {
+      Alert.alert("Error", "Available quantity cannot be zero.");
       return;
     }
 
     try {
       const updateData = {
-        available_quantity: availableQuantity
-          ? parseInt(availableQuantity)
-          : undefined,
-        expiry_date: expiryDate || undefined,
-        purchased_price: purchasedPrice
-          ? parseFloat(purchasedPrice)
-          : undefined,
+        available_quantity: availableQuantity,
+        expiry_date: expiryDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       };
 
-      const updatedGrocery = await updateGroceryItem(
-        token,
-        item.grocery_item_id,
-        updateData
-      );
+      await updateGroceryItem(token, item.grocery_item_id, updateData);
 
       Alert.alert("Success", "Grocery item updated successfully!");
-
-      // Pass the updated data back and navigate
-      navigation.navigate("ViewGroceries", { updatedGrocery });
+      navigation.navigate("ViewGroceries", { updatedItem: updateData });
     } catch (error) {
       Alert.alert("Error", error.message || "Failed to update grocery item.");
     }
@@ -54,31 +51,42 @@ const EditGroceryPage = ({ route, navigation }) => {
       <Text style={styles.title}>Edit Grocery</Text>
 
       {/* Available Quantity */}
-      <TextInput
-        style={styles.input}
-        placeholder="Available Quantity"
-        value={availableQuantity}
-        keyboardType="numeric"
-        onChangeText={setAvailableQuantity}
-      />
+      <View style={styles.quantityContainer}>
+        <TouchableOpacity
+          style={styles.quantityButton}
+          onPress={handleDecreaseQuantity}
+        >
+          <Text style={styles.quantityText}>-</Text>
+        </TouchableOpacity>
+        <Text style={styles.quantityValue}>{availableQuantity} kg</Text>
+      </View>
 
-      {/* Expiry Date */}
-      <TextInput
-        style={styles.input}
-        placeholder="Expiry Date (YYYY-MM-DD)"
-        value={expiryDate}
-        onChangeText={setExpiryDate}
-      />
+      {/* Expiry Date Picker */}
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={styles.datePicker}
+      >
+        <Text style={styles.dateText}>
+          Expiry Date: {expiryDate.toISOString().split("T")[0]}
+        </Text>
+      </TouchableOpacity>
 
-      {/* Purchased Price */}
-      <TextInput
-        style={styles.input}
-        placeholder="Purchased Price"
-        keyboardType="numeric"
-        value={purchasedPrice}
-        onChangeText={setPurchasedPrice}
-      />
+      {showDatePicker && (
+        <DateTimePicker
+          value={expiryDate}
+          mode="date"
+          display="calendar"
+          minimumDate={new Date()} // Prevents selecting past dates
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              setExpiryDate(selectedDate);
+            }
+          }}
+        />
+      )}
 
+      {/* Update Button */}
       <Button title="Update" onPress={handleUpdate} />
     </View>
   );

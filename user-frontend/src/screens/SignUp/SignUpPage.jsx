@@ -1,112 +1,157 @@
-// screens/SignIn/SignInPage.jsx
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
-  Alert,
   SafeAreaView,
   StatusBar,
   ScrollView,
-  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signInUser } from "../../services/userApi";
-import { UserContext } from "../../contexts/UserContext";
-import styles from "../../styles/SignInPageStyles";
+import styles from "../../styles/SignUpPageStyles";
+``;
+import { COLORS } from "../../styles/WelcomePageStyles";
+import { signUpUser, resendVerificationEmail } from "../../services/userApi";
 
 const SignUpPage = ({ navigation }) => {
-  const [input, setInput] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { setToken, setCurrentUser } = useContext(UserContext);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!input.trim() || !password.trim()) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const handleSignUp = async () => {
+    // Trim inputs to remove accidental spaces
+    const trimmedUsername = username.trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    // Validation Checks
+    if (!trimmedUsername) {
+      return Alert.alert("Error", "Username is required.");
+    }
+    if (!trimmedFirstName) {
+      return Alert.alert("Error", "First name is required.");
+    }
+    if (!trimmedLastName) {
+      return Alert.alert("Error", "Last name is required.");
+    }
+    if (!validateEmail(trimmedEmail)) {
+      return Alert.alert("Error", "Please enter a valid email address.");
+    }
+    if (!validatePassword(trimmedPassword)) {
+      return Alert.alert(
+        "Error",
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
+      );
+    }
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      return Alert.alert("Error", "Passwords do not match.");
+    }
+    if (!accepted) {
+      return Alert.alert("Error", "You must accept the Terms and Conditions.");
     }
 
-    setLoading(true);
+    // Preparing user data
+    const userData = {
+      username: trimmedUsername,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
+      email: trimmedEmail,
+      password: trimmedPassword,
+    };
 
     try {
-      const response = await signInUser({
-        input: input.trim(),
-        password: password.trim(),
-      });
+      // Show loading alert while processing
+      Alert.alert("Processing", "Signing up...", [{ text: "OK" }]);
+      console.log("User data being sent:", userData);
 
-      const { token, user, message } = response;
+      // ✅ Call the API to register the user
+      const registeredUser = await signUpUser(userData);
+      console.log("Signup successful:", registeredUser);
 
-      if (token && user) {
-        // Store token without quotes
-        await AsyncStorage.setItem('userToken', token);
-        
-        // Update context
-        setToken(token);
-        setCurrentUser(user);
+      // ✅ Automatically send verification email after signup
+      await resendVerificationEmail({ email: userData.email });
 
-        // Clear input fields
-        setInput("");
-        setPassword("");
-
-        // Navigate to main app
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Grocce" }],
-        });
-      } else {
-        Alert.alert("Error", "Invalid response from server");
-      }
+      // Success feedback
+      Alert.alert(
+        "Success",
+        "You have successfully registered! A verification email has been sent. Please verify your email before signing in.",
+        [{ text: "OK", onPress: () => navigation.navigate("SignIn") }]
+      );
     } catch (error) {
-      console.error("Sign in error:", error);
-      
-      if (error.response) {
-        Alert.alert("Error", error.response.message || "Invalid credentials");
-      } else if (error.message) {
-        Alert.alert("Error", error.message);
-      } else {
-        Alert.alert(
-          "Connection Error",
-          "Unable to connect to the server. Please check your internet connection."
-        );
-      }
-    } finally {
-      setLoading(false);
+      console.error("Sign-up error:", error);
+      Alert.alert(
+        "Sign-Up Failed",
+        error.message || "Something went wrong. Please try again."
+      );
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerTitle}>Welcome Back</Text>
-        <Text style={styles.title}>Sign in to your account</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.headerTitle}>User Registration</Text>
+        <Text style={styles.title}>Create an Account</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Email or Username"
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
           placeholderTextColor="rgba(255, 255, 255, 0.5)"
-          value={input}
-          onChangeText={setInput}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          editable={!loading}
         />
-
+        <TextInput
+          style={styles.input}
+          placeholder="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+        />
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             placeholder="Password"
-            placeholderTextColor="rgba(255, 255, 255, 0.5)"
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
-            autoCapitalize="none"
-            editable={!loading}
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
           />
           <Pressable onPress={() => setShowPassword(!showPassword)}>
             <MaterialIcons
@@ -117,39 +162,63 @@ const SignUpPage = ({ navigation }) => {
             />
           </Pressable>
         </View>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Confirm Password"
+            secureTextEntry={!showConfirmPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
+          />
+          <Pressable
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            <MaterialIcons
+              name={showConfirmPassword ? "visibility" : "visibility-off"}
+              size={24}
+              color="rgba(255, 255, 255, 0.8)"
+              style={styles.icon}
+            />
+          </Pressable>
+        </View>
+        <View style={styles.termsContainer}>
+          <Pressable onPress={() => setAccepted(!accepted)}>
+            <MaterialIcons
+              name={accepted ? "check-box" : "check-box-outline-blank"}
+              size={20}
+              color={COLORS.accent}
+            />
+          </Pressable>
+          <Text style={styles.termsText}>
+            I agree to the{" "}
+            <Text style={styles.termsLink}>Terms and Conditions</Text>.
+          </Text>
+        </View>
 
         <Pressable
           style={({ pressed }) => [
-            styles.signInButton,
-            pressed && styles.signInButtonPressed,
-            (!input.trim() || !password.trim()) && styles.signInButtonDisabled
+            styles.signUpButton,
+            pressed && styles.signUpButtonPressed,
           ]}
           onPressIn={() => setIsPressed(true)}
           onPressOut={() => setIsPressed(false)}
-          onPress={handleSignIn}
-          disabled={loading || !input.trim() || !password.trim()}
+          onPress={handleSignUp}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text
-              style={[
-                styles.signInButtonText,
-                isPressed && styles.signInButtonTextPressed,
-              ]}
-            >
-              Sign In
-            </Text>
-          )}
+          <Text
+            style={[
+              styles.signUpButtonText,
+              isPressed && styles.signUpButtonTextPressed,
+            ]}
+          >
+            Sign Up
+          </Text>
         </Pressable>
 
-        <View style={styles.signUpContainer}>
-          <Text style={styles.signUpText}>Don't have an account?</Text>
-          <Pressable 
-            onPress={() => navigation.navigate("SignUp")}
-            disabled={loading}
-          >
-            <Text style={styles.signUpLink}>Sign Up</Text>
+        <View style={styles.signInContainer}>
+          <Text style={styles.signInText}>Already have an account?</Text>
+          <Pressable onPress={() => navigation.navigate("SignIn")}>
+            <Text style={styles.signInLink}>Sign In</Text>
           </Pressable>
         </View>
       </ScrollView>
