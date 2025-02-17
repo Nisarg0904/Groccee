@@ -250,13 +250,36 @@ const checkItemExists = async (req, res) => {
 };
 
 
-
-
-
-
-module.exports = {
-  createUserItem,
-  updateUserItem,
-  addOrUpdateUserItem,
-  checkItemExists,
-};
+const getItemByName = async (req, res) => {
+    try {
+      const { name } = req.params;
+      const user_id = req.user.id; // Get user ID from JWT
+  
+      if (!name) {
+        return res.status(400).json({ message: "Item name is required." });
+      }
+  
+      // 🔹 Use case-insensitive regex search for item name
+      const item = await Item.findOne({
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive match
+        user_id,
+      });
+  
+      if (!item) {
+        return res.status(404).json({ message: `Item '${name}' not found.` });
+      }
+  
+      res.status(200).json(item);
+    } catch (error) {
+      console.error("Error fetching item by name:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+  module.exports = {
+    getItemByName, // ✅ Add this function
+    createUserItem,
+    updateUserItem,
+    addOrUpdateUserItem,
+    checkItemExists,
+  };

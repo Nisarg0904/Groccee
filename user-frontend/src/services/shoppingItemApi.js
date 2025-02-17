@@ -156,3 +156,20 @@ export const deleteGroceryItem = async (token, id) => {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
+export const createGroceryItemFromShoppingItem = async (groceryData, token) => {
+  try {
+    const response = await groceryAPI.post(
+      "/groceryitems",
+      groceryData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};

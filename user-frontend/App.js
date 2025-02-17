@@ -6,6 +6,7 @@ import UserProvider, { UserContext } from "./src/contexts/UserContext";
 import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
+import { MenuProvider } from 'react-native-popup-menu';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -46,7 +47,9 @@ export default function App() {
 
   return (
     <UserProvider>
+    <MenuProvider>
       <AppContent />
-    </UserProvider>
+    </MenuProvider>
+  </UserProvider>
   );
 }

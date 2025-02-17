@@ -1,35 +1,30 @@
 const express = require("express");
+const router = express.Router();
 const authenticateToken = require("../middleware/authMiddleware");
-
-const {
-  createShoppingList,
+const { createShoppingList,
   getAllShoppingLists,
   getShoppingListById,
   updateShoppingList,
   deleteShoppingList,
-  getShoppingListByNameAndUser,
-  getShoppingListsByStatus, // Import the new controller function
-} = require("../controllers/shoppingListController");
+  getShoppingListByName,
+ } = require("../controllers/shoppingListController");
 
-const router = express.Router();
-// 6. Get shopping list by name and user
-router.get("/search", authenticateToken, getShoppingListByNameAndUser);
-// 1. Create a new shopping list
+// Route to Create a Shopping List
 router.post("/", authenticateToken, createShoppingList);
+// Get shopping list by name (Query Parameter)
+// Get shopping list by ID
+router.get("/:id", authenticateToken, getShoppingListById);
+router.get("/search", authenticateToken, getShoppingListByName);
 
-// 2. Get all shopping lists
+// Get all shopping lists for the authenticated user
 router.get("/", authenticateToken, getAllShoppingLists);
 
-// 3. Get a specific shopping list by ID
-router.get("/:list_id", authenticateToken, getShoppingListById);
 
-// 4. Update a shopping list
-router.put("/:list_id", authenticateToken, updateShoppingList);
 
-// 5. Delete a shopping list
-router.delete("/:list_id", authenticateToken, deleteShoppingList);
+// Update a shopping list by ID (allow updating status)
+router.put("/:id", authenticateToken, updateShoppingList);
 
-// 7. Get shopping lists by status
-router.get("/status/:status", authenticateToken, getShoppingListsByStatus);
+// Delete a shopping list by ID
+router.delete("/:id", authenticateToken, deleteShoppingList);
 
 module.exports = router;

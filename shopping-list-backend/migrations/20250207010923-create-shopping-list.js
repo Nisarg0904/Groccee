@@ -3,33 +3,40 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("ShoppingLists", {
-      list_id: {
+      shopping_list_id: {
         type: Sequelize.INTEGER,
-        primaryKey: true,
         autoIncrement: true,
-        allowNull: false,
+        primaryKey: true,
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      generated_date: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+      status: {
+        type: Sequelize.ENUM("Pending", "Purchased"),
+        defaultValue: "Pending",
+      },
+      purchased_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      created_on: {
+      createdAt: {
         type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,
         allowNull: false,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
-      purchased_on: {
+      updatedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
-      },
-      status: {
-        type: Sequelize.STRING,
-        defaultValue: "not_bought",
         allowNull: false,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
   },

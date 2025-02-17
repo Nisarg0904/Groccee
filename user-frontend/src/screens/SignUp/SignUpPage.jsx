@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import styles from "../../styles/SignUpPageStyles";
 ``;
 import { COLORS } from "../../styles/WelcomePageStyles";
-import { signUpUser,resendVerificationEmail } from "../../services/userApi";
+import { signUpUser, resendVerificationEmail } from "../../services/userApi";
 
 const SignUpPage = ({ navigation }) => {
   const [username, setUsername] = useState("");

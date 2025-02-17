@@ -134,6 +134,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: "bold",
   },
+  disabledInput: {
+  backgroundColor: '#333',  // Dark background
+  color: '#fff',           // White text color
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 16,
+  fontSize: 16,
+  opacity: 0.8,            // Slightly dimmed to indicate disabled state
+},
 });
 
 export default styles;

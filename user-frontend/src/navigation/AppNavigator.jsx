@@ -86,31 +86,56 @@ const InventoryStack = () => (
 const ShoppingStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: "black" },
-      headerTintColor: "#fff",
+      headerStyle: {
+        backgroundColor: 'black',
+      },
+      headerTintColor: '#fff',
     }}
   >
-    <Stack.Screen
-      name="ShoppingLists"
+    <Stack.Screen 
+      name="ShoppingLists" 
       component={ShoppingListsPage}
-      options={{ headerShown: false }}
+      options={{
+        headerShown: false,
+      }}
     />
-    <Stack.Screen
-      name="CreateShoppingList"
+    <Stack.Screen 
+      name="CreateShoppingList" 
       component={CreateShoppingListPage}
-      options={{ title: "Create New List", presentation: "modal" }}
+      options={{
+        title: 'Create New List',
+        presentation: 'modal',
+      }}
     />
-    <Stack.Screen
-      name="ShoppingListItems"
+      <Stack.Screen 
+      name="ShoppingListItems" 
       component={ShoppingListItemsPage}
       options={({ route }) => ({
-        title: route.params?.listName || "Shopping List Items",
+        title: route.params?.listName || 'Shopping List Items',
       })}
     />
-    <Stack.Screen
-      name="AddShoppingListItems"
+    {/* <Stack.Screen 
+      name="AddShoppingListItems" 
       component={AddShoppingListItemsPage}
-      options={{ title: "Add Items", presentation: "modal" }}
+      options={({ route }) => ({
+        title: route.params?.listName || 'Add Items',
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('ShoppingLists')}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+      })}
+    /> */}
+    <Stack.Screen 
+      name="AddShoppingListItems" 
+      component={AddShoppingListItemsPage}  // Previous modal page
+      options={{
+        title: 'Add Items',
+        presentation: 'modal',
+      }}
     />
   </Stack.Navigator>
 );

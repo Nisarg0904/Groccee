@@ -1,20 +1,13 @@
 const express = require("express");
-const authenticateToken = require("../middleware/authMiddleware");
-
-const {
-  createShoppingListItem,
-  addItemToDefaultShoppingList,
-  getItemsInShoppingList,
-  updateShoppingListItem,
-  deleteShoppingListItem,
-} = require("../controllers/shoppingListItemController");
-
 const router = express.Router();
+// const authenticateToken = require("../middleware/authMiddleware");
+const { createShoppingListItem, deleteShoppingListItem, updateShoppingListItem, getItemsByShoppingListId,  } = require("../controllers/shoppingListItemController");
 
-router.post("/", authenticateToken, createShoppingListItem);
-router.post("/default", authenticateToken, addItemToDefaultShoppingList);
-router.get("/:shopping_list_id", authenticateToken, getItemsInShoppingList);
-router.put("/:list_item_id", authenticateToken, updateShoppingListItem);
-router.delete("/:list_item_id", authenticateToken, deleteShoppingListItem);
+// ✅ Create a Shopping List Item (Validates Shopping List & Item First)
+router.get('/list/:shopping_list_id', getItemsByShoppingListId);
+router.delete("/:id",  deleteShoppingListItem);
+router.post("/",createShoppingListItem);
+// router.get("/by-name/:name",  getShoppingListItemsByName);
+router.put("/:id", updateShoppingListItem);
 
 module.exports = router;

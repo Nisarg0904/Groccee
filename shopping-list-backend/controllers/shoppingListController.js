@@ -1,55 +1,55 @@
 const ShoppingList = require("../models/shoppingListModel");
 
-exports.createShoppingList = async (req, res) => {
+
+const createShoppingList = async (req, res) => {
   try {
-    const { name, purchased } = req.body; // Extract name and purchased flag from the request body
-    const user_id = req.user.id; // Extract user_id from the authenticated token
+    const { name } = req.body;
+    const user_id = req.user.id; // Extract user_id from authenticated request
 
-    // Prepare shopping list data
-    const shoppingListData = {
-      name,
-      user_id,
-      created_on: new Date(),
-    };
-
-    // If the list is already purchased, set purchased_on to created_on
-    if (purchased) {
-      shoppingListData.purchased_on = shoppingListData.created_on;
-      shoppingListData.status = "bought";
+    if (!name) {
+      return res.status(400).json({ message: "Shopping list name is required" });
     }
 
-    // Create the shopping list
-    const shoppingList = await ShoppingList.create(shoppingListData);
+  
+    const shoppingList = await ShoppingList.create({
+      name,
+      user_id,
+    });
 
     res.status(201).json(shoppingList);
   } catch (error) {
     console.error("Error creating shopping list:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-// Get all shopping lists
-exports.getAllShoppingLists = async (req, res) => {
-  try {
-    const user_id = req.user.id; // Extract user_id from the authenticated token
 
-    // Fetch shopping lists that belong to the user
+/**
+ * ✅ Get All Shopping Lists for the Authenticated User
+ */
+const getAllShoppingLists = async (req, res) => {
+  try {
+    const user_id = req.user.id; // Extract user_id from token
+
     const shoppingLists = await ShoppingList.findAll({
       where: { user_id },
+      order: [["createdAt", "DESC"]], // Sort by latest
     });
 
     res.status(200).json(shoppingLists);
   } catch (error) {
     console.error("Error fetching shopping lists:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-// Get a specific shopping list by ID
-exports.getShoppingListById = async (req, res) => {
+const getShoppingListById = async (req, res) => {
   try {
-    const { list_id } = req.params;
-    const shoppingList = await ShoppingList.findByPk(list_id);
+    const { id } = req.params;
+    const user_id = req.user.id; // Ensure user only accesses their lists
+
+    const shoppingList = await ShoppingList.findOne({
+      where: { shopping_list_id: id, user_id },
+    });
 
     if (!shoppingList) {
       return res.status(404).json({ message: "Shopping list not found" });
@@ -57,103 +57,110 @@ exports.getShoppingListById = async (req, res) => {
 
     res.status(200).json(shoppingList);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching shopping list by ID:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Update a shopping list
-exports.updateShoppingList = async (req, res) => {
+/**
+ * ✅ Update a Shopping List by ID
+ */
+const updateShoppingList = async (req, res) => {
   try {
-    const { list_id } = req.params;
+    const { id } = req.params;
     const { name, status } = req.body;
+    const user_id = req.user.id;
 
-    const shoppingList = await ShoppingList.findByPk(list_id);
+    // ✅ Validate status input
+    const validStatuses = ["Pending", "Purchased"];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    const shoppingList = await ShoppingList.findOne({
+      where: { shopping_list_id: id, user_id },
+    });
 
     if (!shoppingList) {
       return res.status(404).json({ message: "Shopping list not found" });
     }
 
-    shoppingList.name = name || shoppingList.name;
-    shoppingList.status = status || shoppingList.status;
+    // ✅ If status is "Purchased", set `purchased_date` to NOW
+    let purchased_date = shoppingList.purchased_date;
+    if (status === "Purchased") {
+      purchased_date = new Date(); // Set current date
+    } else if (status === "Pending") {
+      purchased_date = null; // Reset purchased_date if status changes back
+    }
 
-    await shoppingList.save();
+    // ✅ Update the shopping list
+    await shoppingList.update({
+      name: name || shoppingList.name,
+      status: status || shoppingList.status,
+      purchased_date: purchased_date, // Ensure purchased_date is updated
+    });
 
-    res.status(200).json(shoppingList);
+    res.status(200).json({ message: "Shopping list updated", shoppingList });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating shopping list:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Delete a shopping list
-exports.deleteShoppingList = async (req, res) => {
+const getShoppingListByName = async (req, res) => {
   try {
-    const { list_id } = req.params;
+    const { name } = req.query;
+    const user_id = req.user.id; // Ensure the shopping list belongs to the authenticated user
 
-    const shoppingList = await ShoppingList.findByPk(list_id);
+    if (!name) {
+      return res.status(400).json({ message: "Shopping list name is required" });
+    }
+
+    const shoppingList = await ShoppingList.findOne({
+      where: { name, user_id },
+    });
+
+    if (!shoppingList) {
+      return res.status(404).json({ message: `Shopping list '${name}' not found` });
+    }
+
+    res.status(200).json(shoppingList);
+  } catch (error) {
+    console.error("Error fetching shopping list by name:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+/**
+ * ✅ Delete a Shopping List by ID
+ */
+const deleteShoppingList = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id; // Extract user_id from token
+
+    const shoppingList = await ShoppingList.findOne({
+      where: { shopping_list_id: id, user_id },
+    });
 
     if (!shoppingList) {
       return res.status(404).json({ message: "Shopping list not found" });
     }
 
     await shoppingList.destroy();
-    res.status(200).json({ message: "Shopping list deleted successfully" });
+    res.status(200).json({ message: "Shopping list deleted" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-// Get shopping lists by status
-exports.getShoppingListsByStatus = async (req, res) => {
-  try {
-    const { status } = req.params; // Extract status from route parameters
-    const user_id = req.user.id; // Extract user_id from the authenticated token
-
-    // Fetch shopping lists filtered by status and user_id
-    const shoppingLists = await ShoppingList.findAll({
-      where: {
-        status, // Match the provided status string
-        user_id, // Ensure the list belongs to the user
-      },
-    });
-
-    res.status(200).json(shoppingLists);
-  } catch (error) {
-    console.error("Error fetching shopping lists by status:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("Error deleting shopping list:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-
-
-
-exports.getShoppingListByNameAndUser = async (req, res) => {
-  try {
-    const { name } = req.query; // Extract name from query parameters
-    const user_id = req.user.id; // Extract user_id from the token
-
-    // Validate that the name is provided
-    if (!name) {
-      return res
-        .status(400)
-        .json({ message: "Shopping list name is required" });
-    }
-
-    // Use explicit type casting if necessary
-    const shoppingLists = await ShoppingList.findAll({
-      where: {
-        name,
-        user_id, // Ensure user_id matches the type in the database
-      },
-    });
-
-    if (!shoppingLists || shoppingLists.length === 0) {
-      return res.status(404).json({ message: "Shopping list not found" });
-    }
-
-    res.status(200).json(shoppingLists);
-  } catch (error) {
-    console.error("Error fetching shopping list:", error.message);
-    res.status(500).json({ error: error.message });
-  }
+module.exports = {
+  createShoppingList,
+  getAllShoppingLists,
+  getShoppingListById,
+  updateShoppingList,
+  getShoppingListByName,
+  deleteShoppingList,
 };
-

@@ -26,7 +26,6 @@ const SignInPage = ({ navigation }) => {
   const [isPressed, setIsPressed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
   const handleSignIn = async () => {
     if (!input.trim() || !password.trim()) {
       Alert.alert("Error", "Please fill in all fields");

@@ -89,9 +89,15 @@ const AddGroceryPage = ({ navigation }) => {
     try {
       await addGroceryItem(token, groceryData);
       setShowSuccess(true);
+      
+      // Hide animation after 1.2 seconds, then navigate after 0.3 more seconds
       setTimeout(() => {
-        navigation.navigate("Home"); // Navigate to main menu
-      }, 1500);
+        setShowSuccess(false);
+        setTimeout(() => {
+          navigation.navigate("Home");
+        }, 300);
+      }, 1200);
+      
     } catch (error) {
       console.error("Error adding grocery item:", error.message);
       Alert.alert("Error", error.message || "Failed to add grocery item.");
@@ -241,18 +247,19 @@ const AddGroceryPage = ({ navigation }) => {
 
       {/* Success Animation */}
       {showSuccess && (
-        <Animatable.View
-          animation="bounceIn"
-          duration={800}
-          style={styles.successOverlay}
-        >
-          <MaterialCommunityIcons
-            name="check-circle-outline"
-            size={60}
-            color="#f39c12"
-          />
-          <Text style={styles.successText}>Grocery Added Successfully!</Text>
-        </Animatable.View>
+  <Animatable.View
+    animation="bounceIn"
+    duration={800}
+    style={styles.successOverlay}
+    useNativeDriver
+  >
+    <MaterialCommunityIcons
+      name="check-circle-outline"
+      size={60}
+      color="#f39c12"
+    />
+    <Text style={styles.successText}>Grocery Added Successfully!</Text>
+  </Animatable.View>
       )}
     </SafeAreaView>
   );
