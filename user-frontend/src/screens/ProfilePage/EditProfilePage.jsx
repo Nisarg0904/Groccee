@@ -17,7 +17,7 @@ import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserDetails } from "../../services/userApi";
 import { UserContext } from "../../contexts/UserContext";
-import styles from "../../styles/EditProfilePageStyles";
+import styles, {COLORS} from "../../styles/EditProfilePageStyles";
 
 const dietOptions = ["none", "vegan", "vegetarian", "pescatarian", "keto"];
 const cuisineOptions = [
@@ -167,8 +167,11 @@ const EditProfilePage = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
-        <LinearGradient colors={["#4A235A", "#1B264F"]} style={styles.header}>
-          <Text style={styles.headerText}>Edit Profile</Text>
+      <LinearGradient 
+  colors={['#7C3AED', '#9D5CFF']}
+  style={styles.header}
+>
+          {/* <Text style={styles.headerText}>Edit Profile</Text> */}
           <ProfilePictureSection
             profileImage={profileImage}
             onPress={handleProfilePictureUpdate}
@@ -178,12 +181,18 @@ const EditProfilePage = ({ navigation }) => {
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>Shopping Activity</Text>
           <View style={styles.dropdownContainer}>
-            <Picker
+          <Picker
               selectedValue={shoppingActivity}
               onValueChange={setShoppingActivity}
+              style={styles.picker}
             >
               {shoppingOptions.map((option) => (
-                <Picker.Item key={option} label={option} value={option} />
+                <Picker.Item 
+                  key={option} 
+                  label={option} 
+                  value={option}
+                  style={styles.pickerItem}  // Add this line
+                />
               ))}
             </Picker>
           </View>
@@ -238,18 +247,20 @@ const EditProfilePage = ({ navigation }) => {
 
           <Text style={styles.sectionTitle}>Cooking for How Many People?</Text>
           <View style={styles.dropdownContainer}>
-            <Picker
-              selectedValue={cookingForPeople}
-              onValueChange={setCookingForPeople}
-            >
-              {cookingOptions.map((option) => (
-                <Picker.Item
-                  key={option}
-                  label={`${option} People`}
-                  value={option}
-                />
-              ))}
-            </Picker>
+          <Picker
+            selectedValue={cookingForPeople}
+            onValueChange={setCookingForPeople}
+            style={styles.picker}
+          >
+            {cookingOptions.map((option) => (
+              <Picker.Item
+                key={option}
+                label={`${option} People`}
+                value={option}
+                style={styles.pickerItem}  // Add this line
+              />
+            ))}
+          </Picker>
           </View>
         </View>
       </ScrollView>
