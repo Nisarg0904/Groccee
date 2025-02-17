@@ -257,9 +257,9 @@ const InventoryPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTop}>
+        {/* <View style={styles.headerTop}>
           <Text style={styles.title}>Grocery List</Text>
-        </View>
+        </View> */}
         <View style={styles.searchContainer}>
           <Icon name="search-outline" size={20} style={styles.searchIcon} />
           <TextInput
