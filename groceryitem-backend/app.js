@@ -1,4 +1,5 @@
 require('dotenv').config();
+require("./scheduler"); // Import the scheduled task
 
 const express = require('express');
 const groceryItemDB = require('./config/groceryitem_db'); 

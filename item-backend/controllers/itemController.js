@@ -275,11 +275,96 @@ const getItemByName = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+
+  const getAllUserItems = async (req, res) => {
+    try {
+      const user_id = req.user.id; // Get user ID from JWT
+
+      // Fetch all items belonging to the user
+      const items = await Item.find({ user_id });
+
+      if (!items.length) {
+        return res
+          .status(404)
+          .json({ message: "No items found for this user." });
+      }
+
+      return res.status(200).json(items);
+    } catch (error) {
+      console.error("Error fetching user items:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
   
+  const updatePackagingMetrics = async (req, res) => {
+    try {
+      const { item_id, unit, times_bought, times_wasted } = req.body;
+      const user_id = req.user.id; // Get user ID from JWT
+
+      // Validate request body
+      if (!item_id || !unit) {
+        return res
+          .status(400)
+          .json({ message: "Item ID and unit are required." });
+      }
+
+      // Find the item by ID and ensure it belongs to the user
+      let existingItem = await Item.findOne({ _id: item_id, user_id });
+
+      if (!existingItem) {
+        return res
+          .status(404)
+          .json({ message: `Item not found for this user.` });
+      }
+
+      // Ensure `packaging` exists and is an array
+      if (!Array.isArray(existingItem.packaging)) {
+        return res.status(400).json({ message: "Item has no packaging data." });
+      }
+
+      // Find the specific packaging by unit
+      const packagingIndex = existingItem.packaging.findIndex(
+        (pack) => pack.unit === unit
+      );
+
+      if (packagingIndex === -1) {
+        return res
+          .status(404)
+          .json({
+            message: `Packaging unit '${unit}' not found for this item.`,
+          });
+      }
+
+      // Update times_bought if provided
+      if (times_bought !== undefined) {
+        existingItem.packaging[packagingIndex].times_bought = times_bought;
+      }
+
+      // Update times_wasted if provided
+      if (times_wasted !== undefined) {
+        existingItem.packaging[packagingIndex].times_wasted = times_wasted;
+      }
+
+      // Save the updated item
+      await existingItem.save();
+
+      return res.status(200).json({
+        message: `Updated packaging metrics for unit '${unit}'.`,
+        item: existingItem,
+      });
+    } catch (error) {
+      console.error("Error updating packaging metrics:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
   module.exports = {
-    getItemByName, // ✅ Add this function
+    getItemByName,
     createUserItem,
     updateUserItem,
     addOrUpdateUserItem,
     checkItemExists,
+    getAllUserItems,
+    updatePackagingMetrics, // ✅ New method added
   };

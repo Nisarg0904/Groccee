@@ -1,27 +1,21 @@
 const express = require("express");
-const {
-  createWastage,
-  getAllWastages,
-  getWastageById,
-  updateWastage,
-  deleteWastage,
-  processExpiredItems,
-  getUserWastages,
-} = require("../controllers/wastageController");
-const authenticateToken = require("../middleware/authMiddleware");
+const wastageController = require("../controllers/wastageController");
+
 const router = express.Router();
 
-
-router.post("/",authenticateToken, createWastage);
-router.get("/", authenticateToken, getAllWastages);
-// Manually trigger wastage processing
-router.post("/process-expired", authenticateToken, processExpiredItems);
-router.get("/user", authenticateToken, getUserWastages);
-// router.get("/:id", getWastageById);
-// router.put("/:id", updateWastage);
-// router.delete("/:id", deleteWastage);
-router.get("/:id([0-9]+)", authenticateToken, getWastageById);
-router.put("/:id([0-9]+)", authenticateToken, updateWastage);
-router.delete("/:id([0-9]+)", authenticateToken, deleteWastage);
+router.post("/", wastageController.createWastage);
+router.get("/", wastageController.getAllWastage);
+router.get("/:id", wastageController.getWastageById);
+router.get("/item/:item_id", wastageController.getWastageByItemId);
+router.get("/date/:date", wastageController.getWastageByDate);
+router.get("/category/:category", wastageController.getWastageByCategory);
+router.get(
+  "/total/item/:item_id",
+  wastageController.getTotalWastedAmountForItem
+);
+router.get(
+  "/total/category/:category",
+  wastageController.getTotalWastedAmountForCategory
+);
 
 module.exports = router;

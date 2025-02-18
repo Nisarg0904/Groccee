@@ -6,6 +6,7 @@ const {
   deleteGroceryItem,
   getAllUserGroceries,
   getGroceriesByStatus, // ✅ Using new function instead of getExpiredGroceryItems & getExpiringGroceryItems
+  updateItemStatus,
 } = require("../controllers/groceryItemController");
 const authenticateToken = require("../middleware/authMiddleware");
 
@@ -28,5 +29,8 @@ router.put("/:id", authenticateToken, updateGroceryItem);
 
 // ✅ Delete a grocery item
 router.delete("/:id", authenticateToken, deleteGroceryItem);
+
+router.put("/update-status", updateItemStatus);
+
 
 module.exports = router;

@@ -8,6 +8,40 @@ const SHOPPING_LIST_BACKEND_URL =
   process.env.SHOPPING_LIST_BACKEND_URL || "http://localhost:5002";
 
 
+  const WASTAGE_BACKEND_URL =
+    process.env.WASTAGE_BACKEND_URL || "http://localhost:5003"; // Change to your actual wastage service URL
+
+  /**
+   * Push expired items to wastage database.
+   * @param {object} item - The expired item data.
+   * @param {string} token - Authorization token.
+   */
+  async function addWastage(item, token) {
+    try {
+      const response = await axios.post(
+        `${WASTAGE_BACKEND_URL}/api/wastage`,
+        {
+          item_id: item.item_id,
+          item_name: item.name,
+          item_unit: item.unit,
+          wasted_quantity: item.available_quantity, // Since it's expired, consider all as wasted
+          wastage_date: new Date().toISOString(),
+          reason_for_waste: "Expired",
+          category: item.category,
+          wasted_money: item.price_per_unit * item.available_quantity, // Assuming item has a price_per_unit field
+          user_id: item.user_id,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("✅ Expired item pushed to wastage:", response.data);
+    } catch (error) {
+      console.error(
+        "❌ Error adding wastage:",
+        error.response?.data || error.message
+      );
+    }
+  }
 
 
 /**
@@ -57,9 +91,86 @@ async function validateItem(itemName, packaging, category, token) {
   }
 }
 
-module.exports = { validateItem };
+/**
+ * Update an existing user item.
+ * @param {string} itemName - Existing name of the item.
+ * @param {object} updatedData - Data to update (`new_name`, `category`, `packaging`).
+ * @param {string} token - Authorization token.
+ * @returns {object} - The updated item.
+ */
+async function updateUserItem(itemName, updatedData, token) {
+  try {
+    console.log("🟡 Updating Item:", { itemName, updatedData }); // ✅ Debugging Step
 
+    const response = await axios.put(
+      `${ITEM_BACKEND_URL}/api/items/`,
+      {
+        name: itemName, // Required field
+        ...updatedData, // Contains new_name, category, or packaging
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
+    console.log("🟢 Item Updated Successfully:", response.data.item); // ✅ Debugging Step
+    return response.data.item; // Return updated item
+  } catch (error) {
+    console.error(
+      "❌ Error updating item:",
+      error.response?.data || error.message
+    );
+    throw new Error(error.response?.data?.message || "Failed to update item.");
+  }
+}
 
+/**
+ * Update times_bought and times_wasted for a specific packaging unit.
+ * @param {string} itemId - The ID of the item.
+ * @param {string} unit - The unit of packaging to update.
+ * @param {number} timesBought - New times bought value.
+ * @param {number} timesWasted - New times wasted value.
+ * @param {string} token - Authorization token.
+ * @returns {object} - The updated item.
+ */
+async function updatePackagingMetrics(
+  itemId,
+  unit,
+  timesBought,
+  timesWasted,
+  token
+) {
+  try {
+    console.log("🟡 Updating Packaging Metrics:", {
+      itemId,
+      unit,
+      timesBought,
+      timesWasted,
+    });
 
+    const response = await axios.put(
+      `${ITEM_BACKEND_URL}/api/items/update-packaging`,
+      {
+        item_id: itemId,
+        unit,
+        times_bought: timesBought,
+        times_wasted: timesWasted,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
+    console.log(
+      "🟢 Packaging Metrics Updated Successfully:",
+      response.data.item
+    );
+    return response.data.item; // Return updated item
+  } catch (error) {
+    console.error(
+      "❌ Error updating packaging metrics:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Failed to update packaging metrics."
+    );
+  }
+}
+
+module.exports = { validateItem, updateUserItem, updatePackagingMetrics,addWastage };

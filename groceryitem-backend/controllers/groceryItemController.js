@@ -1,9 +1,10 @@
 const GroceryItem = require("../models/grocery_item");
-const { validateItem } = require("../utils/apiHelper");
+const { validateItem, updatePackagingMetrics } = require("../utils/apiHelper"); // ✅ Import updateUserItem
 const { Op, Sequelize } = require("sequelize");
 const moment = require("moment-timezone");
 
-// ✅ Add Grocery Item
+
+// ✅ Add Grocery Item and Update `times_bought`
 async function createGroceryItem(req, res) {
   try {
     const {
@@ -24,6 +25,7 @@ async function createGroceryItem(req, res) {
     if (!item || !item._id) {
       throw new Error("Invalid item returned from validation.");
     }
+    console.log("🟢 Validated Item:", item);
 
     // Step 2: Calculate Price per Unit
     const price_per_unit = price / purchased_quantity;
@@ -63,15 +65,38 @@ async function createGroceryItem(req, res) {
       status,
     });
 
+    // Step 6: ✅ Increase `times_bought` for that specific unit
+    const packaging = item.packaging.find((pack) => pack.unit === unit);
+
+    if (packaging) {
+      console.log(`🟡 Increasing times_bought for '${unit}' (ID: ${item._id})`);
+
+      // ✅ Call API to update only `times_bought`
+      await updatePackagingMetrics(
+        item._id,
+        unit,
+        packaging.times_bought + 1,
+        null,
+        token
+      );
+    } else {
+      console.warn(
+        `⚠️ Packaging unit '${unit}' not found for item '${name}', skipping update.`
+      );
+    }
+
     return res.status(201).json({
       groceryItem,
-      message: "Grocery item successfully added.",
+      message: "Grocery item successfully added, and times_bought updated.",
     });
   } catch (error) {
     console.error("❌ Error adding grocery item:", error.message);
     return res.status(400).json({ message: error.message });
   }
 }
+
+
+
 
 // ✅ Get all grocery items for the authenticated user
 async function getAllUserGroceries(req, res) {
@@ -170,11 +195,9 @@ async function getGroceriesByStatus(req, res) {
     const { status } = req.query; // Get status from query parameter
 
     if (!["expired", "expiring", "active", "fresh"].includes(status)) {
-      return res
-        .status(400)
-        .json({
-          message: "Invalid status. Use expired, expiring, active, or fresh.",
-        });
+      return res.status(400).json({
+        message: "Invalid status. Use expired, expiring, active, or fresh.",
+      });
     }
 
     const groceryItems = await GroceryItem.findAll({
@@ -197,11 +220,36 @@ async function getGroceriesByStatus(req, res) {
   }
 }
 
+/**
+ * ✅ Manually update grocery item status
+ */
+async function updateItemStatus(req, res) {
+  try {
+    const { item_id, status } = req.body;
+
+    const item = await GroceryItem.findByPk(item_id);
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    item.status = status;
+    await item.save();
+
+    res.status(200).json({ message: "Item status updated", item });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating item status", error: error.message });
+  }
+}
+
+// ✅ Export all controller methods correctly
 module.exports = {
   createGroceryItem,
   getAllUserGroceries,
   getGroceryItemById,
   updateGroceryItem,
   deleteGroceryItem,
-  getGroceriesByStatus, // ✅ Replaced `getExpiredGroceryItems` & `getExpiringGroceryItems`
+  getGroceriesByStatus, // ✅ Handles expired, expiring, active, fresh
+  updateItemStatus, // ✅ Now correctly included in exports
 };

@@ -141,12 +141,73 @@ const searchItemsByName = async (req, res) => {
 //     }
 //   };
 
+const searchUnitsByQuery = async (req, res) => {
+  try {
+    const searchQuery = req.params.query;
+    if (!searchQuery) {
+      return res.status(400).json({ message: "Search query is required." });
+    }
+
+    // Find all items that contain the search query in their units (case insensitive)
+    const items = await SuggestedItem.find(
+      { units: { $regex: new RegExp(searchQuery, "i") } },
+      "units"
+    );
+
+    // Extract all matching units and remove duplicates
+    const unitSet = new Set();
+    items.forEach((item) => {
+      item.units.forEach((unit) => {
+        if (unit.toLowerCase().includes(searchQuery.toLowerCase())) {
+          unitSet.add(unit);
+        }
+      });
+    });
+
+    const units = Array.from(unitSet);
+
+    if (units.length === 0) {
+      return res.status(404).json({ message: "No matching units found." });
+    }
+
+    res.status(200).json(units);
+  } catch (error) {
+    console.error("Error searching for units:", error);
+    res.status(500).json({ message: "Error searching for units", error });
+  }
+};
+
+const searchCategoriesByQuery = async (req, res) => {
+  try {
+    const searchQuery = req.params.query;
+    if (!searchQuery) {
+      return res.status(400).json({ message: "Search query is required." });
+    }
+
+    // Find all categories that match the search query (case insensitive)
+    const categories = await SuggestedItem.distinct("category", {
+      category: { $regex: new RegExp(searchQuery, "i") },
+    });
+
+    if (categories.length === 0) {
+      return res.status(404).json({ message: "No matching categories found." });
+    }
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error searching for categories:", error);
+    res.status(500).json({ message: "Error searching for categories", error });
+  }
+};
+
 module.exports = {
-    // createSuggestedItem,
-    getAllItems,
-    getItemByName,
-    getItemsByCategory,
-    getItemsByUnit,
-    getAllCategories,
-    searchItemsByName
+  // createSuggestedItem,
+  getAllItems,
+  getItemByName,
+  getItemsByCategory,
+  getItemsByUnit,
+  getAllCategories,
+  searchItemsByName,
+  searchUnitsByQuery,
+  searchCategoriesByQuery,
 };

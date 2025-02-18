@@ -1,5 +1,5 @@
 // screens/Shopping/ShoppingListItemsPage.jsx
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,19 +11,19 @@ import {
   Animated,
   Modal,
   TextInput,
-} from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { UserContext } from '../../contexts/UserContext';
-import { 
-  fetchShoppingListItems, 
-  updateShoppingListItem, 
+} from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { UserContext } from "../../contexts/UserContext";
+import {
+  fetchShoppingListItems,
+  updateShoppingListItem,
   deleteShoppingListItem,
   createGroceryItemFromShoppingItem,
-} from '../../services/shoppingItemApi';
-import AddItemsModal from './AddShoppingListItemPage';
-import FullDetailsModal from '../../components/FullDetailsModel';
-import styles from '../../styles/ViewShoppingListStyles';
+} from "../../services/shoppingItemApi";
+import AddItemsModal from "./AddShoppingListItemPage";
+import FullDetailsModal from "../../components/FullDetailsModel";
+import styles from "../../styles/ViewShoppingListStyles";
 
 const ShoppingListItemsPage = ({ route, navigation }) => {
   const [addItemsModalVisible, setAddItemsModalVisible] = useState(false);
@@ -37,25 +37,25 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [editName, setEditName] = useState('');
-  const [editQuantity, setEditQuantity] = useState('');
-  const [editUnit, setEditUnit] = useState('');
+  const [editName, setEditName] = useState("");
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editUnit, setEditUnit] = useState("");
 
   const fetchItems = async () => {
     if (!token) {
-      setError('Authentication required');
+      setError("Authentication required");
       setLoading(false);
       return;
     }
 
     try {
       const data = await fetchShoppingListItems(listId, token);
-      console.log('Fetched items:', data);
+      console.log("Fetched items:", data);
       setItems(data);
       setError(null);
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError('Failed to fetch shopping list items');
+      console.error("Fetch error:", err);
+      setError("Failed to fetch shopping list items");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -74,14 +74,14 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
   const handleEdit = (item) => {
     setEditingItem(item);
     setEditName(item.name);
-    setEditQuantity(item.quantity?.toString() || '');
-    setEditUnit(item.unit || '');
+    setEditQuantity(item.quantity?.toString() || "");
+    setEditUnit(item.unit || "");
     setEditModalVisible(true);
   };
 
   const handleUpdate = async () => {
     if (!editName.trim()) {
-      Alert.alert('Error', 'Item name cannot be empty');
+      Alert.alert("Error", "Item name cannot be empty");
       return;
     }
 
@@ -96,59 +96,55 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
         token
       );
 
-      setItems(currentItems =>
-        currentItems.map(item =>
+      setItems((currentItems) =>
+        currentItems.map((item) =>
           item.list_item_id === updatedItem.list_item_id ? updatedItem : item
         )
       );
 
       setEditModalVisible(false);
       setEditingItem(null);
-      setEditName('');
-      setEditQuantity('');
-      setEditUnit('');
+      setEditName("");
+      setEditQuantity("");
+      setEditUnit("");
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update item');
+      Alert.alert("Error", error.message || "Failed to update item");
     }
   };
 
   const handleDelete = (itemId) => {
-    Alert.alert(
-      'Delete Item',
-      'Are you sure you want to delete this item?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteShoppingListItem(itemId, token);
+            setItems((currentItems) =>
+              currentItems.filter((item) => item.list_item_id !== itemId)
+            );
+          } catch (error) {
+            Alert.alert("Error", error.message || "Failed to delete item");
+          }
         },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteShoppingListItem(itemId, token);
-              setItems(currentItems => 
-                currentItems.filter(item => item.list_item_id !== itemId)
-              );
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete item');
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const renderLeftActions = (progress, dragX, item) => {
     const scale = dragX.interpolate({
       inputRange: [0, 100],
       outputRange: [0, 1],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
-  
+
     return (
       <View style={styles.leftAction}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => handleEdit(item)}
         >
@@ -165,12 +161,12 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
     const scale = dragX.interpolate({
       inputRange: [-100, 0],
       outputRange: [1, 0],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
-  
+
     return (
       <View style={styles.rightAction}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDelete(item.list_item_id)}
         >
@@ -185,10 +181,10 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
 
   const renderItem = ({ item }) => (
     <Swipeable
-      renderLeftActions={(progress, dragX) => 
+      renderLeftActions={(progress, dragX) =>
         renderLeftActions(progress, dragX, item)
       }
-      renderRightActions={(progress, dragX) => 
+      renderRightActions={(progress, dragX) =>
         renderRightActions(progress, dragX, item)
       }
     >
@@ -202,13 +198,13 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
             </Text>
           )}
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.checkButton}
           onPress={() => handleBought(item)}
         >
-          <Ionicons 
-            name={item.bought ? "checkmark-circle" : "ellipse-outline"} 
-            size={24} 
+          <Ionicons
+            name={item.bought ? "checkmark-circle" : "ellipse-outline"}
+            size={24}
             color={item.bought ? "#4CAF50" : "#666"}
           />
         </TouchableOpacity>
@@ -219,51 +215,58 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
   const handleBought = async (item) => {
     try {
       const hasDetails = item.quantity && item.unit;
-      
+
       setSelectedBoughtItem({
         ...item,
-        prePopulatedFields: hasDetails ? {
-          unit: item.unit,
-          quantity: item.quantity.toString(),
-        } : null
+        prePopulatedFields: hasDetails
+          ? {
+              unit: item.unit,
+              quantity: item.quantity.toString(),
+            }
+          : null,
       });
       setFullDetailsModalVisible(true);
-      
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
   const handleFullDetailsSubmit = async (details) => {
     try {
-      await createGroceryItemFromShoppingItem({
-        name: selectedBoughtItem.name,
-        unit: selectedBoughtItem.prePopulatedFields?.unit || details.unit,
-        purchased_quantity: parseFloat(selectedBoughtItem.prePopulatedFields?.quantity || details.quantity),
-        price: parseFloat(details.price),
-        expiry_date: details.expiryDate,
-        purchased_date: details.purchasedDate || new Date().toISOString().split('T')[0],
-        category: details.category,
-      }, token);
-  
+      await createGroceryItemFromShoppingItem(
+        {
+          name: selectedBoughtItem.name,
+          unit: selectedBoughtItem.prePopulatedFields?.unit || details.unit,
+          purchased_quantity: parseFloat(
+            selectedBoughtItem.prePopulatedFields?.quantity || details.quantity
+          ),
+          price: parseFloat(details.price),
+          expiry_date: details.expiryDate,
+          purchased_date:
+            details.purchasedDate || new Date().toISOString().split("T")[0],
+          category: details.category,
+        },
+        token
+      );
+
       await updateShoppingListItem(
         selectedBoughtItem.list_item_id,
         { ...selectedBoughtItem, bought: true },
         token
       );
-  
+
       setFullDetailsModalVisible(false);
       setSelectedBoughtItem(null);
       fetchItems();
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update item');
+      Alert.alert("Error", error.message || "Failed to update item");
     }
   };
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => setAddItemsModalVisible(true)}
           style={{ marginRight: 16 }}
         >
@@ -297,7 +300,9 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
       <FlatList
         data={items}
         renderItem={renderItem}
-        keyExtractor={(item) => item.list_item_id?.toString() || Math.random().toString()}
+        keyExtractor={(item) =>
+          item.list_item_id?.toString() || Math.random().toString()
+        }
         contentContainerStyle={styles.listContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -367,7 +372,7 @@ const ShoppingListItemsPage = ({ route, navigation }) => {
           setSelectedBoughtItem(null);
         }}
         onSubmit={handleFullDetailsSubmit}
-        itemName={selectedBoughtItem?.name || ''}
+        itemName={selectedBoughtItem?.name || ""}
         prePopulatedFields={selectedBoughtItem?.prePopulatedFields}
       />
     </View>

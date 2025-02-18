@@ -9,26 +9,43 @@ const Wastage = wastageDB.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    wasted_quantity: {
-      type: DataTypes.INTEGER,
+    item_id: {
+      type: DataTypes.STRING,
       allowNull: false,
+    },
+    item_name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    item_unit: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    wasted_quantity: {
+      type: DataTypes.DOUBLE,
+      allowNull: false,
+    },
+    wastage_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
     reason_for_waste: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    category: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    wasted_money: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.0,
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    item_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    created_on: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW, // Automatically set the timestamp
     },
   },
   {
