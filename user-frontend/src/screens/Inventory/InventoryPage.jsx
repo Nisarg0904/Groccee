@@ -142,7 +142,6 @@ const InventoryPage = ({ navigation }) => {
     });
   
     // Then apply status filter
-    if (statusFilter !== 'all') {
       switch(statusFilter) {
         case 'used':
           filtered = filtered.filter(item => item.status === 'used');
@@ -162,7 +161,9 @@ const InventoryPage = ({ navigation }) => {
             item.diffDays !== null && item.diffDays > 7 && item.status !== 'used'
           );
           break;
-      }
+        case 'all':
+            filtered = filtered.filter(item => item.status !== 'used');
+            break;
     }
   
     return filtered;
