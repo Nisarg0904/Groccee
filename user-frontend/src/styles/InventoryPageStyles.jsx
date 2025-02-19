@@ -47,12 +47,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 12,
-    padding: 16,
+    // padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: 'hidden', // Important to keep the badge within bounds
+    flexDirection: 'row', // Enable horizontal layout for badge
   },
   itemHeader: {
     flexDirection: 'row',
@@ -166,6 +168,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingHorizontal: 20,
   },
+  quantityControls: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 12,
+  backgroundColor: '#F5F5F5',
+  borderRadius: 8,
+  padding: 8,
+},
   quantityButton: {
     backgroundColor: '#007AFF',
     width: 44,
@@ -187,6 +197,9 @@ const styles = StyleSheet.create({
     minWidth: 120,
     alignItems: 'center',
   },
+  quantityButtonDisabled: {
+  backgroundColor: '#B0B0B0',
+},
   quantityValue: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -273,6 +286,76 @@ menuOptionText: {
 menuOptionTextDelete: {
   color: '#FF3B30', // iOS red color
 },
+statusContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 20,
+  padding: 10,
+  backgroundColor: '#F5F5F5',
+  borderRadius: 8,
+},
+statusLabel: {
+  fontSize: 16,
+  marginRight: 10,
+  color: '#666666',
+},
+statusBadge: {
+  paddingHorizontal: 12,
+  paddingVertical: 4,
+  borderRadius: 12,
+},
+statusText: {
+  color: '#FFFFFF',
+  fontWeight: 'bold',
+  fontSize: 12,
+},
+modalSection: {
+  backgroundColor: '#F8F9FA',
+  borderRadius: 12,
+  padding: 16,
+  marginBottom: 16,
+},
+filterBar: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginRight: 8,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F2',
+  },
+  filterButtonActive: {
+    backgroundColor: '#E8F5E9',  // Light green background for active state
+  },
+  filterText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  filterTextActive: {
+    color: '#4CAF50',  // Green text for active state
+    fontWeight: '500',
+  },
+  itemCardUsed: {
+    // Extend your existing itemCard styles
+    opacity: 0.7,
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+    flexDirection: 'row',
+  },
+  
+  
+ usedBadge: {
+    width: 6, // Made slightly wider for visibility
+    backgroundColor: '#FF3B30',
+  },
+
+  itemContent: {
+    flex: 1,
+    padding: 16, // Moved padding from itemCard to here
+  },
 });
 
 export default styles;

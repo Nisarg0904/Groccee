@@ -6,7 +6,7 @@ module.exports = {
     await queryInterface.bulkInsert("grocery_item", [
       {
         name: "Milk",
-        user_id: 13,
+        user_id: 11,
         item_id: "67b468531781590058812573",
         unit: "Bag",
         purchased_quantity: 2,
@@ -19,7 +19,7 @@ module.exports = {
       },
       {
         name: "Greek Yogurt",
-        user_id: 13,
+        user_id: 11,
         item_id: "67b468531781590058812575",
         unit: "ml",
         purchased_quantity: 15,
@@ -32,7 +32,7 @@ module.exports = {
       },
       {
         name: "Cheddar Cheese",
-        user_id: 13,
+        user_id: 11,
         item_id: "67b468531781590058812577",
         unit: "Block",
         purchased_quantity: 9,

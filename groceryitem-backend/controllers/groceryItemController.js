@@ -132,29 +132,31 @@ async function getGroceryItemById(req, res) {
 
 // ✅ Update a grocery item
 async function updateGroceryItem(req, res) {
-  const { id } = req.params; // Grocery item ID
-  const { available_quantity, expiry_date, price } = req.body; // Fields to update
+  const { id } = req.params;
+  const { available_quantity, expiry_date, price, status } = req.body; // Add status to destructuring
 
   try {
-    const user_id = req.user.id; // Get user ID from token
+    const user_id = req.user.id;
 
-    if (!available_quantity && !expiry_date && !price) {
-      return res
-        .status(400)
-        .json({ message: "Please provide fields to update." });
+    if (!available_quantity && !expiry_date && !price && !status) {
+      return res.status(400).json({ message: "Please provide fields to update." });
     }
 
     const updatePayload = {};
-    if (available_quantity !== undefined)
-      updatePayload.available_quantity = available_quantity;
+    if (available_quantity !== undefined) updatePayload.available_quantity = available_quantity;
     if (expiry_date !== undefined) updatePayload.expiry_date = expiry_date;
     if (price !== undefined) updatePayload.price = price;
+    if (status !== undefined) updatePayload.status = status; // Add status to payload
 
-    // Update the grocery item for the authenticated user
+    // Add automatic status update when quantity is 0
+    if (available_quantity === 0) {
+      updatePayload.status = 'used';
+    }
+
     const updated = await GroceryItem.update(updatePayload, {
       where: {
-        id: id, // Use `id` as per the new model
-        user_id: user_id, // Ensure the user owns the item
+        id: id,
+        user_id: user_id,
       },
     });
 

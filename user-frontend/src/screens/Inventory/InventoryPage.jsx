@@ -1,13 +1,16 @@
 import React, { useState, useContext, useCallback } from "react";
+// import moment from 'moment';
 import { 
   View, 
   Text, 
   TextInput, 
   SectionList, 
+  FlatList,
   TouchableOpacity, 
   Alert,
   Modal,
   Pressable,
+  ScrollView,
 } from "react-native";
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { useFocusEffect } from "@react-navigation/native";
@@ -22,6 +25,7 @@ const InventoryPage = ({ navigation }) => {
   const [groceries, setGroceries] = useState([]);
   const [filterQuery, setFilterQuery] = useState("");
   const [sortBy, setSortBy] = useState("expiry");
+  const [statusFilter, setStatusFilter] = useState('all');
   
   // Modal state
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -52,47 +56,65 @@ const InventoryPage = ({ navigation }) => {
     setExpiryDate(new Date(item.expiry_date || Date.now()));
     setIsEditModalVisible(true);
   };
-
   const handleDecreaseQuantity = () => {
-    if (availableQuantity > 0.25) {
-      setAvailableQuantity((prevQty) => parseFloat((prevQty - 0.25).toFixed(2)));
-    } else {
-      Alert.alert("Error", "Quantity cannot be less than 0.");
-    }
+    const getReductionAmount = (unit, currentQuantity) => {
+      switch(unit?.toLowerCase()) {
+        case 'kg':
+        case 'l':
+        case 'liter':
+        case 'litre':
+          return 0.5;
+        case 'gram':
+        case 'ml':
+          return 50;
+        case 'pcs':
+        case 'pieces':
+        case 'units':
+          return 1;
+        default:
+          return currentQuantity >= 10 ? 1 : 0.25;
+      }
+    };
+  
+    const reductionAmount = getReductionAmount(selectedGrocery?.unit, availableQuantity);
+    const newQuantity = Math.max(0, availableQuantity - reductionAmount);
+    setAvailableQuantity(parseFloat(newQuantity.toFixed(1)));
   };
 
-  const handleIncreaseQuantity = () => {
-    setAvailableQuantity((prevQty) => parseFloat((prevQty + 0.25).toFixed(2)));
-  };
+  // const handleIncreaseQuantity = () => {
+  //   setAvailableQuantity((prevQty) => parseFloat((prevQty + 0.25).toFixed(2)));
+  // };
 
   const handleUpdate = async () => {
-    if (!availableQuantity) {
-      Alert.alert("Error", "Available quantity cannot be zero.");
-      return;
-    }
-
     try {
       const updateData = {
         available_quantity: availableQuantity,
         expiry_date: expiryDate.toISOString().split("T")[0],
+        status: availableQuantity === 0 ? "used" : selectedGrocery.status
       };
-
+  
       await updateGroceryItem(token, selectedGrocery.id, updateData);
       
       // Update local state
       await loadGroceries();
       
-      Alert.alert("Success", "Grocery item updated successfully!");
+      Alert.alert(
+        "Success", 
+        availableQuantity === 0 
+          ? "Item marked as used and removed from inventory"
+          : "Grocery item updated successfully!"
+      );
       setIsEditModalVisible(false);
     } catch (error) {
       Alert.alert("Error", error.message || "Failed to update grocery item.");
     }
   };
+  
 
-  const filteredGroceries = groceries.filter(
-    (item) =>
-      item.name && item.name.toLowerCase().includes(filterQuery.toLowerCase())
-  );
+  // const filteredGroceries = groceries.filter(
+  //   (item) =>
+  //     item.name && item.name.toLowerCase().includes(filterQuery.toLowerCase())
+  // );
 
   const sortGroceries = (items) => {
     return [...items].sort((a, b) => {
@@ -102,92 +124,151 @@ const InventoryPage = ({ navigation }) => {
     });
   };
 
-  const groupGroceries = () => {
-    const expiringSoon = [];
-    const expiringInSomeTime = [];
-    const hasTime = [];
-    const now = new Date();
-
-    filteredGroceries.forEach((item) => {
-      const processedItem = {
-        ...item,
-        purchased_date: item.purchased_date || 'N/A',
-        available_quantity: item.available_quantity || 0,
-        price: item.price || 0,
-      };
-
+  const getFilteredGroceries = () => {
+    // First, filter based on search query
+    let filtered = groceries.filter(
+      (item) => item.name && item.name.toLowerCase().includes(filterQuery.toLowerCase())
+    );
+  
+    // Calculate days difference and add it to each item
+    filtered = filtered.map(item => {
+      let diffDays = null;
       if (item.expiry_date) {
+        const now = new Date();
         const expiryDate = new Date(item.expiry_date);
-        const diffTime = expiryDate - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 2) {
-          expiringSoon.push({ ...processedItem, diffDays });
-        } else if (diffDays >= 3 && diffDays <= 7) {
-          expiringInSomeTime.push({ ...processedItem, diffDays });
-        } else {
-          hasTime.push({ ...processedItem, diffDays });
-        }
-      } else {
-        hasTime.push({ ...processedItem, diffDays: "N/A" });
+        diffDays = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
       }
+      return { ...item, diffDays };
     });
-
-    const sections = [];
-    
-    if (expiringSoon.length > 0) {
-      sections.push({ title: "Soonest Expiration", data: sortGroceries(expiringSoon) });
+  
+    // Then apply status filter
+    if (statusFilter !== 'all') {
+      switch(statusFilter) {
+        case 'used':
+          filtered = filtered.filter(item => item.status === 'used');
+          break;
+        case 'soonest':
+          filtered = filtered.filter(item => 
+            item.diffDays !== null && item.diffDays <= 2 && item.status !== 'used'
+          );
+          break;
+        case 'expiring':
+          filtered = filtered.filter(item => 
+            item.diffDays !== null && item.diffDays > 2 && item.diffDays <= 7 && item.status !== 'used'
+          );
+          break;
+        case 'hasTime':
+          filtered = filtered.filter(item => 
+            item.diffDays !== null && item.diffDays > 7 && item.status !== 'used'
+          );
+          break;
+      }
     }
-    if (expiringInSomeTime.length > 0) {
-      sections.push({ title: "Expiring in Some Time", data: sortGroceries(expiringInSomeTime) });
-    }
-    if (hasTime.length > 0) {
-      sections.push({ title: "Has Time", data: sortGroceries(hasTime) });
-    }
-    
-    return sections;
+  
+    return filtered;
   };
+  
 
-  const handleDelete = async (id) => {
+
+  // const handleDelete = async (id) => {
+  //   try {
+  //     Alert.alert(
+  //       "Confirm Deletion",
+  //       "Are you sure you want to delete this item?",
+  //       [
+  //         { text: "Cancel", style: "cancel" },
+  //         {
+  //           text: "Delete",
+  //           style: "destructive",
+  //           onPress: async () => {
+  //             await deleteGroceryItem(token, id);
+  //             loadGroceries();
+  //           },
+  //         },
+  //       ]
+  //     );
+  //   } catch (error) {
+  //     Alert.alert("Error", "Failed to delete item. Please try again.");
+  //   }
+  // };
+
+  const handleMarkAsUsed = async (id) => {
     try {
       Alert.alert(
-        "Confirm Deletion",
-        "Are you sure you want to delete this item?",
+        "Confirm Action",
+        "Are you sure you want to mark this item as used?",
         [
           { text: "Cancel", style: "cancel" },
           {
-            text: "Delete",
-            style: "destructive",
+            text: "Mark as Used",
+            style: "default",
             onPress: async () => {
-              await deleteGroceryItem(token, id);
-              loadGroceries();
+              const updateData = {
+                available_quantity: 0,
+                status: "used"
+              };
+              await updateGroceryItem(token, id, updateData);
+              await loadGroceries();
             },
           },
         ]
       );
     } catch (error) {
-      Alert.alert("Error", "Failed to delete item. Please try again.");
+      Alert.alert("Error", "Failed to update item. Please try again.");
     }
   };
 
-  // const renderRightActions = (item) => {
-  //   return (
-  //     <View style={{ flexDirection: "row" }}>
-  //       <TouchableOpacity
-  //         style={[styles.actionButton, styles.editButton]}
-  //         onPress={() => handleEdit(item)}
-  //       >
-  //         <Text style={styles.actionText}>Edit</Text>
-  //       </TouchableOpacity>
-  //       <TouchableOpacity
-  //         style={[styles.actionButton, styles.deleteButton]}
-  //         onPress={() => handleDelete(item.id)}
-  //       >
-  //         <Text style={styles.actionText}>Delete</Text>
-  //       </TouchableOpacity>
-  //     </View>
-  //   );
-  // };
+  //Filter Bar
+  const FilterBar = () => (
+    <View style={styles.filterBar}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <TouchableOpacity 
+          style={[styles.filterButton, statusFilter === 'all' && styles.filterButtonActive]}
+          onPress={() => setStatusFilter('all')}
+        >
+          <Text style={[styles.filterText, statusFilter === 'all' && styles.filterTextActive]}>
+            All
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.filterButton, statusFilter === 'soonest' && styles.filterButtonActive]}
+          onPress={() => setStatusFilter('soonest')}
+        >
+          <Text style={[styles.filterText, statusFilter === 'soonest' && styles.filterTextActive]}>
+            Soonest Expiration
+          </Text>
+        </TouchableOpacity>
+  
+        <TouchableOpacity 
+          style={[styles.filterButton, statusFilter === 'expiring' && styles.filterButtonActive]}
+          onPress={() => setStatusFilter('expiring')}
+        >
+          <Text style={[styles.filterText, statusFilter === 'expiring' && styles.filterTextActive]}>
+            Expiring Soon
+          </Text>
+        </TouchableOpacity>
+  
+        <TouchableOpacity 
+          style={[styles.filterButton, statusFilter === 'hasTime' && styles.filterButtonActive]}
+          onPress={() => setStatusFilter('hasTime')}
+        >
+          <Text style={[styles.filterText, statusFilter === 'hasTime' && styles.filterTextActive]}>
+            Has Time
+          </Text>
+        </TouchableOpacity>
+  
+        <TouchableOpacity 
+          style={[styles.filterButton, statusFilter === 'used' && styles.filterButtonActive]}
+          onPress={() => setStatusFilter('used')}
+        >
+          <Text style={[styles.filterText, statusFilter === 'used' && styles.filterTextActive]}>
+            Used
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
 
   const renderItem = ({ item }) => (
     <Menu>
@@ -195,11 +276,13 @@ const InventoryPage = ({ navigation }) => {
         triggerOnLongPress
         customStyles={{
           triggerWrapper: {
-            // No special styling needed - will use your existing itemCard styles
+            // No special styling needed
           },
         }}
       >
-        <View style={styles.itemCard}>
+       <View style={styles.itemCard}>
+        {item.status === 'used' && <View style={styles.usedBadge} />}
+        <View style={styles.itemContent}>
           <View style={styles.itemHeader}>
             <View style={styles.itemNameContainer}>
               <Icon name="cart-outline" size={24} style={styles.cartIcon} />
@@ -233,6 +316,7 @@ const InventoryPage = ({ navigation }) => {
             </View>
           </View>
         </View>
+      </View>
       </MenuTrigger>
       <MenuOptions customStyles={{
         optionsContainer: styles.menuContainer,
@@ -244,12 +328,14 @@ const InventoryPage = ({ navigation }) => {
             <Text style={styles.menuOptionText}>Edit</Text>
           </View>
         </MenuOption>
-        <MenuOption onSelect={() => handleDelete(item.id)}>
-          <View style={styles.menuOptionContent}>
-            <Icon name="trash-outline" size={24} color="#FF3B30" />
-            <Text style={[styles.menuOptionText, styles.menuOptionTextDelete]}>Delete</Text>
-          </View>
-        </MenuOption>
+        {item.status !== 'used' && (
+          <MenuOption onSelect={() => handleMarkAsUsed(item.id)}>
+            <View style={styles.menuOptionContent}>
+              <Icon name="trash-outline" size={24} color="#FF3B30" />
+              <Text style={[styles.menuOptionText, styles.menuOptionTextDelete]}>Used</Text>
+            </View>
+          </MenuOption>
+        )}
       </MenuOptions>
     </Menu>
   );
@@ -257,9 +343,6 @@ const InventoryPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        {/* <View style={styles.headerTop}>
-          <Text style={styles.title}>Grocery List</Text>
-        </View> */}
         <View style={styles.searchContainer}>
           <Icon name="search-outline" size={20} style={styles.searchIcon} />
           <TextInput
@@ -270,22 +353,19 @@ const InventoryPage = ({ navigation }) => {
             placeholderTextColor="#666666"
           />
         </View>
+        <FilterBar />
       </View>
       
-      <SectionList
-        sections={groupGroceries()}
-        keyExtractor={(item, index) => item.id || index.toString()}
-        renderItem={renderItem}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyList}>No groceries found</Text>
-        }
-        stickySectionHeadersEnabled={true}
-      />
+      <FlatList
+      data={getFilteredGroceries()}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id.toString()}
+      ListEmptyComponent={
+        <Text style={styles.emptyList}>No groceries found</Text>
+      }
+    />
 
-      {/* Edit Modal */}
+     {/* Edit Modal */}
       <Modal
         visible={isEditModalVisible}
         animationType="slide"
@@ -294,28 +374,51 @@ const InventoryPage = ({ navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit {selectedGrocery?.name}</Text>
+            <Text style={styles.modalTitle}>Track Usage: {selectedGrocery?.name}</Text>
 
-            {/* Quantity Controls */}
-            <View style={styles.modalSection}>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={handleDecreaseQuantity}
-              >
-                <Icon name="remove" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              <View style={styles.quantityTextContainer}>
-                <Text style={styles.quantityValue}>
-                  {availableQuantity} {selectedGrocery?.unit}
-                </Text>
+            {/* Current Status */}
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusLabel}>Current Status:</Text>
+              <View style={[styles.statusBadge, { backgroundColor: selectedGrocery?.status === 'used' ? '#9E9E9E' : '#4CAF50' }]}>
+                <Text style={styles.statusText}>{selectedGrocery?.status?.toUpperCase()}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={handleIncreaseQuantity}
-              >
-                <Icon name="add" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
             </View>
+
+            {/* Quantity Section */}
+            <View style={styles.modalSection}>
+            
+
+              {/* Quantity Controls */}
+              <View style={styles.quantityControls}>
+                <TouchableOpacity
+                  style={[
+                    styles.quantityButton,
+                    availableQuantity === 0 && styles.quantityButtonDisabled
+                  ]}
+                  onPress={handleDecreaseQuantity}
+                  disabled={availableQuantity === 0}
+                >
+                  <Icon name="remove" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <View style={styles.quantityTextContainer}>
+                  <Text style={styles.quantityValue}>
+                    {availableQuantity} {selectedGrocery?.unit}
+                  </Text>
+                  <Text style={styles.quantityLabel}>Remaining Amount</Text>
+                </View>
+              </View>
+
+              {/* Warning when quantity is 0 */}
+              {availableQuantity === 0 && (
+                <View style={styles.warningBox}>
+                  <Icon name="warning-outline" size={20} color="#FF9500" />
+                  <Text style={styles.warningText}>
+                    This item will be marked as "USED" and removed from inventory when you save
+                  </Text>
+                </View>
+              )}
+            </View>
+             
 
             {/* Date Picker */}
             <TouchableOpacity
@@ -358,7 +461,9 @@ const InventoryPage = ({ navigation }) => {
                 style={[styles.modalButton, styles.updateButton]}
                 onPress={handleUpdate}
               >
-                <Text style={styles.modalButtonText}>Update</Text>
+                <Text style={styles.modalButtonText}>
+                  {availableQuantity === 0 ? 'Mark as Used' : 'Update'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

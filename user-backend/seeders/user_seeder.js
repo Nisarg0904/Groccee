@@ -53,7 +53,7 @@ module.exports = {
         username: "helly_chauhan",
         firstName: "Helly",
         lastName: "Chauhan",
-        email: "helly@example.com",
+        email: "hellychauhan37@example.com",
         password: await bcrypt.hash("password", 10),
         shoppingActivity: "daily",
         dietPreference: "vegan",
