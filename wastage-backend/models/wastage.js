@@ -49,7 +49,9 @@ const Wastage = wastageDB.define(
     },
   },
   {
-    timestamps: false, // Prevent Sequelize from creating updatedAt/createdAt
+    tableName: "wastage", // ✅ Explicitly define the correct table name
+    freezeTableName: true, // ✅ Prevent Sequelize from pluralizing table names
+    timestamps: false, // ✅ Prevent Sequelize from adding 'createdAt' and 'updatedAt'
   }
 );
 

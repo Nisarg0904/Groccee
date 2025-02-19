@@ -24,6 +24,13 @@ wastageDB
     console.error("Unable to connect to wastage database:", error)
   );
 
+  wastageDB
+    .sync({ alter: true }) // Ensure it adapts to your changes
+    .then(() => console.log("✅ Wastage table synced"))
+    .catch((err) => console.error("❌ Error syncing Wastage table:", err));
+
+  wastageDB.options.logging = console.log;
+
 
 // Routes
 app.use("/api/wastage", wastageRoutes);
