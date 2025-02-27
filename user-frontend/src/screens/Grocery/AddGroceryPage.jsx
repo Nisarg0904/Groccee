@@ -16,7 +16,7 @@ import {
   fetchSuggestedItems,
   fetchSuggestedUnits,
 } from "../../services/groceryApi";
-import { getAllCategories } from "../../services/globalItemApi"; // ✅ Fix import
+import { getAllCategories } from "../../services/globalItemApi";
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Animatable from "react-native-animatable";
@@ -33,7 +33,7 @@ const AddGroceryPage = ({ navigation }) => {
   const [units, setUnits] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState("");
   const [customUnit, setCustomUnit] = useState("");
-  const [suggestedUnits, setSuggestedUnits] = useState([]); // ✅ Fix: Added state for suggested units
+  const [suggestedUnits, setSuggestedUnits] = useState([]);
 
   const [purchasedQuantity, setPurchasedQuantity] = useState("");
   const [price, setPrice] = useState("");
@@ -48,9 +48,29 @@ const AddGroceryPage = ({ navigation }) => {
     const fetchCategories = async () => {
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
+      if (fetchedCategories.length > 0) {
+        setSelectedCategory(fetchedCategories[0]);
+      }
     };
     fetchCategories();
   }, []);
+
+  const resetForm = () => {
+    setSearchQuery("");
+    setSelectedItem(null);
+    setSuggestedItems([]);
+    setUnits([]);
+    setSelectedUnit("");
+    setCustomUnit("");
+    setSuggestedUnits([]);
+    setPurchasedQuantity("");
+    setPrice("");
+    setExpiryDate(new Date());
+    // Reset category to first available category
+    if (categories.length > 0) {
+      setSelectedCategory(categories[0]);
+    }
+  };
 
   const handleSearchChange = async (text) => {
     setSearchQuery(text);
@@ -119,9 +139,8 @@ const AddGroceryPage = ({ navigation }) => {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        setTimeout(() => {
-          navigation.navigate("Home");
-        }, 300);
+        // Reset form instead of navigating away
+        resetForm();
       }, 1200);
     } catch (error) {
       console.error("Error adding grocery item:", error.message);
@@ -215,6 +234,17 @@ const AddGroceryPage = ({ navigation }) => {
 
         <TextInput
           style={styles.input}
+          placeholder="Purchased Quantity"
+          placeholderTextColor="#888"
+          keyboardType="numeric"
+          value={purchasedQuantity}
+          onChangeText={(text) =>
+            setPurchasedQuantity(text.replace(/[^0-9]/g, ""))
+          }
+        />
+
+        <TextInput
+          style={styles.input}
           placeholder="Price ($)"
           placeholderTextColor="#888"
           keyboardType="decimal-pad"
@@ -224,7 +254,7 @@ const AddGroceryPage = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.expiryDateButton}
-          onPress={setDatePickerVisible}
+          onPress={() => setDatePickerVisible(true)}
         >
           <Text style={styles.expiryDateButtonText}>
             Expiry Date: {expiryDate.toDateString()}
@@ -242,17 +272,6 @@ const AddGroceryPage = ({ navigation }) => {
           }}
           onCancel={() => setDatePickerVisible(false)}
           minimumDate={new Date()}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Purchased Quantity"
-          placeholderTextColor="#888"
-          keyboardType="numeric"
-          value={purchasedQuantity}
-          onChangeText={(text) =>
-            setPurchasedQuantity(text.replace(/[^0-9]/g, ""))
-          }
         />
 
         <TouchableOpacity
