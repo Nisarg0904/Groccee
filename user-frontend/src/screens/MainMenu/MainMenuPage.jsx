@@ -255,7 +255,7 @@ const MainMenuPage = ({ navigation, route }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Text style={styles.title}>Home</Text>
+      {/* <Text style={styles.title}>Home</Text>/ */}
 
       {/* Recent Last Meal Carousel */}
       <View style={styles.sectionContainer}>
