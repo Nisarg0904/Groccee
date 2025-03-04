@@ -28,7 +28,7 @@ const Stack = createStackNavigator();
 const HomeStack = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="MainMenu"
+      name="Home"
       component={MainMenuPage}
       options={({ navigation }) => ({
         headerShown: true,

@@ -3,90 +3,178 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
+    backgroundColor: "#f5f5f5",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+  pageTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#e74c3c",
+    marginBottom: 16,
   },
-  searchIcon: {
-    marginRight: 8,
-    color: "#666666",
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#000000",
-  },
-  filterBar: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  summaryContainer: {
     backgroundColor: "#fff",
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    marginRight: 8,
     borderRadius: 16,
-    backgroundColor: "#F2F2F2",
-  },
-  filterButtonActive: {
-    backgroundColor: "#E8F5E9",
-  },
-  filterText: {
-    fontSize: 14,
-    color: "#666666",
-  },
-  filterTextActive: {
-    color: "#4CAF50",
-    fontWeight: "500",
-  },
-  itemCard: {
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
     padding: 16,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
-  itemName: {
+  summaryTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#000000",
+    marginBottom: 16,
+    color: "#333",
   },
-  itemDetail: {
-    fontSize: 14,
-    color: "#666666",
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  statBox: {
+    backgroundColor: "#ffebee",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    width: "48%",
+  },
+  statIcon: {
+    marginBottom: 8,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#666",
     marginTop: 4,
+  },
+  filterBadgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  filterBadge: {
+    backgroundColor: "#e74c3c",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  filterBadgeText: {
+    color: "#fff",
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  clearFilterButton: {
+    marginLeft: 8,
+  },
+  wastageItem: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  wastageIconContainer: {
+    backgroundColor: "#e74c3c",
+    borderRadius: 24,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  wastageContent: {
+    flex: 1,
+  },
+  wastageTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  wastageSubtitle: {
+    fontSize: 14,
+    color: "#666",
   },
   emptyList: {
     textAlign: "center",
     marginTop: 40,
     fontSize: 16,
-    color: "#666666",
+    color: "#666",
   },
-  totalWastedContainer: {
-    padding: 16,
-    backgroundColor: "#F5F5F5",
+  addButton: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    backgroundColor: "#e74c3c",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  totalWastedText: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "50%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#000000",
+    color: "#333",
+  },
+  modalBody: {
+    maxHeight: "90%",
+  },
+  filterOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  selectedFilterOption: {
+    backgroundColor: "#e74c3c",
+  },
+  filterOptionText: {
+    fontSize: 16,
+    color: "#333",
+    marginLeft: 12,
+  },
+  selectedFilterOptionText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });
 

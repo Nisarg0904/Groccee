@@ -300,22 +300,23 @@ const InventoryPage = ({ navigation }) => {
             </View>
           </View>
           <View style={styles.itemDetail}>
-            <View style={styles.detailContainer}>
-              <Icon name="calendar-outline" size={20} style={styles.detailIcon} />
-              <Text style={styles.detailValue}>
-                {item.purchased_date ? new Date(item.purchased_date).toLocaleDateString() : 'N/A'}
-              </Text>
+              <View style={styles.detailContainer}>
+                <Icon name="calendar-outline" size={20} style={styles.detailIcon} />
+                <Text style={styles.detailValue}>
+                  {item.purchased_date ? item.purchased_date : 'N/A'}
+                </Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.itemDetail}>
-            <View style={styles.detailContainer}>
-              <Icon name="time-outline" size={20} style={styles.detailIcon} />
-              <Text style={styles.detailValue}>
-                {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}
-                {item.diffDays !== 'N/A' && ` (in ${item.diffDays} days)`}
-              </Text>
+
+            <View style={styles.itemDetail}>
+              <View style={styles.detailContainer}>
+                <Icon name="time-outline" size={20} style={styles.detailIcon} />
+                <Text style={styles.detailValue}>
+                  {item.expiry_date ? item.expiry_date : 'N/A'}
+                  {item.diffDays !== 'N/A' && ` (in ${item.diffDays} days)`}
+                </Text>
+              </View>
             </View>
-          </View>
         </View>
       </View>
       </MenuTrigger>
