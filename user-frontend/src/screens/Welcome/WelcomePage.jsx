@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  SafeAreaView, 
-  StatusBar, 
-  ScrollView, 
-  Image, 
-  Dimensions, 
-  Platform, 
-  ActivityIndicator 
+import {
+  View,
+  Text,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+  Image,
+  Dimensions,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import Swiper from "react-native-swiper";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -31,7 +31,11 @@ const WelcomePage = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false); // Track when images are preloaded
 
-  const renderFeature = (icon, title = "Feature Title", iconColor = COLORS.red) => (
+  const renderFeature = (
+    icon,
+    title = "Feature Title",
+    iconColor = COLORS.red
+  ) => (
     <View style={styles.featureItem} key={title}>
       <Feather name={icon} size={24} color={iconColor} />
       <Text style={styles.featureTitle}>{title}</Text>
@@ -42,7 +46,7 @@ const WelcomePage = () => {
   useEffect(() => {
     async function loadFonts() {
       await Font.loadAsync({
-        "Fonarto": require("../../../assets/fonts/Fonarto.ttf"),
+        Fonarto: require("../../../assets/fonts/Fonarto.ttf"),
       });
       setFontsLoaded(true);
     }
@@ -64,7 +68,9 @@ const WelcomePage = () => {
     async function loadImages() {
       try {
         // Preload each image asset
-        const imageAssets = heroImages.map((img) => Asset.fromModule(img).downloadAsync());
+        const imageAssets = heroImages.map((img) =>
+          Asset.fromModule(img).downloadAsync()
+        );
         await Promise.all(imageAssets);
         setImagesLoaded(true);
       } catch (error) {
@@ -78,7 +84,9 @@ const WelcomePage = () => {
   // Preload using FastImage if available (won't be used on Expo)
   useEffect(() => {
     if (FastImage) {
-      const heroURIs = heroImages.map((img) => Image.resolveAssetSource(img).uri);
+      const heroURIs = heroImages.map(
+        (img) => Image.resolveAssetSource(img).uri
+      );
       FastImage.preload(heroURIs.map((uri) => ({ uri })));
     }
   }, []);
@@ -99,7 +107,7 @@ const WelcomePage = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Title with custom font */}
         <View style={styles.titleContainer}>
-          <Text 
+          <Text
             style={{
               fontFamily: "Fonarto",
               fontSize: 58,
@@ -125,10 +133,20 @@ const WelcomePage = () => {
           >
             {FastImage
               ? heroImages.map((img, index) => (
-                  <FastImage key={index} source={img} style={styles.heroImage} resizeMode="cover" />
+                  <FastImage
+                    key={index}
+                    source={img}
+                    style={styles.heroImage}
+                    resizeMode="cover"
+                  />
                 ))
               : heroImages.map((img, index) => (
-                  <Image key={index} source={img} style={styles.heroImage} resizeMode="cover" />
+                  <Image
+                    key={index}
+                    source={img}
+                    style={styles.heroImage}
+                    resizeMode="cover"
+                  />
                 ))}
           </Swiper>
           <Text style={styles.heroText}>Simplify Your Grocery Shopping</Text>
@@ -158,7 +176,9 @@ const WelcomePage = () => {
           onPress={() => navigation.navigate("SignIn")}
           activeOpacity={0.7}
         >
-          <Text style={styles.signInText}>Already have an account? Sign In</Text>
+          <Text style={styles.signInText}>
+            Already have an account? Sign In
+          </Text>
         </TouchableOpacity>
 
         {/* Terms and Conditions */}
