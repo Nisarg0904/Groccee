@@ -1,104 +1,110 @@
-const Recipe = require('../models/recipe'); 
-const { validateUser } = require('../utils/apiHelper'); 
+const Recipe = require("../models/recipe");
 
-// Create a new recipe
-const createRecipe = async (req, res) => {
-  const { user_id, name, ingredients, instructions, category, preparationTime } = req.body;
-
+// ✅ Add a new recipe (with step-by-step instructions)
+exports.addRecipe = async (req, res) => {
   try {
-    const isValidUser = await validateUser(user_id);
-    if (!isValidUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const recipe = new Recipe({
-      user_id,
-      name,
-      ingredients,
-      instructions,
-      category,
-      preparationTime,
-    });
-
-    const savedRecipe = await recipe.save();
-    res.status(201).json(savedRecipe);
+    const newRecipe = new Recipe(req.body);
+    await newRecipe.save();
+    res
+      .status(201)
+      .json({ message: "Recipe added successfully!", recipe: newRecipe });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error creating recipe' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Get all recipes
-const getAllRecipes = async (req, res) => {
+// ✅ Get all recipes (includes steps)
+exports.getAllRecipes = async (req, res) => {
   try {
     const recipes = await Recipe.find();
     res.status(200).json(recipes);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error fetching recipes' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Get a single recipe by ID
-const getRecipeById = async (req, res) => {
-  const { id } = req.params;
-
+// ✅ Get recipe by ID (includes steps)
+exports.getRecipeById = async (req, res) => {
   try {
-    const recipe = await Recipe.findById(id);
-    if (!recipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
-    }
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ message: "Recipe not found!" });
     res.status(200).json(recipe);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error fetching recipe' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Update a recipe by ID
-const updateRecipeById = async (req, res) => {
-  const { id } = req.params;
-  const { name, ingredients, instructions, category, preparationTime } = req.body;
+// ✅ Get recipes by cuisine (includes steps)
+exports.getRecipesByCuisine = async (req, res) => {
+  try {
+    const recipes = await Recipe.find({ cuisine: req.params.cuisine });
+    res.status(200).json(recipes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
+// ✅ Get recipes by max cooking time (includes steps)
+exports.getRecipesByTime = async (req, res) => {
+  try {
+    const recipes = await Recipe.find({
+      timeToCook: { $lte: req.params.minutes },
+    });
+    res.status(200).json(recipes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ Get recipes sorted by date created (latest first, includes steps)
+exports.getRecipesSortedByDate = async (req, res) => {
+  try {
+    const recipes = await Recipe.find().sort({ createdAt: -1 });
+    res.status(200).json(recipes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ Delete a recipe by ID
+exports.deleteRecipe = async (req, res) => {
+  try {
+    const deletedRecipe = await Recipe.findByIdAndDelete(req.params.id);
+    if (!deletedRecipe)
+      return res.status(404).json({ message: "Recipe not found!" });
+    res.status(200).json({ message: "Recipe deleted successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ Update a recipe (includes updating steps)
+exports.updateRecipe = async (req, res) => {
   try {
     const updatedRecipe = await Recipe.findByIdAndUpdate(
-      id,
-      { name, ingredients, instructions, category, preparationTime },
-      { new: true } 
+      req.params.id,
+      req.body,
+      { new: true }
     );
-
-    if (!updatedRecipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
-    }
-
-    res.status(200).json(updatedRecipe);
+    if (!updatedRecipe)
+      return res.status(404).json({ message: "Recipe not found!" });
+    res
+      .status(200)
+      .json({ message: "Recipe updated successfully!", recipe: updatedRecipe });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error updating recipe' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Delete a recipe by ID
-const deleteRecipeById = async (req, res) => {
-  const { id } = req.params;
-
+// ✅ Get recipes based on available ingredients (includes steps)
+exports.getRecipesByIngredients = async (req, res) => {
   try {
-    const deletedRecipe = await Recipe.findByIdAndDelete(id);
-    if (!deletedRecipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
-    }
-
-    res.status(200).json({ message: 'Recipe deleted successfully' });
+    const ingredientsList = req.query.ingredients.split(",");
+    const recipes = await Recipe.find({
+      "ingredients.ingredientName": { $in: ingredientsList },
+    });
+    res.status(200).json(recipes);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error deleting recipe' });
+    res.status(500).json({ error: error.message });
   }
-};
-
-module.exports = {
-  createRecipe,
-  getAllRecipes,
-  getRecipeById,
-  updateRecipeById,
-  deleteRecipeById,
 };

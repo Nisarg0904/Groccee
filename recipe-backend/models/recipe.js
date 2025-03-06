@@ -1,37 +1,32 @@
-const mongoose = require('mongoose');
-const { INTEGER } = require('sequelize');
+const mongoose = require("mongoose");
 
-const recipeSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+const RecipeSchema = new mongoose.Schema(
+  {
+    recipeId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    ingredients: [
+      {
+        ingredientName: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        unit: { type: String, required: true },
+      },
+    ],
+    cuisine: { type: String, required: true },
+    timeToCook: { type: Number, required: true }, // Time in minutes
+    servings: { type: Number, required: true }, // Number of people it serves
+    allergies: [
+      {
+        allergen: { type: String, required: true }, // Name of allergen (e.g., "Peanuts")
+        severity: {
+          type: String,
+          enum: ["Mild", "Moderate", "Severe"],
+          default: "Mild",
+        }, // Severity level
+      },
+    ], // List of allergens as objects
   },
-  ingredients: [
-    {
-      name: { type: String, required: true },
-      quantity: { type: String, required: true },
-    },
-  ],
-  instructions: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'],
-  },
-  preparationTime: {
-    type: Number, // In minutes
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  user_id:{
-    type: Number,
-    required:true,
-  }
-});
+  { timestamps: true }
+);
 
-module.exports = mongoose.model('Recipe', recipeSchema);
+module.exports = mongoose.model("Recipe", RecipeSchema);
