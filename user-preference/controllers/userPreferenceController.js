@@ -1,166 +1,111 @@
-const UserPreference = require('../models/userPreference');
-const { validateUserId, validateItemId, validateRecipeId } = require('../utils/apiHelper');
+require("dotenv").config();
+const axios = require('axios');
+const UserPreference = require("../models/userPreference");
 
-// Create a new User Preference
-async function createUserPreference(req, res) {
-    try {
-      const preference = req.body;
-  
-      // Destructure all fields from the request body
-      const { 
-        userId, 
-        likedItemId, 
-        dislikedItemId, 
-        mostCookedRecipeId, 
-        interactionFrequency, 
-        itemCategory 
-      } = preference;
-  
-      // Validate User ID (PostgreSQL)
-      const userValid = await validateUserId(userId);
-      if (!userValid) throw new Error('Invalid userId: User does not exist.');
-  
-      // Validate likedItemId (MongoDB)
-      const likedItemValid = likedItemId ? await validateItemId(likedItemId) : true;
-      if (!likedItemValid) throw new Error('Invalid likedItemId: Item does not exist.');
-  
-      // Validate dislikedItemId (MongoDB)
-      const dislikedItemValid = dislikedItemId ? await validateItemId(dislikedItemId) : true;
-      if (!dislikedItemValid) throw new Error('Invalid dislikedItemId: Item does not exist.');
-  
-      // Validate mostCookedRecipeId (MongoDB)
-      const recipeValid = mostCookedRecipeId ? await validateRecipeId(mostCookedRecipeId) : true;
-      if (!recipeValid) throw new Error('Invalid mostCookedRecipeId: Recipe does not exist.');
-  
-      // Validate interactionFrequency (Number)
-      if (interactionFrequency < 0) {
-        throw new Error('Invalid interactionFrequency: Cannot be negative.');
-      }
-  
-      // Validate itemCategory (Enum)
-      const validCategories = ['Dairy', 'Vegetables', 'Snacks', 'Grains', 'Meat', 'Other'];
-      if (itemCategory && !validCategories.includes(itemCategory)) {
-        throw new Error(`Invalid itemCategory: Must be one of ${validCategories.join(', ')}.`);
-      }
-  
-      const newPreference = new UserPreference(preference);
-      const savedPreference = await newPreference.save();
-  
-      res.status(201).json(savedPreference);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-  
+async function getRecommendation(userPurchaseHistory) {
+  // URL of your Python microservice (adjust port/path if needed)
+  const url = 'http://localhost:6000/get_recommendation';
 
-// Get all User Preferences
-async function getAllUserPreferences(req, res) {
   try {
-    const preferences = await UserPreference.find();
-    res.status(200).json(preferences);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Pass the purchaseHistory as JSON to the Python service
+    const response = await axios.post(url, { purchaseHistory: userPurchaseHistory }, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 120000 // 30 seconds timeout, adjust if needed
+    });
+    console.log("Received recommendation from Python service:", response.data);
+    
+    // Assuming your Python service returns { recommendation: "..." }
+    return response.data.recommendation;
+  } catch (err) {
+    console.error("Error fetching recommendation from Python service:", err.response ? err.response.data : err.message);
+    throw err;
   }
 }
 
-// Get a single User Preference by ID
-async function getUserPreferenceById(req, res) {
-  try {
-    const { id } = req.params;
+async function createOrUpdatePreference(req, res) {
+  const {
+    user_id,
+    item_id,
+    packaging_unit,
+    purchaseHistory,
+    totalBought,
+    wasteHistory,
+    totalWasted,
+    preferenceScore,
+  } = req.body;
 
-    const preference = await UserPreference.findById(id);
+  try {
+    const preference = await UserPreference.findOneAndUpdate(
+      { user_id, item_id, packaging_unit },
+      {
+        purchaseHistory,
+        totalBought,
+        wasteHistory,
+        totalWasted,
+        preferenceScore,
+      },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json(preference);
+  } catch (error) {
+    console.error('Error in createOrUpdatePreference:', error.message);
+    res.status(400).json({ message: error.message });
+  }
+}
+
+async function getUserPreference(req, res) {
+  const { user_id, item_id, packaging_unit } = req.params;
+
+  try {
+    const preference = await UserPreference.findOne({
+      user_id,
+      item_id,
+      packaging_unit,
+    });
+
     if (!preference) {
-      return res.status(404).json({ error: 'User Preference not found' });
+      return res.status(404).json({ message: "User preference not found" });
     }
 
     res.status(200).json(preference);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error in getUserPreference:', error.message);
+    res.status(500).json({ message: error.message });
   }
 }
 
-// Update a User Preference by ID
-async function updateUserPreference(req, res) {
-    try {
-      const { id } = req.params; 
-      const updates = req.body; 
-  
-      const {
-        userId,
-        likedItemId,
-        dislikedItemId,
-        mostCookedRecipeId,
-        interactionFrequency,
-        itemCategory,
-      } = updates;
-  
+async function getUserPreferences(req, res) {
+  const { user_id } = req.params;
 
-      if (userId) {
-        const userValid = await validateUserId(userId);
-        if (!userValid) throw new Error('Invalid userId: User does not exist.');
-      }
-  
-      if (likedItemId) {
-        const likedItemValid = await validateItemId(likedItemId);
-        if (!likedItemValid) throw new Error('Invalid likedItemId: Item does not exist.');
-      }
-  
-      if (dislikedItemId) {
-        const dislikedItemValid = await validateItemId(dislikedItemId);
-        if (!dislikedItemValid) throw new Error('Invalid dislikedItemId: Item does not exist.');
-      }
-  
-      if (mostCookedRecipeId) {
-        const recipeValid = await validateRecipeId(mostCookedRecipeId);
-        if (!recipeValid) throw new Error('Invalid mostCookedRecipeId: Recipe does not exist.');
-      }
-  
-      if (interactionFrequency !== undefined) {
-        if (interactionFrequency < 0) {
-          throw new Error('Invalid interactionFrequency: Cannot be negative.');
-        }
-      }
-  
-      if (itemCategory) {
-        const validCategories = ['Dairy', 'Vegetables', 'Snacks', 'Grains', 'Meat', 'Other'];
-        if (!validCategories.includes(itemCategory)) {
-          throw new Error(`Invalid itemCategory: Must be one of ${validCategories.join(', ')}.`);
-        }
-      }
-  
-      // Perform the update in MongoDB
-      const updatedPreference = await UserPreference.findByIdAndUpdate(id, updates, { new: true });
-      if (!updatedPreference) {
-        return res.status(404).json({ error: 'User Preference not found' });
-      }
-  
-      res.status(200).json(updatedPreference); 
-    } catch (error) {
-      res.status(400).json({ error: error.message }); 
-    }
-  }
-  
-
-// Delete a User Preference by ID
-async function deleteUserPreference(req, res) {
   try {
-    const { id } = req.params;
+    const preferences = await UserPreference.find({ user_id });
+    res.status(200).json(preferences);
+  } catch (error) {
+    console.error('Error in getUserPreferences:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+}
 
-    const deletedPreference = await UserPreference.findByIdAndDelete(id);
-    if (!deletedPreference) {
-      return res.status(404).json({ error: 'User Preference not found' });
+async function getRecommendationEndpoint(req, res) {
+  try {
+    const { purchaseHistory } = req.body;
+    if (!purchaseHistory) {
+      return res.status(400).json({ message: "Missing purchaseHistory in request body" });
     }
 
-    res.status(200).json({ message: 'User Preference deleted successfully' });
+    const recommendation = await getRecommendation(purchaseHistory);
+    res.status(200).json({ recommendation });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error generating recommendation:", error.message);
+    res.status(500).json({ message: "Failed to generate recommendation" });
   }
 }
 
 module.exports = {
-  createUserPreference,
-  getAllUserPreferences,
-  getUserPreferenceById,
-  updateUserPreference,
-  deleteUserPreference,
+  createOrUpdatePreference,
+  getUserPreference,
+  getUserPreferences,
+  getRecommendationEndpoint,
+  getRecommendation,
 };
