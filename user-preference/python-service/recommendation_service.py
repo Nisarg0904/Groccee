@@ -15,10 +15,8 @@ def get_recommendation():
     data = request.get_json()
     purchase_history = data.get('purchaseHistory', [])
     
-    # Convert the purchase history to a nicely formatted JSON string
     purchase_history_str = json.dumps(purchase_history, indent=2)
     
-    # Build the prompt with the purchase history and instructions for analysis
     prompt = (
         f"User purchase history (in JSON):\n{purchase_history_str}\n\n"
         "Analyze the user's buying habits based on the above data. "

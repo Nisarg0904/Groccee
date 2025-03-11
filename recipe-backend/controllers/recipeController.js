@@ -1,104 +1,79 @@
-const Recipe = require('../models/recipe'); 
-const { validateUser } = require('../utils/apiHelper'); 
+// controllers/recipeController.js
+require("dotenv").config(); // Ensure environment variables are loaded
+const axios = require("axios");
+const moment = require("moment");
+const Recipe = require("../models/recipe"); // Mongoose model
 
-// Create a new recipe
-const createRecipe = async (req, res) => {
-  const { user_id, name, ingredients, instructions, category, preparationTime } = req.body;
-
+async function generateRecipes(req, res) {
   try {
-    const isValidUser = await validateUser(user_id);
-    if (!isValidUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Auth middleware should have set req.user and the JWT token is in the header
+    const userId = req.user.id;
+    const token = req.header("Authorization");
 
-    const recipe = new Recipe({
-      user_id,
-      name,
-      ingredients,
-      instructions,
-      category,
-      preparationTime,
+    // 1) Fetch grocery data from the grocery microservice using the env URL
+    const groceryUrl = `${process.env.GROCERYITEM_BACKEND_URL}/api/groceryitems`;
+    const groceryResponse = await axios.get(groceryUrl, {
+      headers: { Authorization: token },
+    });
+    const groceryItems = groceryResponse.data; 
+
+    // 2) Filter items (those expiring in 2-3 days)
+    const today = moment();
+    const relevantItems = groceryItems.filter(item => {
+      if (!item.expiry_date) return false; 
+      const expiry = moment(item.expiry_date, "YYYY-MM-DD");
+      const daysToExpiry = expiry.diff(today, "days");
+      return daysToExpiry >= 2 && daysToExpiry <= 3;
     });
 
-    const savedRecipe = await recipe.save();
-    res.status(201).json(savedRecipe);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error creating recipe' });
-  }
-};
+    // 3) Send both expiring and all grocery items to your Python ML service
+    const pythonUrl = "http://localhost:6001/generate-recipes";
+    const pythonResponse = await axios.post(pythonUrl, { 
+      expiringGroceries: relevantItems,
+      allGroceries: groceryItems
+    });
+    const recommendedRecipes = pythonResponse.data;
 
-// Get all recipes
-const getAllRecipes = async (req, res) => {
-  try {
-    const recipes = await Recipe.find();
-    res.status(200).json(recipes);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error fetching recipes' });
-  }
-};
-
-// Get a single recipe by ID
-const getRecipeById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const recipe = await Recipe.findById(id);
-    if (!recipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
-    }
-    res.status(200).json(recipe);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error fetching recipe' });
-  }
-};
-
-// Update a recipe by ID
-const updateRecipeById = async (req, res) => {
-  const { id } = req.params;
-  const { name, ingredients, instructions, category, preparationTime } = req.body;
-
-  try {
-    const updatedRecipe = await Recipe.findByIdAndUpdate(
-      id,
-      { name, ingredients, instructions, category, preparationTime },
-      { new: true } 
-    );
-
-    if (!updatedRecipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
+    // 4) Save recommended recipes in MongoDB using the Recipe schema
+    const savedRecipes = [];
+    for (const recipeData of recommendedRecipes) {
+      let recipe = await Recipe.findOne({ recipeId: recipeData.recipeId });
+      if (recipe) {
+        // Update the existing recipe
+        recipe.name = recipeData.name;
+        recipe.description = recipeData.description;
+        recipe.ingredients = recipeData.ingredients;
+        recipe.cuisine = recipeData.cuisine;
+        recipe.timeToCook = recipeData.timeToCook;
+        recipe.servings = recipeData.servings;
+        recipe.allergies = recipeData.allergies;
+        await recipe.save();
+      } else {
+        // Create a new recipe if it doesn't exist
+        recipe = new Recipe({
+          recipeId: recipeData.recipeId,
+          name: recipeData.name,
+          description: recipeData.description,
+          ingredients: recipeData.ingredients,
+          cuisine: recipeData.cuisine,
+          timeToCook: recipeData.timeToCook,
+          servings: recipeData.servings,
+          allergies: recipeData.allergies,
+        });
+        await recipe.save();
+      }
+      savedRecipes.push(recipe);
     }
 
-    res.status(200).json(updatedRecipe);
+    // 5) Return the saved recipes to the client
+    return res.status(200).json({
+      message: "Recipes generated successfully",
+      recipes: savedRecipes,
+    });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error updating recipe' });
+    console.error("Error generating recipes:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-};
+}
 
-// Delete a recipe by ID
-const deleteRecipeById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const deletedRecipe = await Recipe.findByIdAndDelete(id);
-    if (!deletedRecipe) {
-      return res.status(404).json({ message: 'Recipe not found' });
-    }
-
-    res.status(200).json({ message: 'Recipe deleted successfully' });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Error deleting recipe' });
-  }
-};
-
-module.exports = {
-  createRecipe,
-  getAllRecipes,
-  getRecipeById,
-  updateRecipeById,
-  deleteRecipeById,
-};
+module.exports = { generateRecipes };

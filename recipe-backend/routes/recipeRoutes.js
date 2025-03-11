@@ -1,12 +1,10 @@
-const express = require('express');
+// routes/recipeRoutes.js
+const express = require("express");
 const router = express.Router();
-const recipeController = require('../controllers/recipeController'); 
+const { generateRecipes } = require("../controllers/recipeController");
+const authenticateToken = require("../middleware/authMiddleware"); // Adjust path as needed
 
-
-router.post('/', recipeController.createRecipe);
-router.get('/', recipeController.getAllRecipes);
-router.get('/:id', recipeController.getRecipeById);
-router.put('/:id', recipeController.updateRecipeById);
-router.delete('/:id', recipeController.deleteRecipeById);
+// POST /recipes/generate - Endpoint to generate recipes based on filtered grocery items
+router.post("/generate", authenticateToken, generateRecipes);
 
 module.exports = router;
