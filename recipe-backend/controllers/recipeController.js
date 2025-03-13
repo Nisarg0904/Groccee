@@ -15,22 +15,26 @@ async function generateRecipes(req, res) {
     const groceryResponse = await axios.get(groceryUrl, {
       headers: { Authorization: token },
     });
-    const groceryItems = groceryResponse.data; 
+    const allGroceryItems = groceryResponse.data;
 
-    // 2) Filter items (those expiring in 2-3 days)
+    // Filter out used items for both collections
+    const unusedItems = allGroceryItems.filter(item => item.status !== 'used');
+
+    // Further filter unused items expiring in 2-3 days
     const today = moment();
-    const relevantItems = groceryItems.filter(item => {
-      if (!item.expiry_date) return false; 
+    const relevantItems = unusedItems.filter(item => {
+      if (!item.expiry_date) return false;
       const expiry = moment(item.expiry_date, "YYYY-MM-DD");
       const daysToExpiry = expiry.diff(today, "days");
       return daysToExpiry >= 2 && daysToExpiry <= 3;
     });
 
-    // 3) Send both expiring and all grocery items to your Python ML service
+    // Send both expiring and all UNUSED grocery items to your Python ML service
+    // This is the fix - sending only unusedItems instead of all groceryItems
     const pythonUrl = "http://localhost:6001/generate-recipes";
     const pythonResponse = await axios.post(pythonUrl, { 
       expiringGroceries: relevantItems,
-      allGroceries: groceryItems
+      allGroceries: unusedItems // Changed from groceryItems to unusedItems
     });
     const recommendedRecipes = pythonResponse.data;
 
@@ -76,4 +80,17 @@ async function generateRecipes(req, res) {
   }
 }
 
-module.exports = { generateRecipes };
+async function getAllRecipes(req, res) {
+  try {
+    const recipes = await Recipe.find();
+    return res.status(200).json({
+      message: "Recipes retrieved successfully",
+      recipes
+    });
+  } catch (error) {
+    console.error("Error retrieving recipes:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+module.exports = { generateRecipes, getAllRecipes };

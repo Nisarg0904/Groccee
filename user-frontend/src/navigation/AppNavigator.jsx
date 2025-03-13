@@ -21,6 +21,8 @@ import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
 import AddShoppingListItemsPage from "../screens/Shopping/AddShoppingListItemPage";
 import ShoppingListItemsPage from "../screens/Shopping/ViewShoppingListItems";
 
+import RecipeListingScreen from "../screens/Recipe/RecipeListingPage";
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -61,11 +63,19 @@ const HomeStack = () => (
         ),
       })}
     />
+    <Stack.Screen 
+      name="RecipeList" 
+      component={RecipeListingScreen}
+      options={{
+        headerShown: false
+      }}
+    />
     <Stack.Screen name="Profile" component={ProfilePage} />
     <Stack.Screen name="EditProfilePage" component={EditProfilePage} />
     <Stack.Screen name="Notifications" component={NotificationsPage} />
   </Stack.Navigator>
 );
+
 const InventoryStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="InventoryScreen" component={InventoryPage} />

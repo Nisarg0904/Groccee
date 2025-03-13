@@ -50,6 +50,12 @@ const globalItemAPI = axios.create({
     "Content-Type": "application/json",
   },
 });
+const recipeAPI = axios.create({
+  baseURL: "http://10.0.2.2:5007/api", // Update with correct port if needed
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 export {
   userAPI,
@@ -59,4 +65,5 @@ export {
   shoppingItemAPI,
   wastageAPI,
   globalItemAPI,
+  recipeAPI,
 };

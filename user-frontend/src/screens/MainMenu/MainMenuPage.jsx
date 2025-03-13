@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 // For grocery analytics we are using a pie chart from react-native-chart-kit.
 // Ensure you have installed both "react-native-chart-kit" and "react-native-svg".
@@ -14,6 +15,7 @@ import { PieChart } from "react-native-chart-kit";
 // Import MaterialCommunityIcons from Expo vector icons
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { UserContext } from "../../contexts/UserContext";
+import { getUserProfile } from "../../services/userApi";
 import styles from "../../styles/MainMenuPageStyles";
 
 const { width } = Dimensions.get("window");
@@ -26,17 +28,15 @@ const carouselSpacing = width * 0.05;
 const SectionHeader = ({ iconName, title }) => {
   return (
     <View style={styles.sectionHeaderContainer}>
-      <View style={styles.sectionHeaderOverlay} />
       <View style={styles.sectionHeaderContent}>
         <MaterialCommunityIcons
           name={iconName}
-          size={28}
-          color="#007BFF"
+          size={24}
+          color="#FF4141"
           style={styles.sectionHeaderIcon}
         />
         <Text style={styles.sectionHeaderText}>{title}</Text>
       </View>
-      <View style={styles.sectionHeaderDivider} />
     </View>
   );
 };
@@ -185,41 +185,162 @@ const getItemIconName = (itemName) => {
   return "food";
 };
 
+// Sample data for categories
+const categories = [
+  {
+    id: '1',
+    name: 'Fruits',
+    count: 12,
+    icon: 'fruit-watermelon',
+    color: '#FF8A65'
+  },
+  {
+    id: '2',
+    name: 'Vegetables',
+    count: 8,
+    icon: 'carrot',
+    color: '#66BB6A'
+  },
+  {
+    id: '3',
+    name: 'Dairy',
+    count: 6,
+    icon: 'cheese',
+    color: '#42A5F5'
+  },
+  {
+    id: '4',
+    name: 'Meat',
+    count: 4,
+    icon: 'food-steak',
+    color: '#EF5350'
+  },
+  {
+    id: '5',
+    name: 'Bakery',
+    count: 5,
+    icon: 'bread-slice',
+    color: '#FFA726'
+  }
+];
+
+// Sample data for recent items
+const recentItems = [
+  {
+    id: '1',
+    name: 'Organic Milk',
+    quantity: 1,
+    unit: 'gallon',
+    imageUrl: 'https://example.com/milk.jpg',
+    category: 'Dairy'
+  },
+  {
+    id: '2',
+    name: 'Bananas',
+    quantity: 6,
+    unit: 'pcs',
+    imageUrl: 'https://example.com/bananas.jpg',
+    category: 'Fruits'
+  },
+  {
+    id: '3',
+    name: 'Ground Beef',
+    quantity: 1,
+    unit: 'lb',
+    imageUrl: 'https://example.com/beef.jpg',
+    category: 'Meat'
+  }
+];
+
+// Sample data for shopping list items
+const shoppingItems = [
+  { id: '1', name: 'Milk', quantity: 1, category: 'Dairy', isChecked: false },
+  { id: '2', name: 'Eggs', quantity: 12, category: 'Dairy', isChecked: true },
+  { id: '3', name: 'Bread', quantity: 2, category: 'Bakery', isChecked: false },
+  { id: '4', name: 'Apples', quantity: 6, category: 'Fruits', isChecked: false },
+];
+
+// Sample data for insights
+const insights = [
+  {
+    id: '1',
+    title: 'Usage Trend',
+    text: 'You\'re using more milk than usual this week.',
+    icon: 'chart-line',
+    color: '#FF4141'
+  },
+  {
+    id: '2',
+    title: 'Suggested Purchase',
+    text: 'You might run out of eggs soon based on your usage pattern.',
+    icon: 'alert-circle-outline',
+    color: '#FF4141'
+  }
+];
+
+// Sample data for expiring items
+const expiringItems = [
+  { id: "1", item: "Milk", expiry: "2023-11-05", quantity: 2 },
+  { id: "2", item: "Eggs", expiry: "2023-11-06", quantity: 12 },
+  { id: "3", item: "Bread", expiry: "2023-11-04", quantity: 1 },
+];
+
 const MainMenuPage = ({ navigation, route }) => {
-  const { setCurrentUser } = useContext(UserContext);
+  const { currentUser, token, setCurrentUser } = useContext(UserContext);
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userStats, setUserStats] = useState({
+    totalItems: 36,
+    expiringItems: 3,
+    shoppingItems: 8
+  });
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    navigation.navigate("SignIn");
-  };
+  // Fetch user profile data when component mounts
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (token) {
+        try {
+          setLoading(true);
+          const profileData = await getUserProfile(token);
+          setUserDetails(profileData);
+          
+          // In a real app, you would fetch these stats from your API
+          // This is a placeholder for demonstration
+          setUserStats({
+            totalItems: 36,
+            expiringItems: expiringItems.length,
+            shoppingItems: 8
+          });
+          
+          setError(null);
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
+          setError("Failed to load user data. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
 
-  // Dummy data for Recent Last Meal Carousel using local assets
-  const mealData = [
-    {
-      id: "1",
-      imageUri: require("../../../assets/meal01.webp"),
-    },
-    {
-      id: "2",
-      imageUri: require("../../../assets/meal02.webp"),
-    },
-    {
-      id: "3",
-      imageUri: require("../../../assets/meal03.webp"),
-    },
-  ];
+    fetchUserProfile();
+  }, [token]);
 
-  // Dummy data for Latest Expiring Items
-  const expiringItems = [
-    { id: "1", item: "Milk", expiry: "2023-11-05", quantity: 2 },
-    { id: "2", item: "Eggs", expiry: "2023-11-06", quantity: 12 },
-    { id: "3", item: "Bread", expiry: "2023-11-04", quantity: 1 },
-  ];
+  const [scaleAnim] = useState(new Animated.Value(1));
 
-  // Expense Section State – controls whether the breakdown is shown
-  const [isExpenseExpanded, setIsExpenseExpanded] = useState(false);
-  const handleToggleExpense = () => {
-    setIsExpenseExpanded(!isExpenseExpanded);
+  const handleItemPress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true
+      })
+    ]).start();
   };
 
   // Helper to calculate days remaining from the expiry date
@@ -230,143 +351,220 @@ const MainMenuPage = ({ navigation, route }) => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Render a single meal item for the carousel
-  const renderMealItem = (meal) => (
-    <View
-      key={meal.id}
-      style={[
-        styles.carouselItem,
-        { width: carouselItemWidth, marginHorizontal: carouselSpacing / 2 },
-      ]}
-    >
-      <Image
-        source={meal.imageUri}
-        style={styles.carouselImage}
-        resizeMode="cover" // Use cover so it fills the container
-      />
-      <TouchableOpacity
-        style={styles.carouselButton}
-        onPress={() => navigation.navigate("MealDetail", { meal })}
-      >
-        <Text style={styles.carouselButtonText}>Know More</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF4141" />
+        <Text style={styles.loadingText}>Loading your data...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {/* <Text style={styles.title}>Home</Text>/ */}
-
-      {/* Recent Last Meal Carousel */}
-      <View style={styles.sectionContainer}>
-        <SectionHeader
-          iconName="silverware-fork-knife"
-          title="Discover Featured Flavors"
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={carouselItemWidth + carouselSpacing}
-          contentContainerStyle={styles.carouselContainer}
+    <View style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.headerContainer}>
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greeting}>
+            {getGreeting()}, {currentUser?.firstName || "User"}
+          </Text>
+          {userDetails?.email && (
+            <Text style={styles.emailText}>{userDetails.email}</Text>
+          )}
+        </View>
+        <TouchableOpacity 
+          style={styles.profileAvatar} 
+          onPress={() => navigation.navigate('Profile')}
         >
-          {mealData.map((meal) => renderMealItem(meal))}
-        </ScrollView>
+          <Image 
+            source={require('../../../assets/profile.png')} 
+            style={styles.avatarImage} 
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Latest Expiring Items Section (Card-based with icons) */}
-      <View style={styles.sectionContainer}>
-        <SectionHeader
-          iconName="calendar-alert"
-          title="Latest Expiring Items"
-        />
-        {expiringItems.map((item) => {
-          const daysRemaining = calculateDaysRemaining(item.expiry);
-          const urgencyColor =
-            daysRemaining <= 1
-              ? "#F44336" // red
-              : daysRemaining <= 3
-              ? "#FFC107" // amber
-              : "#4CAF50"; // green
-          const iconName = getItemIconName(item.item);
-          return (
-            <View
-              key={item.id}
-              style={[
-                styles.expiringItemCard,
-                { borderLeftColor: urgencyColor },
-              ]}
-            >
-              <View style={styles.expiringItemRow}>
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={24}
-                  color={urgencyColor}
-                  style={styles.expiringItemIcon}
+      {/* Error message if any */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
+      {/* Quick Info Content */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Summary Card */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>My Pantry</Text>
+          <Text style={styles.summaryCount}>You have {userStats.totalItems} items in stock</Text>
+          <TouchableOpacity 
+            style={styles.viewAllButton} 
+            onPress={() => navigation.navigate('Inventory')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.viewAllButtonText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Categories Section */}
+        <View style={styles.sectionContainer}>
+          <SectionHeader iconName="shape" title="Categories" />
+          <ScrollView 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContainer}
+          >
+            {categories.map(category => (
+              <TouchableOpacity 
+                key={category.id}
+                style={[styles.categoryCard, { backgroundColor: category.color }]}
+                onPress={() => navigation.navigate('InventoryScreen', { category: category.name })}
+                activeOpacity={0.9}
+              >
+                <MaterialCommunityIcons 
+                  name={category.icon} 
+                  size={28} 
+                  color="#FFFFFF" 
+                  style={styles.categoryIcon} 
                 />
+                <Text style={styles.categoryName}>{category.name}</Text>
+                <Text style={styles.categoryCount}>{category.count} items</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Latest Expiring Items Section */}
+        <View style={styles.sectionContainer}>
+          <SectionHeader iconName="calendar-alert" title="Expiring Soon" />
+          {expiringItems.map((item) => {
+            const daysRemaining = calculateDaysRemaining(item.expiry);
+            const urgencyColor =
+              daysRemaining <= 1
+                ? "#F44336" // red
+                : daysRemaining <= 3
+                ? "#FFC107" // amber
+                : "#4CAF50"; // green
+            const iconName = getItemIconName(item.item);
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.expiringItemCard}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('InventoryScreen')}
+              >
+                <View style={styles.expiringItemIcon}>
+                  <MaterialCommunityIcons
+                    name={iconName}
+                    size={24}
+                    color={urgencyColor}
+                  />
+                </View>
                 <View style={styles.expiringItemTextContainer}>
                   <Text style={styles.expiringItemName}>{item.item}</Text>
                   <Text style={styles.expiringItemExpiry}>
-                    Expiry: {item.expiry}
-                  </Text>
-                  <Text style={styles.expiringItemDays}>
-                    Days Remaining: {daysRemaining}
+                    Expires in {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
                   </Text>
                 </View>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-      {/* Expense Section */}
-      <View style={styles.sectionContainer}>
-        <SectionHeader iconName="cash-multiple" title="Latest Expenses" />
-        <View style={styles.expenseCard}>
-          <Text style={styles.expenseTotal}>
-            Total: {expenseDataToday.total}
-          </Text>
-          {isExpenseExpanded &&
-            expenseDataToday.details.map((detail) => {
-              const detailValue = parseFloat(detail.amount.replace("$", ""));
-              const totalValue = parseFloat(
-                expenseDataToday.total.replace("$", "")
-              );
-              const progress = detailValue / totalValue;
-              return (
-                <View key={detail.id} style={styles.expenseDetailRow}>
-                  <Text style={styles.expenseDetailText}>
-                    {detail.category} ({detail.amount})
-                  </Text>
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[
-                        styles.progressBar,
-                        { width: `${progress * 100}%` },
-                      ]}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-          <TouchableOpacity onPress={handleToggleExpense}>
-            <Text style={styles.expenseToggleText}>
-              {isExpenseExpanded ? "Hide Details" : "Show Details"}
-            </Text>
+        {/* Recipe Generator Section */}
+<View style={styles.sectionContainer}>
+  <SectionHeader iconName="chef-hat" title="Recipe Recommendations" />
+  
+  <TouchableOpacity 
+  activeOpacity={0.9}
+  style={styles.recipeGeneratorCard}
+  onPress={() => {
+    // Animation effect
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.97,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true
+      })
+    ]).start(() => {
+      // Navigate to recipe listing screen
+      navigation.navigate('RecipeList');
+    });
+  }}
+>
+    <Animated.View 
+      style={[
+        styles.recipeGeneratorCardContent,
+        { transform: [{ scale: scaleAnim }] }
+      ]}
+    >
+      <View style={styles.recipeGeneratorIconContainer}>
+        <MaterialCommunityIcons name="silverware-fork-knife" size={38} color="#FFFFFF" />
+      </View>
+      <View style={styles.recipeGeneratorTextContainer}>
+        <Text style={styles.recipeGeneratorTitle}>Generate Recipes</Text>
+        <Text style={styles.recipeGeneratorDescription}>
+          Get personalized recipes based on your expiring ingredients
+        </Text>
+      </View>
+      <MaterialCommunityIcons name="chevron-right" size={28} color="#FFFFFF" />
+    </Animated.View>
+  </TouchableOpacity>
+</View>
+
+        {/* Shopping List Preview */}
+        <TouchableOpacity 
+          style={styles.shoppingListPreview}
+          onPress={() => navigation.navigate('Shopping')}
+          activeOpacity={0.9}
+        >
+          <View style={styles.shoppingListIcon}>
+            <MaterialCommunityIcons name="cart" size={24} color="#FFFFFF" />
+          </View>
+          <View style={styles.shoppingListInfo}>
+            <Text style={styles.shoppingListTitle}>Weekly Shopping</Text>
+            <Text style={styles.shoppingListCount}>{userStats.shoppingItems} items remaining</Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-right" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+
+        {/* User Activity Section */}
+        <View style={styles.sectionContainer}>
+          <SectionHeader iconName="account-details" title="Your Account" />
+          <TouchableOpacity 
+            style={styles.userActionCard}
+            onPress={() => navigation.navigate('Profile')}
+            activeOpacity={0.9}
+          >
+            <MaterialCommunityIcons name="account-edit" size={24} color="#FF4141" />
+            <Text style={styles.userActionText}>Edit Profile</Text>
+            <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.userActionCard}
+            onPress={() => navigation.navigate('Notifications')}
+            activeOpacity={0.9}
+          >
+            <MaterialCommunityIcons name="bell" size={24} color="#FF4141" />
+            <Text style={styles.userActionText}>Notifications</Text>
+            <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
           </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Grocery Expense Analytics with interactive ChartSwitcher */}
-      <View style={[styles.sectionContainer, styles.chartContainer]}>
-        <SectionHeader iconName="chart-pie" title="Grocery Expense Analytics" />
-        <ChartSwitcher
-          dataSets={dataSets}
-          chartConfig={chartConfig}
-          width={width}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
