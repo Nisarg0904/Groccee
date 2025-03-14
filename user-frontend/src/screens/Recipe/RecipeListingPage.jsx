@@ -355,7 +355,7 @@ const RecipeListingScreen = ({ navigation }) => {
                       </View>
                     </>
                   )}
-                  
+{/*                   
                   <View style={styles.recipeActions}>
                     <TouchableOpacity style={styles.actionButton}>
                       <MaterialCommunityIcons name="bookmark-outline" size={20} color="#5E35B1" />
@@ -371,7 +371,7 @@ const RecipeListingScreen = ({ navigation }) => {
                       <MaterialCommunityIcons name="shopping" size={20} color="#5E35B1" />
                       <Text style={styles.actionButtonText}>Shop</Text>
                     </TouchableOpacity>
-                  </View>
+                  </View> */}
                 </Animated.View>
               ))}
             </>
