@@ -109,6 +109,28 @@ const wastageController = {
     }
   },
 
+  // Get all wastage records for a given item ID (public endpoint, no token required)
+ getAllWastageByItemIdPublic : async (req, res) => {
+  try {
+    const { item_id } = req.params;
+    if (!item_id) {
+      return res.status(400).json({ message: "Item ID is required." });
+    }
+
+    const wastageRecords = await Wastage.findAll({
+      where: { item_id },
+      order: [["wastage_date", "DESC"]]
+    });
+
+    res.status(200).json(wastageRecords);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error retrieving wastage records",
+      error: error.message,
+    });
+  }
+},
+
   // Get wastage by item ID for the authenticated user
   getWastageByItemId: async (req, res) => {
     try {

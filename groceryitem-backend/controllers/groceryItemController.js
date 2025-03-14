@@ -245,6 +245,51 @@ async function updateItemStatus(req, res) {
   }
 }
 
+
+// New method to fetch past grocery records for a given item id
+async function getPastGroceriesForItem(req, res) {
+  try {
+    const { item_id } = req.params;
+    if (!item_id) {
+      return res.status(400).json({ message: "Item id is required." });
+    }
+    
+    // Set today's date (start of day for comparison)
+    const today = moment().startOf('day').toDate();
+
+    // Retrieve past grocery records for this item:
+    // Include records where status is "used" OR the expiry_date is before today.
+    const pastGroceries = await GroceryItem.findAll({
+      where: {
+        item_id,                          // Matches the passed item id
+        user_id: req.user.id,             // Only for the authenticated user
+        [Op.or]: [
+          { status: 'used' },
+          { expiry_date: { [Op.lt]: today } }
+        ]
+      }
+    });
+
+    // Import helper methods on-demand (if not imported at the top)
+    const { getItemById, getWastageByItemIdPublic } = require("../utils/apiHelper");
+
+    // Fetch item details and wastage records using the helper methods
+    const itemDetails = await getItemById(item_id);
+    const wastageRecords = await getWastageByItemIdPublic(item_id);
+
+    // Build the response JSON model
+    const responseModel = {
+      itemDetails,
+      pastGroceries,
+      wastageRecords,
+    };
+
+    return res.status(200).json(responseModel);
+  } catch (error) {
+    console.error("Error fetching past groceries for item:", error.message);
+    return res.status(500).json({ message: "Failed to fetch past groceries for item" });
+  }
+}
 // ✅ Export all controller methods correctly
 module.exports = {
   createGroceryItem,
@@ -253,5 +298,6 @@ module.exports = {
   updateGroceryItem,
   deleteGroceryItem,
   getGroceriesByStatus, // ✅ Handles expired, expiring, active, fresh
-  updateItemStatus, // ✅ Now correctly included in exports
+  updateItemStatus,
+  getPastGroceriesForItem, // ✅ Now correctly included in exports
 };

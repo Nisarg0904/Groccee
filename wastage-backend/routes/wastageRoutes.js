@@ -25,7 +25,7 @@ router.get('/item/:item_id', wastageController.getWastageByItemId);
 // Get wastage by date
 router.get('/date/:date', wastageController.getWastageByDate);
 
-
+router.get('/all/:item_id',wastageController.getAllWastageByItemIdPublic);
 
 // Get wastage by category
 router.get('/category/:category', wastageController.getWastageByCategory);

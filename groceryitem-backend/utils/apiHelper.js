@@ -6,43 +6,40 @@ const ITEM_BACKEND_URL =
   process.env.ITEM_BACKEND_URL || "http://localhost:5006";
 const SHOPPING_LIST_BACKEND_URL =
   process.env.SHOPPING_LIST_BACKEND_URL || "http://localhost:5002";
+const WASTAGE_BACKEND_URL =
+  process.env.WASTAGE_BACKEND_URL || "http://localhost:5003"; // Change to your actual wastage service URL
 
+/**
+ * Push expired items to wastage database.
+ * @param {object} item - The expired item data.
+ * @param {string} token - Authorization token.
+ */
+async function addWastage(item, token) {
+  try {
+    const response = await axios.post(
+      `${WASTAGE_BACKEND_URL}/api/wastage`,
+      {
+        item_id: item.item_id,
+        item_name: item.name,
+        item_unit: item.unit,
+        wasted_quantity: item.available_quantity, // Since it's expired, consider all as wasted
+        wastage_date: new Date().toISOString(),
+        reason_for_waste: "Expired",
+        category: item.category,
+        wasted_money: item.price_per_unit * item.available_quantity, // Assuming item has a price_per_unit field
+        user_id: item.user_id,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-  const WASTAGE_BACKEND_URL =
-    process.env.WASTAGE_BACKEND_URL || "http://localhost:5003"; // Change to your actual wastage service URL
-
-  /**
-   * Push expired items to wastage database.
-   * @param {object} item - The expired item data.
-   * @param {string} token - Authorization token.
-   */
-  async function addWastage(item, token) {
-    try {
-      const response = await axios.post(
-        `${WASTAGE_BACKEND_URL}/api/wastage`,
-        {
-          item_id: item.item_id,
-          item_name: item.name,
-          item_unit: item.unit,
-          wasted_quantity: item.available_quantity, // Since it's expired, consider all as wasted
-          wastage_date: new Date().toISOString(),
-          reason_for_waste: "Expired",
-          category: item.category,
-          wasted_money: item.price_per_unit * item.available_quantity, // Assuming item has a price_per_unit field
-          user_id: item.user_id,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      console.log("✅ Expired item pushed to wastage:", response.data);
-    } catch (error) {
-      console.error(
-        "❌ Error adding wastage:",
-        error.response?.data || error.message
-      );
-    }
+    console.log("✅ Expired item pushed to wastage:", response.data);
+  } catch (error) {
+    console.error(
+      "❌ Error adding wastage:",
+      error.response?.data || error.message
+    );
   }
-
+}
 
 /**
  * Validate or create an item and its packaging.
@@ -173,4 +170,51 @@ async function updatePackagingMetrics(
   }
 }
 
-module.exports = { validateItem, updateUserItem, updatePackagingMetrics,addWastage };
+/**
+ * Get all wastage records for a given item ID (public endpoint, no token required).
+ * @param {string} itemId - The ID of the item.
+ * @returns {object} - The wastage records.
+ */
+async function getWastageByItemIdPublic(itemId) {
+  try {
+    const response = await axios.get(
+      `${WASTAGE_BACKEND_URL}/api/wastage/all/${itemId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ Error fetching wastage records by item id:",
+      error.response?.data || error.message
+    );
+    throw new Error("Failed to fetch wastage records by item id.");
+  }
+}
+
+/**
+ * Get item details by item ID (public endpoint, no token required).
+ * @param {string} itemId - The ID of the item.
+ * @returns {object} - The item details.
+ */
+async function getItemById(itemId) {
+  try {
+    const response = await axios.get(
+      `${ITEM_BACKEND_URL}/api/items/by-id/${itemId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ Error fetching item by id:",
+      error.response?.data || error.message
+    );
+    throw new Error("Failed to fetch item by id.");
+  }
+}
+
+module.exports = {
+  validateItem,
+  updateUserItem,
+  updatePackagingMetrics,
+  addWastage,
+  getWastageByItemIdPublic,
+  getItemById,
+};
