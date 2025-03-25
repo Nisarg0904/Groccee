@@ -17,7 +17,7 @@ const WASTAGE_BACKEND_URL =
 async function addWastage(item, token) {
   try {
     const response = await axios.post(
-      `${WASTAGE_BACKEND_URL}/api/wastage`,
+      `${WASTAGE_BACKEND_URL}/api/wastage/system`,
       {
         item_id: item.item_id,
         item_name: item.name,

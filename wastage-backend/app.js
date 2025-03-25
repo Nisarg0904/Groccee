@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require("express");
 const wastageDB = require("./config/wastage_db");  
 const wastageRoutes = require("./routes/wastageRoutes");
+const publicWastageRoutes= require("./routes/publicWastageRoutes");
 const cron = require("node-cron");
 // Import the function
 const moveExpiredItemsToWastage = require("./utils/trackExpiry");
@@ -37,6 +38,7 @@ wastageDB
   .catch((err) => console.error("❌ Error syncing Wastage table:", err));
 
 wastageDB.options.logging = console.log;
+app.use("/api/wastage", publicWastageRoutes);
 
 // Routes
 app.use("/api/wastage", wastageRoutes);

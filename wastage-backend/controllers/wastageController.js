@@ -4,6 +4,74 @@ const { Op } = require("sequelize");
 const sequelize = require("sequelize");
 
 const wastageController = {
+
+
+   createWastagePublic : async (req, res) => {
+  try {
+    const {
+      user_id,
+      item_id,
+      item_name,
+      item_unit,
+      wasted_quantity,
+      wastage_date,
+      reason_for_waste,
+      category,
+      wasted_money,
+    } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    const newWastage = await Wastage.create({
+      user_id,
+      item_id,
+      item_name,
+      item_unit,
+      wasted_quantity,
+      wastage_date,
+      reason_for_waste,
+      category,
+      wasted_money,
+    });
+
+    res.status(201).json({ message: "Wastage record created", data: newWastage });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error creating wastage record",
+      error: error.message,
+    });
+  }
+},
+
+/**
+ * Public endpoint to get all wastage records for a given item ID.
+ * No token is required.
+ */
+ getAllWastageByItemIdPublic : async (req, res) => {
+  try {
+    const { item_id } = req.params;
+    if (!item_id) {
+      return res.status(400).json({ message: "Item ID is required." });
+    }
+
+    const wastageRecords = await Wastage.findAll({
+      where: { item_id },
+      order: [["wastage_date", "DESC"]],
+    });
+
+    res.status(200).json(wastageRecords);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error retrieving wastage records",
+      error: error.message,
+    });
+  }
+},
+
+
+
   // Create a new wastage record for the authenticated user
   createWastage: async (req, res) => {
     try {
@@ -50,6 +118,7 @@ const wastageController = {
       });
     }
   },
+
 
   // Get all wastage records for the authenticated user
   getAllWastage: async (req, res) => {
@@ -109,27 +178,6 @@ const wastageController = {
     }
   },
 
-  // Get all wastage records for a given item ID (public endpoint, no token required)
- getAllWastageByItemIdPublic : async (req, res) => {
-  try {
-    const { item_id } = req.params;
-    if (!item_id) {
-      return res.status(400).json({ message: "Item ID is required." });
-    }
-
-    const wastageRecords = await Wastage.findAll({
-      where: { item_id },
-      order: [["wastage_date", "DESC"]]
-    });
-
-    res.status(200).json(wastageRecords);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error retrieving wastage records",
-      error: error.message,
-    });
-  }
-},
 
   // Get wastage by item ID for the authenticated user
   getWastageByItemId: async (req, res) => {

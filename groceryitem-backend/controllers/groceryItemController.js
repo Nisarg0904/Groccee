@@ -9,7 +9,6 @@ const { Op, Sequelize } = require("sequelize");
 const moment = require("moment-timezone");
 const axios = require("axios");
 
-
 // ✅ Add Grocery Item and Update `times_bought`
 async function createGroceryItem(req, res) {
   try {
@@ -101,9 +100,6 @@ async function createGroceryItem(req, res) {
   }
 }
 
-
-
-
 // ✅ Get all grocery items for the authenticated user
 async function getAllUserGroceries(req, res) {
   try {
@@ -135,7 +131,6 @@ async function getGroceryItemById(req, res) {
     res.status(500).json({ message: "Failed to fetch grocery item" });
   }
 }
-
 
 /**
  * Process a grocery item with status 'used': gather purchase history, item details, wastage records,
@@ -252,8 +247,6 @@ async function updateGroceryItem(req, res) {
   }
 }
 
-
-
 // ✅ Delete a grocery item
 async function deleteGroceryItem(req, res) {
   const { id } = req.params;
@@ -292,12 +285,7 @@ async function getGroceriesByStatus(req, res) {
       },
     });
 
-    if (groceryItems.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `No grocery items found with status '${status}'.` });
-    }
-
+    // Instead of returning a 404 when there are no items, return an empty array.
     res.status(200).json(groceryItems);
   } catch (error) {
     console.error("Error fetching groceries by status:", error.message);
@@ -328,7 +316,6 @@ async function updateItemStatus(req, res) {
   }
 }
 
-
 // New method to fetch past grocery records for a given item id
 async function getPastGroceriesForItem(req, res) {
   try {
@@ -336,25 +323,25 @@ async function getPastGroceriesForItem(req, res) {
     if (!item_id) {
       return res.status(400).json({ message: "Item id is required." });
     }
-    
+
     // Set today's date (start of day for comparison)
-    const today = moment().startOf('day').toDate();
+    const today = moment().startOf("day").toDate();
 
     // Retrieve past grocery records for this item:
     // Include records where status is "used" OR the expiry_date is before today.
     const pastGroceries = await GroceryItem.findAll({
       where: {
-        item_id,                          // Matches the passed item id
-        user_id: req.user.id,             // Only for the authenticated user
-        [Op.or]: [
-          { status: 'used' },
-          { expiry_date: { [Op.lt]: today } }
-        ]
-      }
+        item_id, // Matches the passed item id
+        user_id: req.user.id, // Only for the authenticated user
+        [Op.or]: [{ status: "used" }, { expiry_date: { [Op.lt]: today } }],
+      },
     });
 
     // Import helper methods on-demand (if not imported at the top)
-    const { getItemById, getWastageByItemIdPublic } = require("../utils/apiHelper");
+    const {
+      getItemById,
+      getWastageByItemIdPublic,
+    } = require("../utils/apiHelper");
 
     // Fetch item details and wastage records using the helper methods
     const itemDetails = await getItemById(item_id);
@@ -370,7 +357,9 @@ async function getPastGroceriesForItem(req, res) {
     return res.status(200).json(responseModel);
   } catch (error) {
     console.error("Error fetching past groceries for item:", error.message);
-    return res.status(500).json({ message: "Failed to fetch past groceries for item" });
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch past groceries for item" });
   }
 }
 // ✅ Export all controller methods correctly
