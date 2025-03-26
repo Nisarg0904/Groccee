@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const mongoose = require("mongoose");
 
 const RecipeSchema = new mongoose.Schema(
   {
@@ -18,17 +17,17 @@ const RecipeSchema = new mongoose.Schema(
     servings: { type: Number, required: true }, // Number of people it serves
     allergies: [
       {
-        allergen: { type: String, required: true }, // Name of allergen (e.g., "Peanuts")
+        allergen: { type: String, required: true },
         severity: {
           type: String,
           enum: ["Mild", "Moderate", "Severe"],
           default: "Mild",
-        }, // Severity level
+        },
       },
-    ], // List of allergens as objects
+    ],
+    // user_id: { type: Number, required: true }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Recipe", RecipeSchema);
 module.exports = mongoose.model("Recipe", RecipeSchema);

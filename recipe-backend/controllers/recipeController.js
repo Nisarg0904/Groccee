@@ -1,110 +1,96 @@
-const Recipe = require("../models/recipe");
+// controllers/recipeController.js
+require("dotenv").config(); // Ensure environment variables are loaded
+const axios = require("axios");
+const moment = require("moment");
+const Recipe = require("../models/recipe"); // Mongoose model
 
-// ✅ Add a new recipe (with step-by-step instructions)
-exports.addRecipe = async (req, res) => {
+async function generateRecipes(req, res) {
   try {
-    const newRecipe = new Recipe(req.body);
-    await newRecipe.save();
-    res
-      .status(201)
-      .json({ message: "Recipe added successfully!", recipe: newRecipe });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    // Auth middleware should have set req.user and the JWT token is in the header
+    const userId = req.user.id;
+    const token = req.header("Authorization");
 
-// ✅ Get all recipes (includes steps)
-exports.getAllRecipes = async (req, res) => {
+    // 1) Fetch grocery data from the grocery microservice using the env URL
+    const groceryUrl = `${process.env.GROCERYITEM_BACKEND_URL}/api/groceryitems`;
+    const groceryResponse = await axios.get(groceryUrl, {
+      headers: { Authorization: token },
+    });
+    const allGroceryItems = groceryResponse.data;
+
+    // Filter out used items for both collections
+    const unusedItems = allGroceryItems.filter(item => item.status !== 'used');
+
+    // Further filter unused items expiring in 2-3 days
+    const today = moment();
+    const relevantItems = unusedItems.filter(item => {
+      if (!item.expiry_date) return false;
+      const expiry = moment(item.expiry_date, "YYYY-MM-DD");
+      const daysToExpiry = expiry.diff(today, "days");
+      return daysToExpiry >= 2 && daysToExpiry <= 3;
+    });
+
+    // Send both expiring and all UNUSED grocery items to your Python ML service
+    // This is the fix - sending only unusedItems instead of all groceryItems
+    const pythonUrl = "http://localhost:6001/generate-recipes";
+    const pythonResponse = await axios.post(pythonUrl, { 
+      expiringGroceries: relevantItems,
+      allGroceries: unusedItems // Changed from groceryItems to unusedItems
+    });
+    const recommendedRecipes = pythonResponse.data;
+
+    // 4) Save recommended recipes in MongoDB using the Recipe schema
+    const savedRecipes = [];
+    for (const recipeData of recommendedRecipes) {
+      let recipe = await Recipe.findOne({ recipeId: recipeData.recipeId });
+      if (recipe) {
+        // Update the existing recipe
+        recipe.name = recipeData.name;
+        recipe.description = recipeData.description;
+        recipe.ingredients = recipeData.ingredients;
+        recipe.cuisine = recipeData.cuisine;
+        recipe.timeToCook = recipeData.timeToCook;
+        recipe.servings = recipeData.servings;
+        recipe.allergies = recipeData.allergies;
+        await recipe.save();
+      } else {
+        // Create a new recipe if it doesn't exist
+        recipe = new Recipe({
+          recipeId: recipeData.recipeId,
+          name: recipeData.name,
+          description: recipeData.description,
+          ingredients: recipeData.ingredients,
+          cuisine: recipeData.cuisine,
+          timeToCook: recipeData.timeToCook,
+          servings: recipeData.servings,
+          allergies: recipeData.allergies,
+        });
+        await recipe.save();
+      }
+      savedRecipes.push(recipe);
+    }
+
+    // 5) Return the saved recipes to the client
+    return res.status(200).json({
+      message: "Recipes generated successfully",
+      recipes: savedRecipes,
+    });
+  } catch (error) {
+    console.error("Error generating recipes:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+async function getAllRecipes(req, res) {
   try {
     const recipes = await Recipe.find();
-    res.status(200).json(recipes);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Get recipe by ID (includes steps)
-exports.getRecipeById = async (req, res) => {
-  try {
-    const recipe = await Recipe.findById(req.params.id);
-    if (!recipe) return res.status(404).json({ message: "Recipe not found!" });
-    res.status(200).json(recipe);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Get recipes by cuisine (includes steps)
-exports.getRecipesByCuisine = async (req, res) => {
-  try {
-    const recipes = await Recipe.find({ cuisine: req.params.cuisine });
-    res.status(200).json(recipes);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Get recipes by max cooking time (includes steps)
-exports.getRecipesByTime = async (req, res) => {
-  try {
-    const recipes = await Recipe.find({
-      timeToCook: { $lte: req.params.minutes },
+    return res.status(200).json({
+      message: "Recipes retrieved successfully",
+      recipes
     });
-    res.status(200).json(recipes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error retrieving recipes:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-};
+}
 
-// ✅ Get recipes sorted by date created (latest first, includes steps)
-exports.getRecipesSortedByDate = async (req, res) => {
-  try {
-    const recipes = await Recipe.find().sort({ createdAt: -1 });
-    res.status(200).json(recipes);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Delete a recipe by ID
-exports.deleteRecipe = async (req, res) => {
-  try {
-    const deletedRecipe = await Recipe.findByIdAndDelete(req.params.id);
-    if (!deletedRecipe)
-      return res.status(404).json({ message: "Recipe not found!" });
-    res.status(200).json({ message: "Recipe deleted successfully!" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Update a recipe (includes updating steps)
-exports.updateRecipe = async (req, res) => {
-  try {
-    const updatedRecipe = await Recipe.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    if (!updatedRecipe)
-      return res.status(404).json({ message: "Recipe not found!" });
-    res
-      .status(200)
-      .json({ message: "Recipe updated successfully!", recipe: updatedRecipe });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Get recipes based on available ingredients (includes steps)
-exports.getRecipesByIngredients = async (req, res) => {
-  try {
-    const ingredientsList = req.query.ingredients.split(",");
-    const recipes = await Recipe.find({
-      "ingredients.ingredientName": { $in: ingredientsList },
-    });
-    res.status(200).json(recipes);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+module.exports = { generateRecipes, getAllRecipes };
