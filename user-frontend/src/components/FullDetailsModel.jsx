@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,12 @@ import {
   StyleSheet,
   FlatList,
 } from "react-native";
-
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {fetchSuggestedCategories,fetchSuggestedUnits} from '../services/groceryApi'
+import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+  fetchSuggestedCategories,
+  fetchSuggestedUnits,
+} from "../services/groceryApi";
+import { getItemDetails } from "../services/globalItemApi";
 
 const FullDetailsModal = ({
   visible,
@@ -30,8 +33,9 @@ const FullDetailsModal = ({
   const [unitSuggestions, setUnitSuggestions] = useState([]);
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
   const [showUnitSuggestions, setShowUnitSuggestions] = useState(false);
+  const [globalItemDetails, setGlobalItemDetails] = useState(null);
 
-  // Set today's date as default purchased date when modal opens
+  // Set default values and fetch global item details when modal opens
   useEffect(() => {
     if (visible) {
       if (prePopulatedFields) {
@@ -47,13 +51,27 @@ const FullDetailsModal = ({
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       setExpiryDate(tomorrow);
+
+      // Fetch global item details using the itemName
+      (async () => {
+        const details = await getItemDetails(itemName);
+        if (details) {
+          setGlobalItemDetails(details);
+          setCategory(details.category); // Prepopulate category from global details
+          // If unit is not already provided by prePopulatedFields, use preferred_unit
+          if (!prePopulatedFields?.unit) {
+            setUnit(details.preferred_unit);
+          }
+        } else {
+          setGlobalItemDetails(null);
+        }
+      })();
     }
-  }, [visible, prePopulatedFields]);
+  }, [visible, prePopulatedFields, itemName]);
 
   const handleSubmit = () => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
-
+    today.setHours(0, 0, 0, 0);
     const selectedExpiryDate = new Date(expiryDate);
     selectedExpiryDate.setHours(0, 0, 0, 0);
 
@@ -62,7 +80,6 @@ const FullDetailsModal = ({
       return;
     }
 
-    // Check if expiry date is in the future
     if (selectedExpiryDate <= today) {
       Alert.alert("Error", "Expiry date must be a future date");
       return;
@@ -73,7 +90,7 @@ const FullDetailsModal = ({
       quantity,
       price,
       expiryDate: expiryDate.toISOString().split("T")[0],
-      purchasedDate: new Date().toISOString().split("T")[0], // Today's date
+      purchasedDate: new Date().toISOString().split("T")[0],
       category,
     });
   };
@@ -83,11 +100,9 @@ const FullDetailsModal = ({
     if (selectedDate) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       const selected = new Date(selectedDate);
       selected.setHours(0, 0, 0, 0);
 
-      // If selected date is today or in the past, set it to tomorrow
       if (selected <= today) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -99,8 +114,9 @@ const FullDetailsModal = ({
     }
   };
 
-  // Fetch category suggestions
+  // Category change handler (only if no global details are found)
   const handleCategoryChange = async (text) => {
+    if (globalItemDetails) return;
     setCategory(text);
     if (text.length > 1) {
       const suggestions = await fetchSuggestedCategories(text);
@@ -111,17 +127,26 @@ const FullDetailsModal = ({
     }
   };
 
-  // Fetch unit suggestions
+  // Unit change handler: if global details exist, always show and filter its units
   const handleUnitChange = async (text) => {
     setUnit(text);
-    if (text.length > 1) {
-      const suggestions = await fetchSuggestedUnits(text);
-      setUnitSuggestions(suggestions);
+    if (globalItemDetails) {
+      const filtered = globalItemDetails.units.filter((u) =>
+        u.toLowerCase().includes(text.toLowerCase())
+      );
+      setUnitSuggestions(filtered);
       setShowUnitSuggestions(true);
     } else {
-      setShowUnitSuggestions(false);
+      if (text.length > 1) {
+        const suggestions = await fetchSuggestedUnits(text);
+        setUnitSuggestions(suggestions);
+        setShowUnitSuggestions(true);
+      } else {
+        setShowUnitSuggestions(false);
+      }
     }
   };
+
   return (
     <Modal
       visible={visible}
@@ -133,14 +158,18 @@ const FullDetailsModal = ({
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Complete Details for {itemName}</Text>
 
-          {/* Category Input with Suggestions */}
+          {/* Category Input */}
           <TextInput
-            style={styles.modalInput}
+            style={[
+              styles.modalInput,
+              globalItemDetails ? { backgroundColor: "#eee" } : {},
+            ]}
             placeholder="Category (e.g., Dairy, Meat, Vegetables)"
             value={category}
             onChangeText={handleCategoryChange}
+            editable={!globalItemDetails}
           />
-          {showCategorySuggestions && (
+          {!globalItemDetails && showCategorySuggestions && (
             <FlatList
               style={styles.suggestionContainer}
               data={categorySuggestions}
@@ -159,44 +188,43 @@ const FullDetailsModal = ({
             />
           )}
 
-          {/* Unit Input with Suggestions */}
-          {!prePopulatedFields && (
-            <>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Unit (e.g., kg, pcs)"
-                value={unit}
-                onChangeText={handleUnitChange}
-              />
-              {showUnitSuggestions && (
-                <FlatList
-                  style={styles.suggestionContainer}
-                  data={unitSuggestions}
-                  keyExtractor={(item) => item.id?.toString() || item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.suggestionItem}
-                      onPress={() => {
-                        setUnit(item.name || item);
-                        setShowUnitSuggestions(false);
-                      }}
-                    >
-                      <Text style={styles.suggestionText}>
-                        {item.name || item}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                />
+          {/* Unit Input with Suggestions (always shown) */}
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Unit (e.g., kg, pcs)"
+            value={unit}
+            onChangeText={handleUnitChange}
+            onFocus={() => {
+              if (globalItemDetails) handleUnitChange(unit);
+            }}
+          />
+          {showUnitSuggestions && (
+            <FlatList
+              style={styles.suggestionContainer}
+              data={unitSuggestions}
+              keyExtractor={(item) => item.id?.toString() || item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.suggestionItem}
+                  onPress={() => {
+                    setUnit(item.name || item);
+                    setShowUnitSuggestions(false);
+                  }}
+                >
+                  <Text style={styles.suggestionText}>{item.name || item}</Text>
+                </TouchableOpacity>
               )}
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Quantity"
-                value={quantity}
-                onChangeText={setQuantity}
-                keyboardType="numeric"
-              />
-            </>
+            />
           )}
+
+          {/* Quantity Input (always shown) */}
+          <TextInput
+            style={styles.modalInput}
+            placeholder="Quantity"
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="numeric"
+          />
 
           <TextInput
             style={styles.modalInput}
@@ -252,7 +280,6 @@ const FullDetailsModal = ({
     </Modal>
   );
 };
-
 
 const styles = StyleSheet.create({
   modalOverlay: {
@@ -330,21 +357,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-
-  /** 👇 Suggestion List Styles 👇 */
   suggestionContainer: {
-    maxHeight: 150, // Limits height if many suggestions
+    maxHeight: 150,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     backgroundColor: "#fff",
     marginBottom: 10,
-    elevation: 5, // Adds shadow on Android
-    shadowColor: "#000", // Adds shadow on iOS
+    elevation: 5,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    zIndex: 999, // Ensures suggestions appear on top
+    zIndex: 999,
   },
   suggestionItem: {
     padding: 12,
@@ -355,10 +380,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  suggestionItemHover: {
-    backgroundColor: "#f0f0f0",
-  },
 });
 
-  
-  export default FullDetailsModal;
+export default FullDetailsModal;

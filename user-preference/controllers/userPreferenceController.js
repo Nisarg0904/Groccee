@@ -1,13 +1,15 @@
 require("dotenv").config();
 const axios = require("axios");
 const UserPreference = require("../models/userPreference");
+const userPreferenceBaseUrl =
+  process.env.USER_PREFERENCE_SERVICE_URL || "http://localhost:6002";
 
 /**
  * Calls the Python ML service with the given payload.
  * Uses the endpoint '/get_user_preference' as defined in the Python script.
  */
 async function getRecommendation(payload) {
-  const url = "http://localhost:6000/get_user_preference";
+  const url = `${userPreferenceBaseUrl}/get_user_preference`;
   try {
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" },
@@ -198,7 +200,7 @@ async function updatePreferenceWithML(req, res) {
     };
 
     // Call the ML service using axios.post inline
-    const url = "http://localhost:6000/get_user_preference";
+    const url = `${userPreferenceBaseUrl}/get_user_preference`;
     let updatedPreferenceData;
     try {
       const response = await axios.post(url, payload, {
@@ -264,7 +266,6 @@ async function updatePreferenceWithML(req, res) {
     res.status(500).json({ message: error.message });
   }
 }
-
 
 module.exports = {
   createOrUpdatePreference,

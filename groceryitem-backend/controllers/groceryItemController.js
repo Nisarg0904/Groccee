@@ -8,6 +8,10 @@ const {
 const { Op, Sequelize } = require("sequelize");
 const moment = require("moment-timezone");
 const axios = require("axios");
+require("dotenv").config();
+
+const userPreferenceServiceUrl =
+  process.env.USER_PREFERENCE_SERVICE_URL || "http://localhost:5005";
 
 // ✅ Add Grocery Item and Update `times_bought`
 async function createGroceryItem(req, res) {
@@ -72,6 +76,7 @@ async function createGroceryItem(req, res) {
 
     // Step 6: ✅ Increase `times_bought` for that specific unit
     const packaging = item.packaging.find((pack) => pack.unit === unit);
+    console.log("packiging times bought:"+ packaging.times_bought)
 
     if (packaging) {
       console.log(`🟡 Increasing times_bought for '${unit}' (ID: ${item._id})`);
@@ -181,7 +186,10 @@ async function processUsedItem(item) {
     };
 
     // Send the bundled data via a PUT request to the ML endpoint.
-    await axios.put("http://localhost:5005/api/userPreference/ml", payload);
+    await axios.put(
+      `${userPreferenceServiceUrl}/api/userPreference/ml`,
+      payload
+    );
     console.log(`✅ Sent user preference data for used item ${item.item_id}`);
   } catch (error) {
     console.error(

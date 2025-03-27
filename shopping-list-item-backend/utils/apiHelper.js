@@ -1,5 +1,6 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const LIST_BACKEND_URL =
   process.env.LIST_BACKEND_URL || "http://localhost:5001";
@@ -103,8 +104,6 @@ async function createShoppingList(data, token) {
     throw new Error("Error creating shopping list");
   }
 }
-
-
 
 /**
  * Get all preferences for a given user.

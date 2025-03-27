@@ -1,12 +1,12 @@
 // services/globalItemsApi.js
-import { globalItemAPI } from '../api/api';
+import { globalItemAPI } from './api';
 
 export const searchItems = async (searchTerm) => {
   if (!searchTerm || searchTerm.length < 2) return [];
   
   try {
     // Using the getItemByName endpoint
-    const response = await globalItemAPI.get(`/global/items/name/${encodeURIComponent(searchTerm)}`);
+    const response = await globalItemAPI.get(`/global/name/${encodeURIComponent(searchTerm)}`);
     // Since your backend returns a single item, wrap it in an array if it exists
     const data = response.data;
     return data ? [data] : [];
@@ -18,7 +18,7 @@ export const searchItems = async (searchTerm) => {
 
 export const getItemsByCategory = async (category) => {
   try {
-    const response = await globalItemAPI.get(`/global/items/category/${encodeURIComponent(category)}`);
+    const response = await globalItemAPI.get(`/global/category/${encodeURIComponent(category)}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching items by category:', error.message);
@@ -38,7 +38,7 @@ export const getAllCategories = async () => {
 
 export const getItemDetails = async (itemName) => {
   try {
-    const response = await globalItemAPI.get(`/global/items/name/${encodeURIComponent(itemName)}`);
+    const response = await globalItemAPI.get(`/global/name/${encodeURIComponent(itemName)}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching item details:', error.message);

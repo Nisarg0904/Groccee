@@ -7,6 +7,11 @@ const { Op } = require("sequelize");
 const CHECK_INTERVAL = 24 * 60 * 60 * 1000; // Runs once a day
 // const CHECK_INTERVAL = 2 * 60 * 1000; // Runs every 2 minutes
 
+// Load environment variables (ensure you have dotenv configured, e.g. require('dotenv').config(); at the top)
+const wastageServiceUrl =
+  process.env.WASTAGE_SERVICE_URL || "http://localhost:5003";
+const userPreferenceServiceUrl =
+  process.env.USER_PREFERENCE_SERVICE_URL || "http://localhost:5005";
 
 console.log("running scheduler.js !");
 
@@ -40,7 +45,7 @@ async function addWastage(item) {
 
     // Call the public endpoint for creating wastage (no token required)
     const response = await axios.post(
-      `http://localhost:5003/api/wastage/system`,
+      `${wastageServiceUrl}/api/wastage/system`,
       wastagePayload
     );
     console.log("✅ Expired item pushed to wastage:", response.data);
@@ -105,7 +110,10 @@ async function processExpiredItem(item, token) {
     };
 
     // Send a PUT request to the ML endpoint to update user preferences.
-    await axios.put("http://localhost:5005/api/userPreference/ml", payload);
+    await axios.put(
+      `${userPreferenceServiceUrl}/api/userPreference/ml`,
+      payload
+    );
     console.log(`✅ Sent user preference data for item ${item.item_id}`);
   } catch (error) {
     console.error(
@@ -120,15 +128,15 @@ async function processExpiredItem(item, token) {
  */
 async function checkAndUpdateGroceryItems() {
   try {
-      console.log("🔄 Running daily grocery item status check...");
+    console.log("🔄 Running daily grocery item status check...");
 
-      // Only fetch items whose status is not "expired" or "used".
-      const groceryItems = await GroceryItem.findAll({
-        where: { status: { [Op.notIn]: ["expired", "used"] } },
-      });
-      const today = new Date();
-      // Get the system token from environment variables (AUTH_TOKEN should be defined in your .env file)
-      const token = process.env.AUTH_TOKEN;
+    // Only fetch items whose status is not "expired" or "used".
+    const groceryItems = await GroceryItem.findAll({
+      where: { status: { [Op.notIn]: ["expired", "used"] } },
+    });
+    const today = new Date();
+    // Get the system token from environment variables (AUTH_TOKEN should be defined in your .env file)
+    const token = process.env.AUTH_TOKEN;
 
     for (const item of groceryItems) {
       const expiryDate = new Date(item.expiry_date);

@@ -110,4 +110,5 @@ def get_user_preference():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(port=6000)
+    port = int(os.environ.get("PORT", 6002))
+    app.run(port=port)

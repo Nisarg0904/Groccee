@@ -1,4 +1,4 @@
-const ShoppingListItem = require("../models/shoppingListItem");
+const { ShoppingListItem } = require("../models");
 const {
   validateShoppingList,
   validateOrFetchItem,
@@ -7,6 +7,8 @@ const {
   getGroceriesByStatus,
 } = require("../utils/apiHelper"); // Import helper functions
 const axios = require("axios");
+const mlServiceUrl = process.env.ML_SERVICE_URL || "http://localhost:6000";
+require("dotenv").config();
 
 /**
  * Create a Shopping List Item (Validates Shopping List & Item First)
@@ -256,7 +258,7 @@ const generateShoppingListForUser = async (req, res) => {
     // Call the ML service to get shopping list item suggestions.
     // This endpoint should be the one we created in our ML service.
     const mlResponse = await axios.post(
-      "http://localhost:6000/suggest_shopping_list",
+      `${mlServiceUrl}/suggest_shopping_list`,
       mlPayload
     );
     const suggestions = mlResponse.data;
