@@ -83,3 +83,27 @@ export const deleteGroceryItem = async (token, id) => {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
+// Add this new function to your existing groceryApi.js
+export const getPantryOverview = async (token) => {
+  try {
+    const response = await groceryAPI.get("/groceryitems", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching pantry overview:", error);
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
+// In groceryApi.js:
+// import { groceryAPI } from "./api";
+
+export async function getGroceriesByStatus(token, status) {
+  // Example: GET /groceryitems/status?status=expired or expiring
+  const response = await groceryAPI.get(`/groceryitems/status?status=${status}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data; // array of items
+}
