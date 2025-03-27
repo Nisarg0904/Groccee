@@ -67,14 +67,22 @@ const styles = StyleSheet.create({
   },
   generateButton: {
     position: "absolute",
-    top: 20,
-    left: 20,
+    bottom: 20, // Adjust this to position it above/below your plus button
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#FF4141",
-    borderRadius: 50,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    zIndex: 10,
+    padding: 16,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10, // Keep it above other elements if needed
   },
+
   generateButtonText: {
     color: "#FFF",
     fontWeight: "bold",

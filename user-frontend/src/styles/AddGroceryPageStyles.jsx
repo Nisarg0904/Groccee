@@ -1,148 +1,150 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
 import Constants from "expo-constants";
-import { COLORS } from "./WelcomePageStyles";
 
 const { width } = Dimensions.get("window");
+
+const colors = {
+  background: "#F7F9FC",
+  primary: "#4A6CF7",
+  secondary: "#6D7BFF",
+  text: "#2C3E50",
+  inputBackground: "#FFFFFF",
+  border: "#E0E6ED",
+  white: "#FFFFFF",
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary, // consistent dark background
-    // Use paddingTop to avoid the notch on Android devices
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === "android" ? Constants.statusBarHeight + 20 : 40,
   },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
-    flexGrow: 1, // ensures content expands properly
+    flexGrow: 1,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: 25,
     textAlign: "center",
-    color: COLORS.white,
+    color: colors.text,
+    letterSpacing: -0.5,
   },
   input: {
-    height: 50,
-    borderColor: COLORS.lightGray,
+    height: 55,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 15,
-    backgroundColor: COLORS.black,
-    color: COLORS.white,
-  },
-  dateButton: {
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.accent,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  dateButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "bold",
+    backgroundColor: colors.inputBackground,
+    color: colors.text,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   expiryDateButton: {
-    height: 50,
+    height: 55,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: COLORS.accent,
-    borderRadius: 10,
+    borderColor: colors.primary,
+    borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 15,
-    backgroundColor: "transparent",
+    backgroundColor: colors.inputBackground,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   expiryDateButtonText: {
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   suggestionsContainer: {
-    backgroundColor: COLORS.black,
+    backgroundColor: colors.inputBackground,
     width: "100%",
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 15,
-    elevation: 5, // for Android shadow
+    elevation: 5,
     zIndex: 100,
     maxHeight: 150,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-      },
-    }),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   suggestionItemContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: colors.border,
   },
   suggestionItem: {
-    padding: 10,
+    padding: 12,
     fontSize: 16,
-    color: COLORS.white,
+    color: colors.text,
   },
   label: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
     marginVertical: 10,
-    color: COLORS.white,
+    color: colors.text,
+    marginLeft: 5,
   },
   picker: {
-    backgroundColor: COLORS.black,
-    color: COLORS.white,
+    backgroundColor: colors.inputBackground,
+    color: colors.text,
     marginBottom: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   submitButton: {
-    height: 50,
-    backgroundColor: COLORS.accent,
-    borderRadius: 10,
+    height: 55,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
+    flexDirection: "row",
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   submitButtonText: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    marginRight: 10,
   },
-  datePicker: {
-    backgroundColor: COLORS.black,
-  },
-  // Style for the animated success overlay.
   successOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backgroundColor: "rgba(74, 108, 247, 0.8)", // Transparent primary color
     justifyContent: "center",
     alignItems: "center",
     zIndex: 200,
   },
   successText: {
     marginTop: 15,
-    fontSize: 18,
-    color: COLORS.white,
-    fontWeight: "bold",
+    fontSize: 20,
+    color: colors.white,
+    fontWeight: "700",
+    textAlign: "center",
   },
-  disabledInput: {
-  backgroundColor: '#333',  // Dark background
-  color: '#fff',           // White text color
-  padding: 12,
-  borderRadius: 8,
-  marginBottom: 16,
-  fontSize: 16,
-  opacity: 0.8,            // Slightly dimmed to indicate disabled state
-},
 });
 
 export default styles;
