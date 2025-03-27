@@ -1,100 +1,245 @@
-import React, { useState } from 'react';
+// screens/Notifications/NotificationsPage.js
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   RefreshControl,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert,
+  ToastAndroid,
+  Platform
 } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import { UserContext } from '../../contexts/UserContext';
+import {
+  getNotifications,
+  markNotificationAsRead,
+  deleteNotification,
+  markAllNotificationsAsRead,
+  clearAllNotifications,
+  checkExpiringItems,
+  checkShoppingReminders,
+  setNotificationAuthToken
+} from '../../services/NotificationApi';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Make sure to install this package
 
 function NotificationsPage() {
-  // Dummy notifications data with a read flag for marking as read/unread
-  const [notifications, setNotifications] = useState([
-    { id: "1", message: "Milk expires in 2 days.", timestamp: "9:00 AM", read: false },
-    { id: "2", message: "Eggs are nearing expiry.", timestamp: "8:45 AM", read: false },
-    { id: "3", message: "Bakery items have been restocked.", timestamp: "8:30 AM", read: false }
-  ]);
-
+  const [notifications, setNotifications] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { token } = useContext(UserContext);
+  const [isProcessing, setIsProcessing] = useState(false); // State to track button operations
+
+  // Setup auth token and fetch notifications on component mount
+  useEffect(() => {
+    const setupAndFetch = async () => {
+      try {
+        if (token) {
+          // Set auth token for notification requests
+          setNotificationAuthToken(token);
+          
+          // Check for new notifications
+          await checkForNewNotifications();
+          
+          // Fetch notifications
+          await fetchNotifications();
+        }
+      } catch (error) {
+        console.error('Error setting up notifications:', error);
+        showToast('Failed to load notifications. Pull down to retry.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    setupAndFetch();
+  }, [token]);
+
+  // Helper function to show toast messages
+  const showToast = (message) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      // For iOS or other platforms
+      Alert.alert('', message, [{ text: 'OK' }], { cancelable: true });
+    }
+  };
+
+  // Fetch notifications from the API
+  const fetchNotifications = async () => {
+    setRefreshing(true);
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      showToast('Failed to fetch notifications. Please try again.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Check for new notifications
+  const checkForNewNotifications = async () => {
+    try {
+      // Check for expiring items
+      await checkExpiringItems();
+      
+      // Check for shopping reminders
+      await checkShoppingReminders();
+    } catch (error) {
+      console.error('Error checking for new notifications:', error);
+    }
+  };
+
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    await checkForNewNotifications();
+    await fetchNotifications();
+  };
 
   // Right swipe action: mark notification as read
-  const handleMarkRead = (notificationId) => {
-    setNotifications(prevNotifications =>
-      prevNotifications.map(notification =>
-        notification.id === notificationId ? { ...notification, read: true } : notification
-      )
-    );
+  const handleMarkRead = async (notificationId) => {
+    try {
+      setIsProcessing(true);
+      await markNotificationAsRead(notificationId);
+      setNotifications(prevNotifications =>
+        prevNotifications.map(notification =>
+          notification.id === notificationId ? { ...notification, read: true } : notification
+        )
+      );
+      showToast('Notification marked as read');
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      showToast('Failed to mark notification as read');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Left swipe action: delete the notification
-  const handleDeleteNotification = (notificationId) => {
-    setNotifications(prevNotifications =>
-      prevNotifications.filter(notification => notification.id !== notificationId)
-    );
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      setIsProcessing(true);
+      await deleteNotification(notificationId);
+      setNotifications(prevNotifications =>
+        prevNotifications.filter(notification => notification.id !== notificationId)
+      );
+      showToast('Notification deleted');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      showToast('Failed to delete notification');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Mark all notifications as read
-  const handleMarkAllRead = () => {
-    setNotifications(prevNotifications =>
-      prevNotifications.map(notification => ({ ...notification, read: true }))
+  const handleMarkAllRead = async () => {
+    // If no unread notifications, don't do anything
+    if (!notifications.some(notification => !notification.read)) {
+      showToast('No unread notifications');
+      return;
+    }
+
+    // Confirm action
+    Alert.alert(
+      'Mark All as Read',
+      'Are you sure you want to mark all notifications as read?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark All',
+          onPress: async () => {
+            try {
+              setIsProcessing(true);
+              await markAllNotificationsAsRead();
+              setNotifications(prevNotifications =>
+                prevNotifications.map(notification => ({ ...notification, read: true }))
+              );
+              showToast('All notifications marked as read');
+            } catch (error) {
+              console.error('Error marking all notifications as read:', error);
+              showToast('Failed to mark all notifications as read');
+            } finally {
+              setIsProcessing(false);
+            }
+          }
+        }
+      ]
     );
   };
 
   // Clear all notifications
-  const handleClearAll = () => {
-    setNotifications([]);
-  };
+  const handleClearAll = async () => {
+    // If no notifications, don't do anything
+    if (notifications.length === 0) {
+      showToast('No notifications to clear');
+      return;
+    }
 
-  // Handle pull-to-refresh action
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // Uncomment and update the API call when ready:
-    /*
-    fetch('https://your-api.com/notifications')
-      .then(response => response.json())
-      .then(data => {
-         setNotifications(data.notifications);
-         setRefreshing(false);
-      })
-      .catch(error => {
-         console.error(error);
-         setRefreshing(false);
-      });
-    */
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
-
-  // Handle infinite scroll to load more notifications
-  const handleLoadMore = () => {
-    if (loadingMore) return;
-    setLoadingMore(true);
-    setTimeout(() => {
-      const currentCount = notifications.length;
-      const moreNotifications = [
+    // Confirm action
+    Alert.alert(
+      'Clear All Notifications',
+      'Are you sure you want to delete all notifications? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
         {
-          id: String(currentCount + 1),
-          message: `New notification ${currentCount + 1}`,
-          timestamp: "Just now",
-          read: false
-        },
-        {
-          id: String(currentCount + 2),
-          message: `New notification ${currentCount + 2}`,
-          timestamp: "Just now",
-          read: false
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsProcessing(true);
+              await clearAllNotifications();
+              setNotifications([]);
+              showToast('All notifications cleared');
+            } catch (error) {
+              console.error('Error clearing all notifications:', error);
+              showToast('Failed to clear notifications. Please try again.');
+            } finally {
+              setIsProcessing(false);
+            }
+          }
         }
-      ];
-      setNotifications([...notifications, ...moreNotifications]);
-      setLoadingMore(false);
-    }, 2000);
+      ]
+    );
   };
 
-  // Render the visible part of a notification row (no tap action)
+  // Format the timestamp for display - improved with relative time
+  const formatTimestamp = (timestamp) => {
+    const now = new Date();
+    const notificationDate = new Date(timestamp);
+    
+    // If same day, show time
+    if (now.toDateString() === notificationDate.toDateString()) {
+      return notificationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } 
+    // If within last week, show day name
+    else if (now - notificationDate < 7 * 24 * 60 * 60 * 1000) {
+      return notificationDate.toLocaleDateString([], { weekday: 'short' }) + ' ' +
+             notificationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    // Otherwise show date
+    else {
+      return notificationDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  // Get notification icon based on type
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'expiry':
+        return <Icon name="warning" size={24} color="#FFA000" />;
+      case 'shopping':
+        return <Icon name="shopping-cart" size={24} color="#2196F3" />;
+      default:
+        return <Icon name="notifications" size={24} color="#4CAF50" />;
+    }
+  };
+
+  // Render the visible part of a notification row
   const renderItem = (data) => (
     <View
       style={[
@@ -102,67 +247,113 @@ function NotificationsPage() {
         data.item.read ? styles.notificationRead : styles.notificationUnread
       ]}
     >
-      <Text style={styles.notificationText}>{data.item.message}</Text>
-      <Text style={styles.timestampText}>{data.item.timestamp}</Text>
+      <View style={styles.notificationContent}>
+        <View style={styles.iconContainer}>
+          {getNotificationIcon(data.item.type)}
+        </View>
+        <View style={styles.messageContainer}>
+          <Text style={styles.notificationText}>{data.item.message}</Text>
+          <Text style={styles.timestampText}>{formatTimestamp(data.item.timestamp)}</Text>
+        </View>
+      </View>
+      {!data.item.read && <View style={styles.unreadIndicator} />}
     </View>
   );
 
-  // Render the hidden row with two buttons:
-  // Left side (revealed on right swipe): Mark as Read
-  // Right side (revealed on left swipe): Delete
+  // Render the hidden row with swipe actions
   const renderHiddenItem = (data) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={[styles.leftButton, data.item.read && styles.disabledButton]}
         onPress={() => {
-          if (!data.item.read) {
+          if (!data.item.read && !isProcessing) {
             handleMarkRead(data.item.id);
           }
         }}
+        disabled={data.item.read || isProcessing}
       >
+        <Icon name="done" size={24} color="#fff" />
         <Text style={styles.buttonText}>
-          {data.item.read ? "Read" : "Mark as Read"}
+          {data.item.read ? "Read" : "Mark Read"}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.rightButton}
-        onPress={() => handleDeleteNotification(data.item.id)}
+        onPress={() => {
+          if (!isProcessing) {
+            handleDeleteNotification(data.item.id);
+          }
+        }}
+        disabled={isProcessing}
       >
+        <Icon name="delete" size={24} color="#fff" />
         <Text style={styles.buttonText}>Delete</Text>
       </TouchableOpacity>
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007BFF" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Header with Title, Mark All Read, and Clear All buttons */}
       <View style={styles.header}>
-        {/* <Text style={styles.title}>Notifications</Text> */}
+        <Text style={styles.title}>Notifications</Text>
         <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleMarkAllRead}>
+          <TouchableOpacity 
+            style={[
+              styles.headerButton, 
+              (!notifications.some(n => !n.read) || isProcessing) && styles.disabledButton
+            ]} 
+            onPress={handleMarkAllRead}
+            disabled={!notifications.some(n => !n.read) || isProcessing}
+          >
             <Text style={styles.headerButtonText}>Mark All Read</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.headerButton, styles.clearAllButton]} onPress={handleClearAll}>
+          <TouchableOpacity 
+            style={[
+              styles.headerButton, 
+              styles.clearAllButton, 
+              (notifications.length === 0 || isProcessing) && styles.disabledButton
+            ]} 
+            onPress={handleClearAll}
+            disabled={notifications.length === 0 || isProcessing}
+          >
             <Text style={styles.headerButtonText}>Clear All</Text>
           </TouchableOpacity>
         </View>
       </View>
-      <SwipeListView
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        renderHiddenItem={renderHiddenItem}
-        leftOpenValue={75}      // Right swipe reveals left hidden button: Mark as Read
-        rightOpenValue={-75}    // Left swipe reveals right hidden button: Delete
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={
-          loadingMore && <ActivityIndicator size="small" color="#000" style={styles.loadingIndicator} />
-        }
-      />
+      
+      {notifications.length > 0 ? (
+        <SwipeListView
+          data={notifications}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          renderHiddenItem={renderHiddenItem}
+          leftOpenValue={75}
+          rightOpenValue={-75}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Icon name="notifications-off" size={48} color="#CCC" />
+          <Text style={styles.emptyText}>No notifications to display</Text>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={handleRefresh}
+            disabled={refreshing}
+          >
+            <Text style={styles.refreshButtonText}>Refresh</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -173,10 +364,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     padding: 16
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: "#f8f9fa"
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10
+    marginBottom: 16
   },
   title: {
     fontSize: 28,
@@ -189,12 +386,12 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     backgroundColor: "#007BFF",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 5,
-    marginLeft: 10
+    marginLeft: 10,
+    elevation: 1
   },
-  // Red background for clear all button
   clearAllButton: {
     backgroundColor: "#dc3545"
   },
@@ -204,27 +401,48 @@ const styles = StyleSheet.create({
   },
   notificationItem: {
     backgroundColor: "#fff",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#ddd"
+    borderColor: "#ddd",
+    elevation: 1
+  },
+  notificationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+  messageContainer: {
+    flex: 1,
   },
   notificationUnread: {
-    backgroundColor: "#e8f0fe"
+    backgroundColor: "#e8f0fe",
+    borderLeftWidth: 3,
+    borderLeftColor: "#007BFF"
   },
   notificationRead: {
     backgroundColor: "#fff"
   },
   notificationText: {
     fontSize: 16,
-    color: "#555"
+    color: "#333"
   },
   timestampText: {
     fontSize: 12,
     color: "#888",
-    marginTop: 4,
-    textAlign: "right"
+    marginTop: 4
+  },
+  unreadIndicator: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007BFF'
   },
   rowBack: {
     alignItems: 'center',
@@ -258,11 +476,31 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    marginTop: 4
   },
-  loadingIndicator: {
-    marginVertical: 10,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 50
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 16,
+    marginBottom: 24
+  },
+  refreshButton: {
+    backgroundColor: '#007BFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  refreshButtonText: {
+    color: '#fff',
+    fontWeight: 'bold'
   }
 });
 
-export default NotificationsPage; 
+export default NotificationsPage;

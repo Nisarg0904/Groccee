@@ -5,6 +5,7 @@ const express = require('express');
 const groceryItemDB = require('./config/groceryitem_db'); 
 const app = express();
 const groceryItemRoutes = require('./routes/groceryItemRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
@@ -23,6 +24,7 @@ testDBConnection();
 
 
 app.use('/api/groceryitems', groceryItemRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Root route for health check
 app.get('/', (req, res) => {
