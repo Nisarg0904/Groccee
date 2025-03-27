@@ -13,10 +13,9 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signInUser,resendVerificationEmail } from "../../services/userApi"; // Import the signInUser function
+import { signInUser, resendVerificationEmail } from "../../services/userApi"; // Import the signInUser function
 import { UserContext } from "../../contexts/UserContext";
 import styles from "../../styles/SignInPageStyles";
-
 
 const SignInPage = ({ navigation }) => {
   const [input, setInput] = useState("");
@@ -59,7 +58,7 @@ const SignInPage = ({ navigation }) => {
         // ✅ Navigate to main app
         navigation.reset({
           index: 0,
-          routes: [{ name: "Grocce" }],
+          routes: [{ name: "MainMenu" }], // ✅ FIXED
         });
       } else {
         Alert.alert("Error", "Invalid response from server");

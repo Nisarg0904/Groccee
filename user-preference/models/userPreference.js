@@ -1,55 +1,29 @@
-// models/userPreference.model.js
-
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
 
-const userPreferenceSchema = new Schema({
-  user_id: {
-    type: Number,
-    required: true,
+// Define a sub-schema for packaging-specific preferences
+const PackagingPreferenceSchema = new mongoose.Schema(
+  {
+    unit: { type: String, required: true }, // e.g., "liters", "cartons"
+    averageBuyQuantity: { type: Number, required: true }, // Average quantity bought for this packaging unit
+    preferred: { type: Boolean, default: false }, // Indicates if this packaging unit is preferred by the user
+    shouldBuyLess: { type: Boolean, default: false }, // Recommendation: user should buy less of this unit (e.g., due to high wastage)
+    shouldBuyMore: { type: Boolean, default: false }, // Recommendation: user should buy more of this unit (e.g., to avoid frequent stockouts)
   },
-  item_id: {
-    type: String,
-    required: true,
-  },
-  packaging_unit: {
-    type: String,
-    required: true,
-  },
-  // Detailed purchase history for this user/item/packaging
-  purchaseHistory: [
-    {
-      date: { type: Date, default: Date.now },
-      quantity: { type: Number, default: 1 },
-    }
-  ],
-  // Total times purchased (aggregated)
-  totalBought: {
-    type: Number,
-    default: 0,
-  },
-  // Detailed waste history (if applicable)
-  wasteHistory: [
-    {
-      date: { type: Date, default: Date.now },
-      quantity: { type: Number, default: 1 },
-    }
-  ],
-  // Total times wasted (aggregated)
-  totalWasted: {
-    type: Number,
-    default: 0,
-  },
-  // The ML-generated preference score (e.g., 0 to 1 or 0 to 100)
-  preferenceScore: {
-    type: Number,
-    default: 0,
-  },
-}, {
-  timestamps: true, // Automatically adds createdAt and updatedAt fields
+  { _id: false }
+);
+
+// Main schema for user preferences
+const UserPreferenceSchema = new mongoose.Schema({
+  name: { type: String, required: true }, 
+  user_id: { type: Number, required: true }, // User identifier from your auth system
+  item_id: { type: String, required: true }, // Item identifier as a string (independent database)
+  category: { type: String, required: true }, // Category of the item (e.g., dairy, bakery)
+  packaging: [PackagingPreferenceSchema], // Array of packaging preferences
+  averageBuyingPeriod: { type: Number, required: true }, // In days (e.g., every 2 days, weekly)
+  wastedMoney: { type: Number, default: 0 }, // Aggregated wasted money on this item
+  lastUpdated: { type: Date, default: Date.now }, // Timestamp for the last update
+  recommendedPurchaseQuantity: { type: Number }, // Optionally store a computed recommendation
 });
 
-// Compound index to ensure uniqueness per user/item/packaging combination
-userPreferenceSchema.index({ user_id: 1, item_id: 1, packaging_unit: 1 }, { unique: true });
-
-module.exports = mongoose.model("UserPreference", userPreferenceSchema);
+// Create and export the model
+module.exports = mongoose.model("UserPreference", UserPreferenceSchema);

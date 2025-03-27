@@ -1,40 +1,46 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   RefreshControl,
   Alert,
   Modal,
   TextInput,
   Animated,
-} from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { UserContext } from '../../contexts/UserContext';
-import { getAllShoppingLists, updateShoppingList, deleteShoppingList } from '../../services/shoppingApi';
-import CreateShoppingListModal from '../Shopping/CreateShoppingListPage';
-import AddItemsModal from './AddShoppingListItemPage';
-import { format, formatInTimeZone } from 'date-fns-tz';
-import { parseISO } from 'date-fns';
-import { StatusBar } from 'react-native';
-import styles from '../../styles/ShoppingListsStyles';
+} from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { UserContext } from "../../contexts/UserContext";
+import {
+  getAllShoppingLists,
+  updateShoppingList,
+  deleteShoppingList,
+} from "../../services/shoppingApi";
+import {
+  generateShoppingList, // Import the new function
+} from "../../services/shoppingItemApi";
+import CreateShoppingListModal from "../Shopping/CreateShoppingListPage";
+import AddItemsModal from "./AddShoppingListItemPage";
+import { format, formatInTimeZone } from "date-fns-tz";
+import { parseISO } from "date-fns";
+import { StatusBar } from "react-native";
+import styles from "../../styles/ShoppingListsStyles";
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
-  
+  if (!dateString) return "";
+
   try {
     const formatted = formatInTimeZone(
       parseISO(dateString),
-      'America/Toronto',
-      'MMM d, yyyy h:mm a'
+      "America/Toronto",
+      "MMM d, yyyy h:mm a"
     );
     return formatted;
   } catch (error) {
-    console.error('Date formatting error:', error);
+    console.error("Date formatting error:", error);
     return dateString;
   }
 };
@@ -50,28 +56,28 @@ const ShoppingListsPage = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingList, setEditingList] = useState(null);
-  const [editName, setEditName] = useState('');
+  const [editName, setEditName] = useState("");
 
   const fetchLists = async () => {
     if (!token) {
-      console.log('No token available');
-      setError('Authentication required');
+      console.log("No token available");
+      setError("Authentication required");
       setLoading(false);
       return;
     }
 
     try {
-      console.log('Fetching with token:', token);
+      console.log("Fetching with token:", token);
       const data = await getAllShoppingLists(token);
       setShoppingLists(data);
       setError(null);
     } catch (err) {
-      console.error('Fetch error:', err);
-      if (err.message === 'Invalid Token') {
+      console.error("Fetch error:", err);
+      if (err.message === "Invalid Token") {
         setToken(null);
-        setError('Session expired. Please login again.');
+        setError("Session expired. Please login again.");
       } else {
-        setError('Failed to fetch shopping lists');
+        setError("Failed to fetch shopping lists");
       }
     } finally {
       setLoading(false);
@@ -98,7 +104,7 @@ const ShoppingListsPage = ({ navigation }) => {
 
   const handleUpdate = async () => {
     if (!editName.trim()) {
-      Alert.alert('Error', 'List name cannot be empty');
+      Alert.alert("Error", "List name cannot be empty");
       return;
     }
 
@@ -109,57 +115,67 @@ const ShoppingListsPage = ({ navigation }) => {
         token
       );
 
-      setShoppingLists(lists =>
-        lists.map(list =>
-          list.shopping_list_id === updatedList.shopping_list_id ? updatedList : list
+      setShoppingLists((lists) =>
+        lists.map((list) =>
+          list.shopping_list_id === updatedList.shopping_list_id
+            ? updatedList
+            : list
         )
       );
 
       setEditModalVisible(false);
       setEditingList(null);
-      setEditName('');
+      setEditName("");
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update list');
+      Alert.alert("Error", error.message || "Failed to update list");
     }
   };
 
   const handleDelete = (listId) => {
-    Alert.alert(
-      'Delete List',
-      'Are you sure you want to delete this list?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert("Delete List", "Are you sure you want to delete this list?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteShoppingList(listId, token);
+            setShoppingLists((lists) =>
+              lists.filter((list) => list.shopping_list_id !== listId)
+            );
+          } catch (error) {
+            Alert.alert("Error", error.message || "Failed to delete list");
+          }
         },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteShoppingList(listId, token);
-              setShoppingLists(lists => 
-                lists.filter(list => list.shopping_list_id !== listId)
-              );
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete list');
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
+  };
+
+  // New function to handle generating a shopping list
+  const handleGenerateList = async () => {
+    try {
+      const data = await generateShoppingList(token);
+      console.log("Generated list:", data);
+      // Refresh the lists to show the new one
+      fetchLists();
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to generate shopping list");
+    }
   };
 
   const renderLeftActions = (progress, dragX, item) => {
     const scale = dragX.interpolate({
       inputRange: [0, 100],
       outputRange: [0, 1],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
-  
+
     return (
       <View style={styles.leftAction}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => handleEdit(item)}
         >
@@ -176,12 +192,12 @@ const ShoppingListsPage = ({ navigation }) => {
     const scale = dragX.interpolate({
       inputRange: [-100, 0],
       outputRange: [1, 0],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
-  
+
     return (
       <View style={styles.rightAction}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDelete(item.shopping_list_id)}
         >
@@ -196,20 +212,32 @@ const ShoppingListsPage = ({ navigation }) => {
 
   const renderItem = ({ item }) => (
     <Swipeable
-      renderLeftActions={(progress, dragX) => 
+      renderLeftActions={(progress, dragX) =>
         renderLeftActions(progress, dragX, item)
       }
-      renderRightActions={(progress, dragX) => 
+      renderRightActions={(progress, dragX) =>
         renderRightActions(progress, dragX, item)
       }
     >
       <TouchableOpacity
-        style={[styles.listItem, item.status === 'Purchased' && styles.purchasedItem]}
-        onPress={() => navigation.navigate('ShoppingListItems', { listId: item.shopping_list_id })}
+        style={[
+          styles.listItem,
+          item.status === "Purchased" && styles.purchasedItem,
+        ]}
+        onPress={() =>
+          navigation.navigate("ShoppingListItems", {
+            listId: item.shopping_list_id,
+          })
+        }
       >
         <View style={styles.listItemContent}>
           <Text style={styles.listName}>{item.name}</Text>
-          <Text style={[styles.listStatus, item.status === 'Purchased' && styles.purchasedStatus]}>
+          <Text
+            style={[
+              styles.listStatus,
+              item.status === "Purchased" && styles.purchasedStatus,
+            ]}
+          >
             {item.status}
           </Text>
           <Text style={styles.dateText}>
@@ -236,6 +264,14 @@ const ShoppingListsPage = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* New "Generate List" button on the left side */}
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerateList}
+      >
+        <Text style={styles.generateButtonText}>Generate List</Text>
+      </TouchableOpacity>
+
       {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.error}>{error}</Text>
@@ -307,13 +343,13 @@ const ShoppingListsPage = ({ navigation }) => {
               autoFocus
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setEditModalVisible(false)}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleUpdate}
               >

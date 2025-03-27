@@ -1,20 +1,26 @@
-// routes/userPreference.routes.js
-
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userPreferenceController = require('../controllers/userPreferenceController');
+const {
+  createOrUpdatePreference,
+  getUserPreference,
+  getUserPreferences,
+  getRecommendationEndpoint,
+  updatePreferenceWithML,
+} = require("../controllers/userPreferenceController");
 
-
-router.post('/get-recommendation', userPreferenceController.getRecommendationEndpoint);
+router.put("/ml", updatePreferenceWithML);
 // Create or update a user preference record
-router.post('/', userPreferenceController.createOrUpdatePreference);
+router.post("/", createOrUpdatePreference);
 
-// Get all user preferences for a specific user
-router.get('/:user_id', userPreferenceController.getUserPreferences);
+// Get a single user preference by user_id, item_id, and packaging_unit
+router.get("/:user_id/:item_id/:packaging_unit", getUserPreference);
 
-// Get a specific user preference record based on user, item, and packaging unit
-router.get('/:user_id/:item_id/:packaging_unit', userPreferenceController.getUserPreference);
+// Get all preferences for a given user
+router.get("/:user_id", getUserPreferences);
 
+// Get recommendation from ML service (for testing or debugging)
+router.post("/recommendation", getRecommendationEndpoint);
 
+// Update preference with ML analysis (attaches old preference and returns updated record)
 
 module.exports = router;

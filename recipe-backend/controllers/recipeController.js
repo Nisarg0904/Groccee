@@ -3,6 +3,11 @@ require("dotenv").config(); // Ensure environment variables are loaded
 const axios = require("axios");
 const moment = require("moment");
 const Recipe = require("../models/recipe"); // Mongoose model
+// Ensure you've loaded environment variables (e.g. require('dotenv').config();)
+const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:6001";
+const pythonUrl = `${pythonServiceUrl}/generate-recipes`;
+
+// Now you can use `pythonUrl` in your service
 
 async function generateRecipes(req, res) {
   try {
@@ -31,7 +36,6 @@ async function generateRecipes(req, res) {
 
     // Send both expiring and all UNUSED grocery items to your Python ML service
     // This is the fix - sending only unusedItems instead of all groceryItems
-    const pythonUrl = "http://localhost:6001/generate-recipes";
     const pythonResponse = await axios.post(pythonUrl, { 
       expiringGroceries: relevantItems,
       allGroceries: unusedItems // Changed from groceryItems to unusedItems

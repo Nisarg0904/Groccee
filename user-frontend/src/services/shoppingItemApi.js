@@ -173,3 +173,20 @@ export const createGroceryItemFromShoppingItem = async (groceryData, token) => {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+// Generate a shopping list using ML suggestions
+export const generateShoppingList = async (token) => {
+  try {
+    const response = await shoppingItemAPI.post(
+      "/shopping-list-items/generate",
+      {}, // No body required
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};

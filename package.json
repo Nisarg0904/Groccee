@@ -1,9 +1,19 @@
 {
-  "dependencies": {
-    "@react-native-community/datetimepicker": "^8.3.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "http-proxy-middleware": "^3.0.3"
+  "name": "capstone-root",
+  "private": true,
+  "scripts": {
+    "start:all": "concurrently -n \"GROCERYITEM,ITEM,RECIPE,SHOPPING-LIST,SHOPPING-LIST-ITEM,GLOBAL-ITEM,USER,USER-PREFERENCE,WASTAGE\" -c \"blue,green,yellow,magenta,cyan,gray,white,red,green\" \"npm run start:groceryitem\" \"npm run start:item\" \"npm run start:recipe\" \"npm run start:shopping-list\" \"npm run start:shopping-list-item\" \"npm run start:global-item\" \"npm run start:user\" \"npm run start:user-preference\" \"npm run start:wastage\"",
+    "start:groceryitem": "cd groceryitem-backend && npm install && npm start",
+    "start:item": "cd item-backend && npm install && npm start",
+    "start:recipe": "cd recipe-backend && npm install && npm start",
+    "start:shopping-list": "cd shopping-list-backend && npm install && npm start",
+    "start:shopping-list-item": "cd shopping-list-item-backend && npm install && npm start",
+    "start:global-item": "cd global-item && npm install && npm start",
+    "start:user": "cd user-backend && npm install && npm start",
+    "start:user-preference": "cd user-preference && npm install && npm start",
+    "start:wastage": "cd wastage-backend && npm install && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.2"
   }
 }

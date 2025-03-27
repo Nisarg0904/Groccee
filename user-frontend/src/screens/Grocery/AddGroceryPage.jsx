@@ -183,8 +183,11 @@ const AddGroceryPage = ({ navigation }) => {
             <Picker
               selectedValue={selectedCategory}
               onValueChange={setSelectedCategory}
-              style={styles.picker}
-              dropdownIconColor="#fff"
+              style={[
+                styles.picker,
+                { borderWidth: 1, borderColor: "#000", borderRadius: 10 },
+              ]}
+              dropdownIconColor="#000"
             >
               {categories.map((category) => (
                 <Picker.Item key={category} label={category} value={category} />
