@@ -22,7 +22,7 @@ import {
 import {
   generateShoppingList, // Import the new function
 } from "../../services/shoppingItemApi";
-import CreateShoppingListModal from "../Shopping/CreateShoppingListPage";
+import CreateShoppingListModal from "./CreateShoppingListPage";
 import AddItemsModal from "./AddShoppingListItemPage";
 import { format, formatInTimeZone } from "date-fns-tz";
 import { parseISO } from "date-fns";
