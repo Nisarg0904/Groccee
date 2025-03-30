@@ -17,7 +17,7 @@ import EditGroceryPage from "../screens/Grocery/EditGroceryPage";
 
 // Shopping Screens
 import ShoppingListsPage from "../screens/Shopping/ShoppingListsPage";
-import CreateShoppingListPage from "../screens/Shopping/CreateShoppingListPage";
+import CreateShoppingListScreen from "../screens/Shopping/CreateShoppingListScreen";
 import AddShoppingListItemsPage from "../screens/Shopping/AddShoppingListItemPage";
 import ShoppingListItemsPage from "../screens/Shopping/ViewShoppingListItems";
 
@@ -105,15 +105,24 @@ const ShoppingStack = () => (
     <Stack.Screen 
       name="ShoppingLists" 
       component={ShoppingListsPage}
-      options={{
-        headerShown: false,
-      }}
+      options={({ navigation }) => ({
+        headerShown: true,
+        title: 'Shopping',
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateShoppingList')}
+            style={{ marginRight: 15 }}
+          >
+            <Ionicons name="add" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+        ),
+      })}
     />
     <Stack.Screen 
       name="CreateShoppingList" 
-      component={CreateShoppingListPage}
+      component={CreateShoppingListScreen}
       options={{
-        title: 'Create New List',
+        headerShown: false,
         presentation: 'modal',
       }}
     />
@@ -196,7 +205,11 @@ const AppNavigator = () => {
         component={HomeStack}
         options={{ headerShown: false }}
       />
-      <Tab.Screen name="Shopping" component={ShoppingStack} />
+      <Tab.Screen 
+        name="Shopping" 
+        component={ShoppingStack} 
+        options={{ headerShown: false }}
+      />
       <Tab.Screen
         name="AddGrocery"
         component={AddGroceryPage}

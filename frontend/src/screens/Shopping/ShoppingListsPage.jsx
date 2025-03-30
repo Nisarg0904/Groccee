@@ -294,13 +294,6 @@ const ShoppingListsPage = ({ navigation }) => {
         />
       )}
 
-      <TouchableOpacity
-        style={styles.fabButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <Ionicons name="add" size={24} color="#FFF" />
-      </TouchableOpacity>
-
       <CreateShoppingListModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
