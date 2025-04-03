@@ -240,42 +240,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-
-  // Modify listItem style to remove default border radius on the right when swiped
-  listItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#f8f8f8",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  fabButton: {
-    position: "absolute",
-    right: 16,
-    bottom: 80, // Increased to account for bottom tab bar
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#FF4141",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    zIndex: 1,
-  },
 });
 
 export default styles;
